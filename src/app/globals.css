@@ -244,4 +244,7 @@
   p {
     @apply text-lg leading-6 tracking-normal;
   }
+  button {
+    @apply cursor-pointer;
+  }
 }
