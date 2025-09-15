@@ -9,6 +9,8 @@ const PUBLIC_PATHS = [
   '/verification',
   '/forgot-password',
   '/reset-password',
+  '/connect-number',
+  'whatsapp-connect',
   '/not-found',
   '/unauthorized',
   '/error',
