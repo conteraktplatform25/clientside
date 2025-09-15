@@ -4,6 +4,7 @@ import { Resend } from 'resend';
 import { v4 as uuidv4 } from 'uuid';
 import bcrypt from 'bcryptjs';
 import { getErrorMessage } from '@/utils/errors';
+import { renderTemplate } from '@/lib/helpers/render-template.helper';
 
 const resend = new Resend(process.env.RESEND_API_KEY!);
 
@@ -52,30 +53,45 @@ export async function POST(req: NextRequest) {
         expires,
       },
     });
-    const full_name = first_name + ' ' + last_name;
 
-    // Render email
-    const emailHtml = `
-    <html>
-      <body>
-        <h1>Welcome, ${full_name}!</h1>
-        <p>Thank you for registering with your email: ${email}</p>
-        <p><a href="http://localhost:3000/api/auth/verify?token=${token}">Verify your email</a></p>
-      </body>
-    </html>
-  `;
-
-    // Send email verification
-    await resend.emails.send({
-      // from: 'Concakt Platform Signup <yourname@resend.dev>',
-      from: 'onboarding@resend.dev',
-      to: ['conteraktplatform25@gmail.com'],
-      subject: 'Verify your email',
-      html: emailHtml,
+    const template = await prisma.notificationTemplate.findFirst({
+      where: {
+        notificationType: { name: 'SIGNUP_VERIFICATION' },
+      },
     });
 
+    //const baseURL = `${process.env.NEXT_PUBLIC_APP_URL}/reset-password?token=${token}&email=${user.email}`;
+
+    if (template) {
+      const full_name = user.first_name + ' ' + user.last_name;
+      const subject = template.subject || 'Verify your email';
+      const content = renderTemplate(template.custom_content || template.default_content || '', {
+        name: full_name,
+        email: email,
+        token: token,
+        APP_URL: process.env.NEXT_PUBLIC_APP_URL!,
+      });
+
+      // Send email verification
+      await resend.emails.send({
+        // from: 'Concakt Platform Signup <yourname@resend.dev>',
+        from: 'onboarding@resend.dev',
+        to: ['conteraktplatform25@gmail.com'],
+        subject: subject,
+        html: content,
+      });
+      return NextResponse.json(
+        { ok: true, profile: user, message: 'Successful registration. Check email to verify.' },
+        { status: 201 }
+      );
+    }
+
     return NextResponse.json(
-      { ok: true, profile: user, message: 'User created. Check email to verify.' },
+      {
+        ok: true,
+        profile: user,
+        message: 'Registration was successful but mail failed to reach client. Contact Contakt Support.',
+      },
       { status: 201 }
     );
   } catch (error) {

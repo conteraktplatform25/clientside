@@ -8,120 +8,122 @@ import {
   ConstBusinessCategories as categories,
   ConstAnnualRevenue as revenues,
   ConstBusinessIndustries as industries,
+  ConstCountryCodeOptions,
 } from '@/lib/constants/auth.constant';
 import { fetchWithIndicatorHook } from '@/lib/hooks/fetch-with-indicator.hook';
 import { profileFormSchema, TProfileFormSchema } from '@/lib/schemas/auth/profile.schema';
 import { useProfileFormStore } from '@/lib/store/auth/profile.store';
-import { useSignupFormStore } from '@/lib/store/auth/signup.store';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
-import React, { useEffect } from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { toast } from 'sonner';
+import { IoPersonCircle } from 'react-icons/io5';
+import { Card } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import AlertDisplayField, { IAlertProps } from '@/components/custom/AlertMessageField';
 
-const ProfileForm = () => {
+const ProfileForm = ({ email, full_name }: { email?: string; full_name?: string }) => {
   const router = useRouter();
+  const [alert, setAlert] = useState<IAlertProps>({ type: null });
 
   const { profile, clearProfile } = useProfileFormStore();
-  const { setFormData } = useSignupFormStore();
   const profileForm = useForm<TProfileFormSchema>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: profile,
   });
-
-  //type TRegistrationDetails = TProfileFormSchema & TRegisterFormSchema;
 
   const {
     handleSubmit,
     control,
     formState: { isSubmitting },
     watch,
+    reset,
   } = profileForm;
 
   // Watch the checkbox value
   const isTermsAccepted = watch('term_of_service');
 
-  useEffect(() => {
-    // Run only in the browser
-    const storedData = localStorage.getItem('register-form-storage');
-    if (storedData) {
-      try {
-        setFormData(JSON.parse(storedData));
-      } catch (error) {
-        console.error('Error parsing stored form data:', error);
-      }
-    }
-  }, [setFormData]);
-
-  const handleProfileSubmit = async (profile: TProfileFormSchema) => {
-    const data: TProfileFormSchema = {
-      phone_number: profile.phone_number,
-      whatsapp_business_number: profile.whatsapp_business_number,
-      company_name: profile.company_name,
-      company_website: profile.company_website,
-      company_location: profile.company_location,
-      business_industry: profile.business_industry,
-      business_category: profile.business_category,
-      annual_revenue: profile.annual_revenue,
-      term_of_service: profile.term_of_service,
-    };
-
-    console.log(data);
-
-    const response = await fetchWithIndicatorHook('/api/auth/register', {
+  const handleProfileSubmit = async (data: TProfileFormSchema) => {
+    const response = await fetchWithIndicatorHook(`/api/auth/profile?email=${email}`, {
       method: 'POST',
       body: JSON.stringify({ ...data }),
       headers: { 'Content-Type': 'application/json' },
     });
-    if (response?.ok) {
+    const json = await response.json();
+    if (json?.ok) {
       clearProfile();
-      toast('Successful Registration.', {
-        // description: 'User registered. Check your email for verification.',
-        description: 'Click OK to enter your business profile.',
-        action: {
-          label: 'Ok',
-          //onClick: () => router.push('/profile'),
-          onClick: () => router.push('/login?registered=true'),
-        },
+      reset();
+      setAlert({
+        type: 'success',
+        title: 'Business Profile Successful',
+        description: json.message || '',
       });
-    } else
-      toast('Registration Failed', {
-        description: 'Registration',
-        action: {
-          label: 'Ok',
-          onClick: () => console.log(data),
-        },
+      router.push(`/connect-number?email=${email}&name=${full_name}`);
+    } else {
+      setAlert({
+        type: 'error',
+        title: 'Profile Failed',
+        description: json.message || 'Something went wrong. Please try again.',
       });
+    }
   };
   return (
     <Form {...profileForm}>
-      <form onSubmit={handleSubmit(handleProfileSubmit)} className='block space-y-4 w-full'>
-        <div className='w-full flex items-start gap-6'>
-          <InputField<TProfileFormSchema>
-            name={'phone_number'}
-            control={control}
-            type='text'
-            label='Phone number'
-            placeholder='Enter Personal Phone Number'
-            important
-          />
-          <InputField<TProfileFormSchema>
-            name={'whatsapp_business_number'}
-            control={control}
-            type='text'
-            label='Business Number (Whatsapp)'
-            placeholder='Enter Business Number'
-            important
-          />
-        </div>
-        <InputField<TProfileFormSchema>
-          name={'company_name'}
-          control={control}
-          type='text'
-          label='Company name'
-          placeholder='Enter Company Name'
-          important
+      {alert.type && (
+        <AlertDisplayField
+          type={alert.type}
+          title={alert.title || ''}
+          description={alert.description}
+          onClose={() => setAlert({ type: null, description: '', title: '' })}
         />
+      )}
+      <form onSubmit={handleSubmit(handleProfileSubmit)} className='flex flex-col gap-6 w-full'>
+        <div className='flex item-start gap-2'>
+          <IoPersonCircle className='text-[#E2E8F0]' size={64} />
+          <div className='block space-y-0'>
+            <h6 className='font-semibold text-[18px] leading-[150%] text-neutral-800'>{full_name}</h6>
+            <span className='text-sm leading-[155%] text-neutral-base'>{email}</span>
+          </div>
+        </div>
+        <div className='w-full grid grid-cols-2 gap-3'>
+          <div className='block space-y-0.5'>
+            <p className='text-base leading-[150%]'>Phone Number</p>
+            <Card className='w-full p-0 shadow-none rounded-sm'>
+              <div className='grid grid-cols-3'>
+                <div className='col-span-1'>
+                  <SelectField<TProfileFormSchema>
+                    control={control}
+                    name={'phone_country_code'}
+                    label=''
+                    options={ConstCountryCodeOptions}
+                    className='border-none shadow-none rounded-none focus-visible:ring-0'
+                  />
+                </div>
+                <div className='col-span-2 flex flex-item gap-0.5'>
+                  <Separator orientation='vertical' className='bg-neutral-100' />
+                  <InputField<TProfileFormSchema>
+                    name={'phone_number'}
+                    control={control}
+                    type='text'
+                    placeholder='Enter Phone Number'
+                    className='mt-1 border-none shadow-none rounded-none focus-visible:border-none focus-visible:ring-0'
+                  />
+                </div>
+              </div>
+            </Card>
+          </div>
+          <div className='mt-1.5'>
+            <InputField<TProfileFormSchema>
+              name={'company_name'}
+              control={control}
+              type='text'
+              label='Company name'
+              placeholder='Enter Company Name'
+              important
+            />
+          </div>
+        </div>
+
         <div className='w-full flex items-start gap-6'>
           <InputField<TProfileFormSchema>
             name={'company_website'}
@@ -129,6 +131,7 @@ const ProfileForm = () => {
             type='text'
             label='Company website'
             placeholder='Enter Company Website'
+            className='mt-1'
           />
           <InputField<TProfileFormSchema>
             name={'company_location'}
@@ -170,10 +173,9 @@ const ProfileForm = () => {
             variant={'default'}
             className='mt-4 w-full bg-primary-base hover:bg-primary-700 text-white hover:text-gray-100 text-[1.125rem]'
             type='submit'
-            onClick={() => handleProfileSubmit}
             disabled={!isTermsAccepted || isSubmitting}
           >
-            Create Account
+            Create account
           </Button>
           <div className='w-full flex items-center justify-center'>
             <FormField
@@ -193,15 +195,6 @@ const ProfileForm = () => {
                 </FormItem>
               )}
             />
-            {/* <div className='flex items-center gap-3 max-w-[80%]'>
-              <CheckboxGroupField<TProfileFormSchema> />
-              <Checkbox id='terms' />
-              <Label htmlFor='terms' className='inline font-normal text-base leading-[150%] text-center'>
-                By clicking on ‘Create Account’ you agree to our{' '}
-                <span className='text-primary-base underline'>Terms and services</span> and{' '}
-                <span className='text-primary-base underline'>Privacy policy.</span>
-              </Label>
-            </div> */}
           </div>
         </div>
       </form>

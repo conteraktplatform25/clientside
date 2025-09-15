@@ -1,9 +1,8 @@
-import type { User } from 'next-auth';
+import type { Profile, DefaultSession } from 'next-auth';
 
 declare module 'next-auth' {
   /**
-   * What user information we expect to extract to be able to extract
-   * from our backend response
+   * Core user object stored in our database.
    */
   export interface UserObject {
     id: string;
@@ -11,28 +10,19 @@ declare module 'next-auth' {
     first_name: string | null;
     last_name: string | null;
     role: string;
+    image?: string | null;
   }
 
   /**
-   * The contents of our refresh call to the backend is a new access token
+   * Tokens returned by our backend.
    */
-  export interface BackendAccessJWT {
+  export interface BackendJWT {
     access: string;
-  }
-
-  /**
-   * The initial backend authentication response contains both an `access` token and a `refresh` token.\
-   * The refresh token is a long-lived token that is used to obtain a new access token\
-   * when the current access token expires
-   */
-  export interface BackendJWT extends BackendAccessJWT {
     refresh: string;
   }
 
   /**
-   * The decoded contents of a JWT token returned from the backend (both access and refresh tokens).\
-   * It contains both the user information and other token metadata.\
-   * `iat` is the time the token was issued, `exp` is the time the token expires, `jti` is the token id.
+   * Decoded contents of access/refresh tokens.
    */
   export interface DecodedJWT extends UserObject {
     token_type: 'refresh' | 'access';
@@ -42,9 +32,7 @@ declare module 'next-auth' {
   }
 
   /**
-   * Information extracted from our decoded backend tokens so that we don't need to decode them again.\
-   * `valid_until` is the time the access token becomes invalid\
-   * `refresh_until` is the time the refresh token becomes invalid
+   * Expiration data from decoded tokens.
    */
   export interface AuthValidity {
     valid_until: number;
@@ -52,32 +40,43 @@ declare module 'next-auth' {
   }
 
   /**
-   * The returned data from the authorize method
-   * This is data we extract from our own backend JWT tokens.
+   * User returned from CredentialsProvider `authorize`.
    */
-  export interface User {
-    tokens: BackendJWT;
+  export interface CredentialsUser {
+    id: string;
     user: UserObject;
     validity: AuthValidity;
+    tokens: BackendJWT;
   }
 
   /**
-   * Returned by `useSession`, `getSession`, returned by the `session` callback and also the shape
-   * received as a prop on the SessionProvider React Context
+   * Returned by `useSession`, `getSession`, and the `session` callback.
    */
   export interface Session {
-    user: UserObject;
-    validity: AuthValidity;
-    error: 'RefreshTokenExpired' | 'RefreshAccessTokenError';
+    user: UserObject | null;
+    validity: AuthValidity | object;
+    error?: 'RefreshTokenExpired' | 'RefreshAccessTokenError';
+  }
+
+  /**
+   * Extend Google profile with optional names.
+   */
+  export interface GoogleProfile extends Profile {
+    given_name?: string;
+    family_name?: string;
   }
 }
 
 declare module 'next-auth/jwt' {
   /**
-   * Returned by the `jwt` callback and `getToken`, when using JWT sessions
+   * Shape of the JWT stored in cookies / returned by `jwt` callback.
    */
   export interface JWT {
-    data: User;
-    error: 'RefreshTokenExpired' | 'RefreshAccessTokenError';
+    data: {
+      user: import('next-auth').UserObject | null;
+      validity: import('next-auth').AuthValidity | object;
+      tokens?: import('next-auth').BackendJWT;
+    };
+    error?: 'RefreshTokenExpired' | 'RefreshAccessTokenError';
   }
 }

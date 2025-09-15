@@ -42,3 +42,5 @@ export const ConstAnnualRevenue: string[] = [
   '₦100,000,000 to ₦500,000,000',
   'Above ₦500,000,000',
 ] as const;
+
+export const ConstCountryCodeOptions: string[] = ['+234', '+1', '+44', '+91'] as const;

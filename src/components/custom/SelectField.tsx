@@ -40,7 +40,7 @@ export default function SelectField<T extends FieldValues>({
               <Select value={field.value ?? ''} onValueChange={field.onChange}>
                 <SelectTrigger
                   id={name as string}
-                  className={`text-left focus-visible:border-none focus-visible:ring-ring/10 bg-white pb-4 pt-6 hover:bg-gray-50 ${className}`}
+                  className={`text-left focus-visible:border-none rounded-sm focus-visible:ring-ring/10 bg-white pb-4 pt-6 hover:bg-gray-50 ${className}`}
                 >
                   <SelectValue placeholder={placeholder || label} />
                 </SelectTrigger>

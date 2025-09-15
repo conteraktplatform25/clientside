@@ -8,8 +8,8 @@ interface IProfileFormState {
 }
 
 const defaultFormData: TProfileFormSchema = {
+  phone_country_code: '+234',
   phone_number: '',
-  whatsapp_business_number: '',
   company_name: '',
   company_website: '',
   company_location: '',

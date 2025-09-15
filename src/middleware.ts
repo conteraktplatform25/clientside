@@ -3,9 +3,12 @@ import type { NextRequest } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 
 const PUBLIC_PATHS = [
-  '/auth/login',
-  '/auth/register',
-  '/auth/verification',
+  '/login',
+  '/register',
+  '/profile',
+  '/verification',
+  '/forgot-password',
+  '/reset-password',
   '/not-found',
   '/unauthorized',
   '/error',
@@ -35,7 +38,7 @@ export async function middleware(req: NextRequest) {
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
 
   if (!token || !token.data?.user) {
-    return NextResponse.redirect(new URL('/auth/login', req.url));
+    return NextResponse.redirect(new URL('/login', req.url));
   }
 
   const userRole = token.data.user.role;

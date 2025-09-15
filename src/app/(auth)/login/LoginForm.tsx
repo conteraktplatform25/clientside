@@ -16,7 +16,6 @@ const LoginForm = () => {
   const searchParams = useSearchParams();
   const error = searchParams.get('error');
   const callbackUrl = searchParams.get('callbackUrl') || '';
-  console.log(callbackUrl);
 
   const { profile } = useLoginFormStore();
   const loginForm = useForm<TLoginFormSchema>({
@@ -57,11 +56,15 @@ const LoginForm = () => {
     <Form {...loginForm}>
       <form onSubmit={handleSubmit(loginSubmit)} className='w-full'>
         {error && <p style={{ color: 'red' }}>{error}</p>}
-        <InputField<TLoginFormSchema> name={'email'} control={control} type='email' label='Email' className='mb-4' />
-        <InputField<TLoginFormSchema> name={'password'} control={control} type='password' label='Password' />
+        <div className='block space-y-4 w-full'>
+          <InputField<TLoginFormSchema> name={'email'} control={control} type='email' label='Email' />
+          <InputField<TLoginFormSchema> name={'password'} control={control} type='password' label='Password' />
+        </div>
         <Button
+          type='button'
           variant={'ghost'}
-          className='font-semibold text-primary-base hover:bg-transparent hover:text-primary-700'
+          className='font-semibold text-primary-base hover:bg-transparent hover:text-primary-700 mb-6'
+          onClick={() => router.push('/forgot-password')}
         >
           Forgot password?
         </Button>

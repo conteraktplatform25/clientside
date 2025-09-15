@@ -1,4 +1,4 @@
-import type { UserObject, BackendAccessJWT, BackendJWT } from 'next-auth';
+import type { UserObject, BackendJWT } from 'next-auth';
 //import { PrismaClient } from '@prisma/client';
 import prisma from '@/lib/prisma';
 import { v4 as uuidv4 } from 'uuid';
@@ -15,7 +15,7 @@ const RequestLogin = async (email: string, password: string): Promise<UserObject
       include: { role: true },
     });
 
-    if (!user || !user.password || user.is_deleted) {
+    if (!user || !user.password) {
       throw new Error('Invalid credentials');
     }
 
@@ -98,13 +98,14 @@ export async function refresh(token: string): Promise<Response> {
   try {
     jwt.verify(token, secret_signing_salt);
   } catch (err) {
-    throw new Error(getErrorMessage(err));
+    throw new Error('Refresh token expired');
   }
   // const new_access_token: BackendAccessJWT = {
   //   access: create_access_token(),
   // };
-  const new_access_token: BackendAccessJWT = {
+  const new_access_token: BackendJWT = {
     access: token,
+    refresh: '',
   };
   return new Response(JSON.stringify(new_access_token), {
     status: 200,

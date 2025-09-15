@@ -6,8 +6,8 @@ import {
 import { z } from 'zod';
 
 export const profileFormSchema = z.object({
-  phone_number: z.string().min(10, 'Invalid Phone Number'),
-  whatsapp_business_number: z.string().min(10, 'Invalid Phone Number'),
+  phone_country_code: z.string().min(1, 'Country code is required'),
+  phone_number: z.string().min(5, 'Invalid Phone Number'),
   company_name: z.string().min(5),
   company_website: z.string().nullable(),
   company_location: z.string().nullable(),
@@ -27,9 +27,5 @@ export const profileFormSchema = z.object({
     })
     .nullable(),
 });
-// .refine((data) => data.password === data.confirm_password, {
-//   message: "Passwords don't match",
-//   path: ['confirm_password'],
-// });
 
 export type TProfileFormSchema = z.infer<typeof profileFormSchema>;

@@ -19,12 +19,12 @@ const VerificationSection = ({ email }: { email: string }) => {
         </div>
         <div className='flex items-end mt-4 w-ful gap-1 text-sm md:text-base leading-4 md:leading-5'>
           <span className='font-normal text-neutral-base'>Already a user?</span>
-          <Link href={'/auth/login'}>
+          <Link href={'/login'}>
             <span className='font-semibold text-primary-base'>Login</span>
           </Link>
         </div>
       </div>
-      <div className='h-full flex items-center w-full px-8'>
+      <div className='h-full flex items-center w-full min-h-[85vh] max-w-xl'>
         <div className='flex flex-col gap-3 text-base'>
           <h6 className='font-bold text-black text-2xl'>Verify Your Email Address</h6>
           <p className=' text-neutral-base max-w-[420px] leading-5'>
@@ -33,7 +33,7 @@ const VerificationSection = ({ email }: { email: string }) => {
           <Button
             onClick={handleBackToApp}
             variant={'default'}
-            className='mt-3 bg-primary-base text-white hover:bg-primary-700 py-3 px-4'
+            className='mt-3 bg-primary-base text-white hover:bg-primary-700 py-3 px-4 w-full'
           >
             Go to main app
           </Button>

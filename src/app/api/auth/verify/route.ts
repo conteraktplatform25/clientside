@@ -17,16 +17,17 @@ export async function GET(req: NextRequest) {
     }
 
     // Activate user
-    await prisma.user.update({
+    const user = await prisma.user.update({
       where: { email: verification.identifier },
       data: { email_verified_date: new Date(), is_activated: true },
     });
+    const full_name = user.first_name + ' ' + user.last_name;
 
     // Delete token
     await prisma.verificationToken.delete({ where: { token } });
 
     // Redirect to signin or dashboard
-    return NextResponse.redirect(new URL('/auth/login?verified=true', req.url));
+    return NextResponse.redirect(new URL(`/profile?verified=true&email=${user.email}&name=${full_name}`, req.url));
   } catch (error) {
     return NextResponse.json({ ok: false, error: getErrorMessage(error) }, { status: 500 });
   }
