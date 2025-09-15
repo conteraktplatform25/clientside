@@ -10,7 +10,7 @@ const PUBLIC_PATHS = [
   '/forgot-password',
   '/reset-password',
   '/connect-number',
-  'whatsapp-connect',
+  '/whatsapp-connect',
   '/not-found',
   '/unauthorized',
   '/error',
