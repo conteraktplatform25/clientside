@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { getErrorMessage } from '@/utils/errors';
+import { NextResponse } from 'next/server';
 
 //const prisma = new PrismaClient();
 
@@ -98,7 +99,7 @@ export async function refresh(token: string): Promise<Response> {
   try {
     jwt.verify(token, secret_signing_salt);
   } catch (err) {
-    throw new Error('Refresh token expired');
+    return NextResponse.json({ error: getErrorMessage(err) }, { status: 500 });
   }
   // const new_access_token: BackendAccessJWT = {
   //   access: create_access_token(),

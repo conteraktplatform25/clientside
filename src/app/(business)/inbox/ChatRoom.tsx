@@ -1,8 +1,21 @@
 'use client';
 import { useState } from 'react';
-import { Search, Send } from 'lucide-react';
+import { EllipsisVertical, Send, Tag } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import ChatFilters from './ChatFilters';
+import SearchUser from './SearchUser';
+import MessageMenu from './MessageMenu';
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
 
 interface Message {
   id: number;
@@ -29,37 +42,59 @@ const ChatRoom = () => {
   };
 
   return (
-    <div className='flex h-screen w-full bg-gray-100'>
+    <div className='flex w-full bg-gray-100'>
       {/* Main Chat Area */}
       <main className='flex flex-1'>
         {/* Chat list */}
         <section className='w-1/3 border-r border-gray-200 bg-white flex flex-col'>
           <div className='p-3'>
-            <div className='relative'>
-              <Search className='absolute left-2 top-2 w-4 h-4 text-gray-400' />
-              <input
-                type='text'
-                placeholder='Search for your message or users'
-                className='pl-8 pr-2 py-2 w-full rounded-md border text-sm'
-              />
-            </div>
+            <SearchUser />
           </div>
-          <div className='flex-1 overflow-y-auto'>
-            {['Adun Benedicta', 'Customer 2', 'Customer 3'].map((name, i) => (
-              <div key={i} className='flex items-center gap-2 px-4 py-3 hover:bg-gray-100 cursor-pointer border-b'>
-                <div className='w-10 h-10 rounded-full bg-gray-300' />
-                <div className='flex-1'>
-                  <div className='font-medium'>{name}</div>
-                  <div className='text-sm text-gray-500 truncate'>Thank you for your order...</div>
-                </div>
-              </div>
-            ))}
+          <div className='block'>
+            <ChatFilters />
           </div>
+          <MessageMenu />
         </section>
         {/* Conversation */}
-        <section className='w-2/3 flex flex-col'>
+        <section className='w-2/3 flex flex-col px-4 bg-white'>
           {/* Chat header */}
-          <div className='border-b border-gray-200 p-4 font-semibold'>Adun Benedicta</div>
+          <div className='flex item-start justify-between border-b border-gray-200 p-4 font-semibold'>
+            <div className='flex items-center gap-2'>
+              <div className='w-12 h-12 rounded-full bg-neutral-300 p-2 flex items-center justify-center'>
+                <span className='font-semibold text-2xl leading-[140%] text-white text-center'>MD</span>
+              </div>
+              <div className='flex-1'>
+                <div className='flex flex-col items-start'>
+                  <p className='font-semibold text-base leading-[150%] text-[#282B30]'>Michael Daramola</p>
+                  <div className='flex items-start gap-1'>
+                    <Tag size={12} strokeWidth={1.2} />
+                    <span className={`text-xs leading-[155%]`}>Wednesday order</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className='flex gap-2 items-start'>
+              <Select>
+                <SelectTrigger className='w-[180px]'>
+                  <SelectValue placeholder='Select an agent' />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectLabel>Agent</SelectLabel>
+                    <SelectItem value='apple'>Angela Sudman</SelectItem>
+                    <SelectItem value='banana'>Aderongbi Clement</SelectItem>
+                    <SelectItem value='blueberry'>Albert Mccauley</SelectItem>
+                    <SelectItem value='grapes'>Chukwuka Michael</SelectItem>
+                    <SelectItem value='pineapple'>Spencer Smith</SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+              <Button variant={'ghost'} className='rounded-full border-none bg-transparent hover:bg-gray-100'>
+                <EllipsisVertical />
+              </Button>
+            </div>
+          </div>
+
           {/* Messages */}
           <ScrollArea className='h-[320px] rounded-md border p-4'>
             <div className='flex-1 overflow-y-auto p-4 space-y-3'>
@@ -68,12 +103,12 @@ const ChatRoom = () => {
                   key={msg.id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className={`max-w-sm px-4 py-2 rounded-2xl text-sm shadow-sm ${
-                    msg.sender === 'me' ? 'ml-auto bg-blue-500 text-white' : 'bg-gray-200 text-gray-800'
+                  className={`max-w-sm px-4 py-2 rounded-2xl text-base shadow-sm ${
+                    msg.sender === 'me' ? 'ml-auto bg-[#E9F3FF] text-neutral-700' : 'bg-[#F3F4F6] text-neutral-700'
                   }`}
                 >
                   {msg.text}
-                  <div className='text-[10px] opacity-70 mt-1'>{msg.timestamp}</div>
+                  <div className='text-[10px] opacity-70 mt-1 w-full text-right'>{msg.timestamp}</div>
                 </motion.div>
               ))}
             </div>

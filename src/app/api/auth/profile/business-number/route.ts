@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getErrorMessage } from '@/utils/errors';
+import { createAppNotification } from '@/utils/notification';
+import { AppNotificationType } from '@prisma/client';
 
 // PATCH /api/auth/profile/business-number?email=...
 export async function PATCH(req: NextRequest) {
@@ -27,6 +29,14 @@ export async function PATCH(req: NextRequest) {
     if (updatedProfile.count === 0) {
       return NextResponse.json({ ok: false, error: 'No business profile found for this user' }, { status: 404 });
     }
+    // ✅ create welcome notification
+    await createAppNotification({
+      recipientId: user.id,
+      type: AppNotificationType.REGISTRATION,
+      title: 'Business Number Integrated 🎉',
+      body: `Hi ${user.first_name}, thanks for completing your contakt profile`,
+      data: { onboarding: { message: 'Successful Registration Completion' } },
+    });
 
     return NextResponse.json({ ok: true, message: 'Business number updated successfully' }, { status: 200 });
   } catch (error) {

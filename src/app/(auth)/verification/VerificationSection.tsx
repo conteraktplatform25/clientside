@@ -24,7 +24,7 @@ const VerificationSection = ({ email }: { email: string }) => {
           </Link>
         </div>
       </div>
-      <div className='h-full flex items-center w-full min-h-[85vh] max-w-xl'>
+      <div className='h-full flex items-center w-full min-h-[85vh] max-w-3xl'>
         <div className='flex flex-col gap-3 text-base'>
           <h6 className='font-bold text-black text-2xl'>Verify Your Email Address</h6>
           <p className=' text-neutral-base max-w-[420px] leading-5'>

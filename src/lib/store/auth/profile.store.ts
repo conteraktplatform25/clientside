@@ -10,6 +10,8 @@ interface IProfileFormState {
 const defaultFormData: TProfileFormSchema = {
   phone_country_code: '+234',
   phone_number: '',
+  password: '',
+  confirm_password: '',
   company_name: '',
   company_website: '',
   company_location: '',

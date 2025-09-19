@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getErrorMessage } from '@/utils/errors';
+import bcrypt from 'bcryptjs';
 
 export async function POST(req: NextRequest) {
   try {
     const email = req.nextUrl.searchParams.get('email');
     const {
+      password,
       phone_country_code,
       phone_number,
       company_name,
@@ -16,7 +18,7 @@ export async function POST(req: NextRequest) {
       annual_revenue,
     } = await req.json();
 
-    if (!email || !phone_number) {
+    if (!email || !phone_number || !password) {
       return NextResponse.json({ ok: false, error: 'Missing fields' }, { status: 400 });
     }
 
@@ -24,6 +26,8 @@ export async function POST(req: NextRequest) {
     if (!user) {
       return NextResponse.json({ ok: false, error: 'Email already exists' }, { status: 409 });
     }
+
+    const hashedPassword = await bcrypt.hash(password, 12);
 
     // Create user (not activated yet)
     const businessProfile = await prisma.businessProfile.create({
@@ -37,6 +41,12 @@ export async function POST(req: NextRequest) {
         business_category,
         annual_revenue,
       },
+    });
+
+    // Update Phone Number
+    await prisma.user.updateMany({
+      where: { id: user.id },
+      data: { phone: phone_number, password: hashedPassword },
     });
 
     return NextResponse.json(

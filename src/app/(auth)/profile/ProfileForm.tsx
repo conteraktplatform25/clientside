@@ -168,6 +168,22 @@ const ProfileForm = ({ email, full_name }: { email?: string; full_name?: string 
           className='w-full'
           placeholder='Select Revenue'
         />
+        <div className='flex item-center justify-center gap-6 w-full'>
+          <InputField<TProfileFormSchema>
+            name={'password'}
+            control={control}
+            type='password'
+            label='Password'
+            important
+          />
+          <InputField<TProfileFormSchema>
+            name={'confirm_password'}
+            control={control}
+            type='password'
+            label='Confirm Password'
+            important
+          />
+        </div>
         <div className='block space-y-2'>
           <Button
             variant={'default'}

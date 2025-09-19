@@ -82,7 +82,7 @@ const WhatsappConnetForm = () => {
           <div className='text-neutral-800 text-[1.801rem] font-semibold'>contakt</div>
         </div>
       </div>
-      <div className='flex flex-col items-start gap-4 min-h-[85vh]'>
+      <div className='flex flex-col items-start gap-4 min-h-[85vh] max-w-3xl'>
         <div className='flex-1 flex flex-col items-start justify-center gap-6 w-full'>
           <div className='w-full flex items-start justify-between'>
             <div className='flex flex-col gap-1'>

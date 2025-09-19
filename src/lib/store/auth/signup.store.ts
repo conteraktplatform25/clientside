@@ -19,8 +19,6 @@ const defaultFormData: TRegisterFormSchema = {
   first_name: '',
   last_name: '',
   email: '',
-  password: '',
-  confirm_password: '',
 };
 
 export const useSignupFormStore = create<ISignupFormState>()(
@@ -52,27 +50,3 @@ export const useSignupFormStore = create<ISignupFormState>()(
     }
   )
 );
-//   profile: {
-//     first_name: '',
-//     last_name: '',
-//     email: '',
-//   },
-//   setProfile: (profile) => {
-//     try {
-//       registerFormSchema.parse(profile);
-//       set({ profile });
-//     } catch (error: unknown) {
-//       console.error('Validation error:', error);
-//     }
-//   },
-//   clearProfile: () =>
-//     set({
-//       profile: {
-//         first_name: '',
-//         last_name: '',
-//         email: '',
-//         // password: '',
-//         // confirm_password: '',
-//       },
-//     }),
-// }));

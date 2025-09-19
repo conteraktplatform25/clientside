@@ -1,5 +1,5 @@
 import { LucideProps } from 'lucide-react';
-import { ForwardRefExoticComponent, ReactNode, RefAttributes } from 'react';
+import { ForwardRefExoticComponent, MouseEventHandler, ReactNode, RefAttributes } from 'react';
 
 export type TSVGIconProps = {
   fileName: string; // file name without path, e.g., "my-icon.svg"
@@ -22,4 +22,14 @@ export interface ISideMenuProps {
 export interface ISelectOption {
   label: string;
   value: string;
+}
+
+export interface IDialogOpen {
+  isOpen: boolean;
+  onOpenChange: (status: boolean) => void;
+  onConfirm: MouseEventHandler<HTMLButtonElement>;
+  title: string;
+  description: string;
+  confirmText: string;
+  cancelText: string;
 }

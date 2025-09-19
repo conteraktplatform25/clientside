@@ -69,29 +69,6 @@ const SignupForm = () => {
           onClose={() => setAlert({ type: null, description: '', title: '' })}
         />
       )}
-      {/* Inline Alert */}
-      {/* {alert.type && (
-        <Alert
-          variant='default'
-          className={`mt-2 flex flex-col gap-2 border-l-3 ${
-            alert.type === 'success'
-              ? 'border-green-500 bg-green-50 text-green-800'
-              : 'border-red-500 bg-red-50 text-red-800'
-          }`}
-        >
-          <div className='flex items-start gap-1'>
-            {alert.type === 'success' ? (
-              <CheckCircle2 className='h-5 w-5 mt-0.5' />
-            ) : (
-              <XCircle className='h-5 w-5 mt-0.5' />
-            )}
-            <div>
-              <AlertTitle>{alert.title}</AlertTitle>
-              <AlertDescription>{alert.description}</AlertDescription>
-            </div>
-          </div>
-        </Alert>
-      )} */}
       <form onSubmit={handleSubmit(handleRegisterSubmit)} className='space-y-6 w-full'>
         <InputField<TRegisterFormSchema> name={'email'} control={control} type='email' label='Work Email' important />
         <div className='flex item-center justify-center gap-4 w-full'>
@@ -107,22 +84,6 @@ const SignupForm = () => {
             control={control}
             type='text'
             label='Last Name'
-            important
-          />
-        </div>
-        <div className='flex item-center justify-center gap-6 w-full'>
-          <InputField<TRegisterFormSchema>
-            name={'password'}
-            control={control}
-            type='password'
-            label='Password'
-            important
-          />
-          <InputField<TRegisterFormSchema>
-            name={'confirm_password'}
-            control={control}
-            type='password'
-            label='Confirm Password'
             important
           />
         </div>

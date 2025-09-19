@@ -18,8 +18,8 @@ export const ConstAdminSideMenu: ISideMenuProps[] = [
     icon: Megaphone,
   },
   {
-    title: 'Contact',
-    url: '/contact',
+    title: 'Contacts',
+    url: '/contacts',
     icon: UserRound,
   },
   {

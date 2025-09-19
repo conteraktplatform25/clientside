@@ -11,6 +11,7 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  // directUrl = env("DIRECT_URL")
 }
 
 /**
@@ -81,15 +82,14 @@ model User {
   updated_at          DateTime  @updatedAt
 
   // Relations
-  role            Role              @relation(fields: [roleId], references: [id], onDelete: Restrict)
-  //shops             Shop[]              @relation("ShopOwner")
-  businessProfile BusinessProfile[]
-  account         Account[]
-  session         Session[]
-  // orders            Order[]
-  // conversations     Conversation[]
-  // messages          Message[]
-  // campaignResipient CampaignRecipient[]
+  role              Role                      @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  businessProfile   BusinessProfile[]
+  account           Account[]
+  session           Session[]
+  notifications     ApplicationNotification[] @relation("ReceivedNotifications") // Added relation name
+  sentNotifications ApplicationNotification[] @relation("SentNotifications") // Added for sender
+  activities        UserActivity[] // User's own actions
+  preference        NotificationPreference[]
 }
 
 model BusinessProfile {
@@ -143,6 +143,58 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+model ApplicationNotification {
+  id          String                   @id @default(uuid())
+  recipientId String // User receiving the notification
+  senderId    String? // Optional: User sending it (e.g., a seller messaging a buyer)
+  type        AppNotificationType      @default(SYSTEM) // e.g., 'order_update', 'new_message', 'product_review', 'promotion'
+  channel     NotificationTemplateType @default(IN_APP)
+  title       String // Short subject, e.g., "Order Shipped!"
+  body        String? // Detailed message, e.g., "Your iPhone order #123 is on its way."
+  data        Json? // Flexible payload, e.g., { orderId: "abc", productName: "iPhone" }
+  isRead      Boolean                  @default(false)
+  isDeleted   Boolean                  @default(false) // Soft delete for cleanup
+  createdAt   DateTime                 @default(now())
+  updatedAt   DateTime                 @updatedAt
+  expiresAt   DateTime? // optional TTL/expiration for promo notifications
+
+  // Relations
+  // Relations with explicit names
+  recipient User  @relation("ReceivedNotifications", fields: [recipientId], references: [id], onDelete: Cascade)
+  sender    User? @relation("SentNotifications", fields: [senderId], references: [id], onDelete: SetNull)
+
+  @@index([recipientId]) // For fast queries by user
+  @@index([type, createdAt(sort: Desc)]) // For filtering/sorting notifications
+}
+
+model UserActivity {
+  id          String   @id @default(uuid())
+  userId      String // The user who performed the action
+  type        String // e.g., 'order_placed', 'product_reviewed', 'cart_added'
+  description String // Human-readable log, e.g., "Added iPhone to cart"
+  metadata    Json? // e.g., { productId: "xyz", quantity: 1 }
+  createdAt   DateTime @default(now())
+
+  // Relation
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId]) // For fast user-specific queries
+  @@index([type, createdAt(sort: Desc)]) // For timelines
+}
+
+model NotificationPreference {
+  id        String                   @id @default(uuid())
+  userId    String
+  type      AppNotificationType
+  channel   NotificationTemplateType
+  enabled   Boolean                  @default(true)
+  updatedAt DateTime                 @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, type, channel])
 }
 
 /**
@@ -389,7 +441,21 @@ enum MessageStatus {
 }
 
 enum NotificationTemplateType {
+  IN_APP
   SMS
   MAIL
   DATABASE
+  PUSH
+}
+
+enum AppNotificationType {
+  REGISTRATION
+  ORDER_UPDATE
+  ORDER_PLACED
+  NEW_MESSAGE
+  PRODUCT_REVIEW
+  PROMOTION
+  PRICE_DROP
+  SHIPPING_UPDATE
+  SYSTEM
 }

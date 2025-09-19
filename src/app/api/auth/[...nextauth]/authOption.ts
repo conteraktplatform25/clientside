@@ -1,5 +1,6 @@
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
-import { PrismaClient } from '@prisma/client';
+//import { PrismaClient } from '@prisma/client';
+import prisma from '@/lib/prisma';
 import GoogleProvider, { GoogleProfile } from 'next-auth/providers/google';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import type { AuthValidity, BackendJWT, CredentialsUser, DecodedJWT, NextAuthOptions, UserObject } from 'next-auth';
@@ -7,7 +8,7 @@ import { jwtDecode } from 'jwt-decode';
 import { login, refresh } from '@/actions/user-auth';
 import { JWT } from 'next-auth/jwt';
 
-const prisma = new PrismaClient();
+//const prisma = new PrismaClient();
 
 async function refreshAccessToken(nextAuthJWT: JWT): Promise<JWT> {
   try {
@@ -73,7 +74,6 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         const email = credentials?.email;
         const password = credentials?.password;
-        console.log('Just Testing');
 
         if (typeof email !== 'string' || typeof password !== 'string') {
           throw new Error('Email and password must be provided as strings');
@@ -91,7 +91,16 @@ export const authOptions: NextAuthOptions = {
           const access = jwtDecode<DecodedJWT>(tokens.access);
           const refresh = jwtDecode<DecodedJWT>(tokens.refresh);
 
-          console.log('JWT Access Here', access);
+          let registered_number = '';
+          const profile = await prisma.businessProfile.findFirst({
+            where: { userId: access.id },
+            select: {
+              business_number: true,
+              phone_number: true,
+            },
+          });
+          console.log('Profile Information Here', profile);
+          if (profile) registered_number = profile.business_number!;
 
           if (!access.id || !access.email || !access.role || !access.exp || !refresh.jti || !refresh.exp) {
             throw new Error('Invalid token structure');
@@ -110,11 +119,15 @@ export const authOptions: NextAuthOptions = {
             first_name: access.first_name,
             last_name: access.last_name,
             role: access.role,
+            phone_number: profile?.phone_number,
+            registered_number,
           };
           const validity: AuthValidity = {
             valid_until: access.exp,
             refresh_until: refresh.exp,
           };
+
+          console.log('User Access Here', user);
 
           await prisma.user.upsert({
             where: { email: user.email },

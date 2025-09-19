@@ -5,8 +5,8 @@ import ForgotPasswordSection from './ForgotPasswordSection';
 const ForgotPasswordPage = () => {
   return (
     <div className='w-full min-h-screen'>
-      <div className='w-full xl:max-w-[1440px] grid grid-cols-1 lg:grid-cols-2  xl:grid-cols-[840px_1fr] gap-0 mx-auto box-border overflow-x-hidden'>
-        <div className='pl-16 pr-12 py-4 w-full'>
+      <div className='w-full grid bg-white grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6 box-border'>
+        <div className='w-full mx-auto px-4 sm:px-6 lg:px-8 py-4'>
           <ForgotPasswordSection />
         </div>
         <div className='hidden lg:block p-0 bg-primary-900 w-full text-white'>

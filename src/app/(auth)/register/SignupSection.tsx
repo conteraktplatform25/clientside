@@ -20,7 +20,7 @@ const SignupSection = () => {
           </Link>
         </div>
       </div>
-      <div className='flex flex-col items-start gap-4 min-h-[85vh] max-w-xl'>
+      <div className='flex flex-col items-start gap-4 min-h-[85vh] max-w-3xl'>
         <div className='flex-1 flex flex-col items-start justify-center gap-6 w-full'>
           <div className='flex flex-col gap-1'>
             <h6 className='font-bold text-black'>Create your account</h6>

@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { Resend } from 'resend';
 import { v4 as uuidv4 } from 'uuid';
-import bcrypt from 'bcryptjs';
 import { getErrorMessage } from '@/utils/errors';
 import { renderTemplate } from '@/lib/helpers/render-template.helper';
 
@@ -10,11 +9,9 @@ const resend = new Resend(process.env.RESEND_API_KEY!);
 
 export async function POST(req: NextRequest) {
   try {
-    const { email, password, first_name, last_name } = await req.json();
+    const { email, first_name, last_name } = await req.json();
 
-    console.log(email);
-
-    if (!email || !password || !first_name || !last_name) {
+    if (!email || !first_name || !last_name) {
       return NextResponse.json({ ok: false, error: 'Missing fields' }, { status: 400 });
     }
 
@@ -23,7 +20,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false, error: 'Email already exists' }, { status: 409 });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 12);
+    //const hashedPassword = await bcrypt.hash(password, 12);
 
     // Get default role (e.g., 'user')
     const defaultRole = await prisma.role.findFirst({ where: { is_default: true } });
@@ -35,13 +32,13 @@ export async function POST(req: NextRequest) {
     const user = await prisma.user.create({
       data: {
         email,
-        password: hashedPassword,
         first_name,
         last_name,
         roleId: defaultRole.id,
         is_activated: false, // Wait for email verification
       },
     });
+    console.log(user);
 
     // Generate verification token
     const token = uuidv4();

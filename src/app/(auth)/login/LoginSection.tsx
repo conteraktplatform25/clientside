@@ -21,11 +21,13 @@ const LoginSection = () => {
         <div className='flex items-end mt-4 w-ful gap-1 text-sm md:text-base leading-4 md:leading-5'>
           <span className='font-normal text-neutral-base'>Not on Contakt?</span>
           <Link href={'/register'}>
-            <span className='font-semibold text-primary-base'>Sign up</span>
+            <span className='font-semibold text-primary-base hover:text-primary-700 focus-visible:border-none'>
+              Sign up
+            </span>
           </Link>
         </div>
       </div>
-      <div className='w-full flex item-center min-h-[85vh] max-w-xl'>
+      <div className='w-full flex item-center min-h-[85vh] max-w-3xl'>
         <div className=' flex-1 flex flex-col items-start justify-center gap-6 w-full'>
           <div className='flex flex-col gap-2'>
             <h6 className='font-bold text-black'>Welcome Back</h6>
