@@ -23,8 +23,11 @@ export async function GET(req: NextRequest) {
     });
     const full_name = user.first_name + ' ' + user.last_name;
 
-    // Delete token
-    await prisma.verificationToken.delete({ where: { token } });
+    // Update token
+    await prisma.verificationToken.update({
+      where: { token },
+      data: { isTokenUsed: true },
+    });
 
     // Redirect to signin or dashboard
     return NextResponse.redirect(new URL(`/profile?verified=true&email=${user.email}&name=${full_name}`, req.url));
