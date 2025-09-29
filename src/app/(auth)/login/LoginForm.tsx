@@ -70,7 +70,7 @@ const LoginForm = () => {
         </Button>
         <Button
           variant={'default'}
-          className='mt-4 w-full bg-primary-base hover:bg-primary-700 text-white hover:text-gray-100 text-[1.125rem]'
+          className='mt-2 w-full bg-primary-base hover:bg-primary-700 text-white hover:text-gray-100 text-[1.125rem]'
           disabled={isSubmitting}
           type='submit'
         >

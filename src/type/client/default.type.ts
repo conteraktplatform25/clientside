@@ -1,3 +1,4 @@
+import { ColumnDef } from '@tanstack/react-table';
 import { LucideProps } from 'lucide-react';
 import { ForwardRefExoticComponent, MouseEventHandler, ReactNode, RefAttributes } from 'react';
 
@@ -13,10 +14,16 @@ export interface ILayoutProps {
   children: ReactNode;
 }
 
-export interface ISideMenuProps {
+interface IMenuProps {
   title: string;
   url: string;
+}
+
+export interface ISideMenuProps {
+  title: string;
+  url?: string;
   icon: ForwardRefExoticComponent<Omit<LucideProps, 'ref'> & RefAttributes<SVGSVGElement>>;
+  submenu?: IMenuProps[];
 }
 
 export interface ISelectOption {
@@ -32,4 +39,16 @@ export interface IDialogOpen {
   description: string;
   confirmText: string;
   cancelText: string;
+}
+
+// interface IColumnTableProps<TData> {
+//   onEdit: (row: TData) => void;
+//   buttonText: string;
+//   className?: string;
+// }
+
+export interface IDataTableProps<TData, TValue> {
+  columns: ColumnDef<TData, TValue>[];
+  data: TData[];
+  children?: ReactNode;
 }

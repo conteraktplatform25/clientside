@@ -76,13 +76,13 @@ const WhatsappConnetForm = () => {
 
   return (
     <section className='w-full flex flex-col gap-4'>
-      <div className='flex items-start justify-between'>
+      <div className='flex items-start justify-between px-4 sm:px-6 lg:px-8'>
         <div className='flex gap-0.5'>
           <SVGIcon className=' mt-1.5' fileName='icon-logo.svg' alt='Concakt Logo' width={29.39} height={20.58} />
           <div className='text-neutral-800 text-[1.801rem] font-semibold'>contakt</div>
         </div>
       </div>
-      <div className='flex flex-col items-start gap-4 min-h-[85vh] max-w-3xl'>
+      <div className='flex flex-col items-start gap-4 min-h-[82vh] px-4 sm:px-6 lg:px-8 max-w-3xl'>
         <div className='flex-1 flex flex-col items-start justify-center gap-6 w-full'>
           <div className='w-full flex items-start justify-between'>
             <div className='flex flex-col gap-1'>
@@ -102,7 +102,7 @@ const WhatsappConnetForm = () => {
                     <Button
                       onClick={() => router.push('/login')}
                       variant={'default'}
-                      className='bg-white border-neutral-800 text-neutral-700 hover:bg-neutral-100 font-medium w-fit'
+                      className='bg-white border rounded-lg border-neutral-800 text-neutral-700 hover:bg-neutral-100 font-medium w-fit'
                     >
                       Back to Login
                     </Button>
@@ -135,7 +135,7 @@ const WhatsappConnetForm = () => {
                       </Card>
                     </div>
                   </div>
-                  <div className='mt-24 w-full flex items-end justify-end gap-2'>
+                  <div className='mt-10 w-full flex items-end justify-end gap-2'>
                     {/* <Button
                       onClick={() => router.push('/login')}
                       variant={'default'}

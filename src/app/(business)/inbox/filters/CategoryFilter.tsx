@@ -42,7 +42,7 @@ const CategoryFilters = () => {
               setCategory(value as (typeof categories)[number]); // if zustand
             }}
           >
-            <SelectTrigger className='w-[150px]'>
+            <SelectTrigger className='w-fit'>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

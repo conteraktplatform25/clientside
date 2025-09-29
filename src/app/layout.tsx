@@ -3,12 +3,13 @@ import { ReactNode, useState } from 'react';
 import { SessionProvider } from 'next-auth/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 //import type { Metadata } from 'next';
-import { sfProRounded } from './fonts';
+//import { sfProRounded } from './fonts';
 //import { Nunito } from 'next/font/google';
 import './globals.css';
 import LoaderWrapper from '@/components/custom/LoaderWrapper';
 import { Toaster } from 'sonner';
 import { ServerIndicator } from '@/components/custom/ServerIndicator';
+import localFont from 'next/font/local';
 //import './assets/styles/fonts.css';
 
 // export const metadata: Metadata = {
@@ -24,6 +25,58 @@ import { ServerIndicator } from '@/components/custom/ServerIndicator';
 //   variable: '--font-nunito',
 // });
 
+export const sfProRounded = localFont({
+  src: [
+    {
+      path: '../assets/fonts/sf-pro-rounded/SFProRounded-Thin.woff2',
+      weight: '100',
+      style: 'normal',
+    },
+    {
+      path: '../assets/fonts/sf-pro-rounded/SFProRounded-Ultralight.woff2',
+      weight: '200',
+      style: 'normal',
+    },
+    {
+      path: '../assets/fonts/sf-pro-rounded/SFProRounded-Light.woff2',
+      weight: '300',
+      style: 'normal',
+    },
+    {
+      path: '../assets/fonts/sf-pro-rounded/SFProRounded-Regular.woff2',
+      weight: '400',
+      style: 'normal',
+    },
+    {
+      path: '../assets/fonts/sf-pro-rounded/SFProRounded-Medium.woff2',
+      weight: '500',
+      style: 'normal',
+    },
+    {
+      path: '../assets/fonts/sf-pro-rounded/SFProRounded-Semibold.woff2',
+      weight: '600',
+      style: 'normal',
+    },
+    {
+      path: '../assets/fonts/sf-pro-rounded/SFProRounded-Bold.woff2',
+      weight: '700',
+      style: 'normal',
+    },
+    {
+      path: '../assets/fonts/sf-pro-rounded/SFProRounded-Heavy.woff2',
+      weight: '800',
+      style: 'normal',
+    },
+    {
+      path: '../assets/fonts/sf-pro-rounded/SFProRounded-Black.woff2',
+      weight: '900',
+      style: 'normal',
+    },
+  ],
+  variable: '--font-sf-pro-rounded',
+  display: 'swap',
+});
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -32,7 +85,7 @@ export default function RootLayout({
   const [queryClient] = useState(() => new QueryClient());
   return (
     <html lang='en'>
-      <body className={`${sfProRounded.variable} antialiased`}>
+      <body className={`${sfProRounded.className} antialiased`}>
         <LoaderWrapper>
           <SessionProvider>
             <QueryClientProvider client={queryClient}>

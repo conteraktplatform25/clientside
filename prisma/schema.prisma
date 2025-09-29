@@ -90,6 +90,9 @@ model User {
   sentNotifications ApplicationNotification[] @relation("SentNotifications") // Added for sender
   activities        UserActivity[] // User's own actions
   preference        NotificationPreference[]
+  // conversation      Conversation[]
+  conversations     ConversationUser[]
+  message           Message[]
 }
 
 model BusinessProfile {
@@ -97,7 +100,7 @@ model BusinessProfile {
   userId            String
   company_name      String   @unique
   phone_number      String
-  business_number   String? // Business WhatsApp phone number
+  business_number   String?  @unique // Business WhatsApp phone number
   company_location  String?
   company_website   String?
   business_industry String?
@@ -196,6 +199,47 @@ model NotificationPreference {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, type, channel])
+}
+
+// Conversation (WhatsApp/Chat support)
+model Conversation {
+  id         String             @id @default(cuid())
+  userId     String
+  status     ConversationStatus @default(OPEN)
+  isGroup    Boolean            @default(false)
+  created_at DateTime           @default(now())
+  updated_at DateTime           @updatedAt
+
+  // Relations
+  users    ConversationUser[]
+  messages Message[]
+}
+
+model ConversationUser {
+  userId         String
+  conversationId String
+  joinedAt       DateTime @default(now())
+
+  user         User         @relation(fields: [userId], references: [id])
+  conversation Conversation @relation(fields: [conversationId], references: [id])
+
+  @@id([userId, conversationId])
+}
+
+// Message (Chat messages)
+model Message {
+  id             String           @id @default(cuid())
+  conversationId String
+  content        String
+  direction      MessageDirection
+  senderId       String?
+  is_deleted     Boolean          @default(false)
+  created_at     DateTime         @default(now())
+  updated_at     DateTime         @updatedAt
+
+  // Relations
+  conversation Conversation @relation(fields: [conversationId], references: [id])
+  user         User?        @relation(fields: [senderId], references: [id])
 }
 
 /**
@@ -424,6 +468,7 @@ enum ConversationStatus {
 }
 
 enum MessageDirection {
+  PENDING
   SENT
   RECEIVED
 }

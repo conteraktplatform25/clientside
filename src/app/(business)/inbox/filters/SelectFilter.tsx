@@ -1,6 +1,5 @@
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Separator } from '@/components/ui/separator';
 import {
   ConstTagLabels as tags,
   ConstChatStatus as statuses,
@@ -37,26 +36,25 @@ const SelectFilter = () => {
       <PopoverTrigger asChild>
         <Button
           variant='ghost'
-          className='rounded-full border border-[#DEE2E6] bg-white focus-visible:shadow-none focus-visible:border-none'
+          className='rounded-full w-8 h-8 border border-[#DEE2E6] bg-white focus-visible:shadow-none focus-visible:border-none'
         >
           <Funnel size={18} strokeWidth={1.51} color='#282B30' />
         </Button>
       </PopoverTrigger>
       <PopoverContent className='w-[265px] p-0'>
         <div className='w-full grid gap-4 text-[#38393A]'>
-          <div className='flex items-start justify-between p-4'>
+          <div className='flex items-start justify-between p-4 border-b border-gray-200'>
             <p className='text-base leading-[155%] font-medium'>Filter</p>
             <Button
               variant={'ghost'}
               size={'sm'}
-              className='rounded-full border border-[#DEE2E6] p-0 bg-[#F3F4F6] hover:bg-[#cccfd5] focus-visible:shadow-none focus-visible:border-none'
+              className='rounded-full w-8 h-8 border border-[#DEE2E6] p-0 bg-[#F3F4F6] hover:bg-[#cccfd5] focus-visible:shadow-none focus-visible:border-none'
             >
               <X size={14} />
             </Button>
           </div>
-          <Separator orientation='horizontal' className='data-[orientation=horizontal]:w-' />
-          <ScrollArea className='h-64 w-full'>
-            <div className='flex flex-col gap-4'>
+          <ScrollArea className='h-72 w-full'>
+            <div className='flex flex-col gap-4 px-4 py-2'>
               <SelectFilterField<TSelectFilterSchema>
                 control={control}
                 name='chat_status'
@@ -89,8 +87,8 @@ const SelectFilter = () => {
                 options={sortings}
                 className='w-[90%]'
               />
-              <Separator orientation='horizontal' className='data-[orientation=horizontal]:w-[95%]' />
-              <div className='flex items-end justify-end gap-3 mr-4'>
+              {/* <Separator orientation='horizontal' className='data-[orientation=horizontal]:w-[95%]' /> */}
+              <div className='flex items-end justify-end gap-3 border-t border-gray-200 py-4'>
                 <Button className='border border-[#EEEFF1] text-neutral-700 bg-white hover:bg-gray-50 rounded-[10px] py-2 px-4 '>
                   Reset
                 </Button>

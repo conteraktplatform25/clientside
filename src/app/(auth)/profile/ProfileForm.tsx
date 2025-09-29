@@ -123,7 +123,6 @@ const ProfileForm = ({ email, full_name }: { email?: string; full_name?: string 
             />
           </div>
         </div>
-
         <div className='w-full flex items-start gap-6'>
           <InputField<TProfileFormSchema>
             name={'company_website'}

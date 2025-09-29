@@ -14,8 +14,17 @@ export const ConstAdminSideMenu: ISideMenuProps[] = [
   },
   {
     title: 'Automated Messaging',
-    url: '/automated-messaging',
     icon: Megaphone,
+    submenu: [
+      {
+        title: 'Quick reply',
+        url: '/messaging/quick-reply',
+      },
+      {
+        title: 'Broadcast messages',
+        url: '/messaging/broadcast',
+      },
+    ],
   },
   {
     title: 'Contacts',
