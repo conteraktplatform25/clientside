@@ -1,25 +1,40 @@
+// src/app/api/[...nextauth]/authOption.ts
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
-//import { PrismaClient } from '@prisma/client';
 import prisma from '@/lib/prisma';
-import GoogleProvider, { GoogleProfile } from 'next-auth/providers/google';
+import GoogleProvider from 'next-auth/providers/google';
 import CredentialsProvider from 'next-auth/providers/credentials';
-import type { AuthValidity, BackendJWT, CredentialsUser, DecodedJWT, NextAuthOptions, UserObject } from 'next-auth';
+import { NextAuthOptions, User as NextAuthUser } from 'next-auth';
+import type { JWT as NextAuthJWT } from 'next-auth/jwt';
 import { jwtDecode } from 'jwt-decode';
 import { login, refresh } from '@/actions/user-auth';
-import { JWT } from 'next-auth/jwt';
 
-//const prisma = new PrismaClient();
+// keep your custom types in next-auth.d.ts
+type BackendJWT = import('next-auth').BackendJWT;
+type DecodedJWT = import('next-auth').DecodedJWT;
+type CredentialsUser = import('next-auth').CredentialsUser;
+type UserObject = import('next-auth').UserObject;
+type AuthValidity = import('next-auth').AuthValidity;
 
-async function refreshAccessToken(nextAuthJWT: JWT): Promise<JWT> {
+interface GoogleProfile {
+  given_name?: string;
+  family_name?: string;
+  name?: string;
+  picture?: string;
+  email?: string;
+}
+
+async function refreshAccessToken(nextAuthJWT: NextAuthJWT): Promise<NextAuthJWT> {
   try {
-    if (!nextAuthJWT.data?.tokens?.refresh) {
-      throw new Error('No refresh token available');
-    }
-    const res = await refresh(nextAuthJWT.data.tokens.refresh);
-    const accessToken = await res.json();
+    const refreshToken = nextAuthJWT.data?.tokens?.refresh;
+    if (!refreshToken) throw new Error('No refresh token available');
 
-    if (!res.ok) throw accessToken;
-    const { exp }: { exp: number } = jwtDecode(accessToken.access);
+    const res = await refresh(refreshToken);
+    const accessPayload = await res.json();
+    if (!res.ok) throw accessPayload;
+
+    // decode the new access for expiry (`exp` as seconds)
+    const decoded = jwtDecode<DecodedJWT>(accessPayload.access);
+    const exp = decoded.exp ?? 0;
 
     return {
       ...nextAuthJWT,
@@ -31,21 +46,15 @@ async function refreshAccessToken(nextAuthJWT: JWT): Promise<JWT> {
         },
         tokens: {
           ...nextAuthJWT.data.tokens,
-          access: accessToken.access,
+          access: accessPayload.access,
         },
       },
       error: undefined,
     };
-  } catch (error) {
-    console.debug(error);
+  } catch (err) {
+    console.error('refreshAccessToken error', err);
     return {
       ...nextAuthJWT,
-      data: {
-        ...nextAuthJWT.data,
-        user: nextAuthJWT.data.user || null,
-        validity: nextAuthJWT.data.validity || { valid_until: 0, refresh_until: 0 },
-        tokens: nextAuthJWT.data.tokens || { access: '', refresh: '' },
-      },
       error: 'RefreshAccessTokenError',
     };
   }
@@ -53,257 +62,180 @@ async function refreshAccessToken(nextAuthJWT: JWT): Promise<JWT> {
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
-  secret: process.env.NEXTAUTH_SECRET || 'QdAt2a6P8R8wRCR2URTw+ADZOQYx0yiWNyEF70jSmdI=',
+  secret: process.env.NEXTAUTH_SECRET,
   session: { strategy: 'jwt' },
   providers: [
     GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-      authorization: {
-        params: {
-          scope: 'openid email profile',
-        },
-      },
+      clientId: process.env.GOOGLE_CLIENT_ID || '',
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
+      authorization: { params: { scope: 'openid email profile' } },
     }),
     CredentialsProvider({
       name: 'Credentials',
       credentials: {
-        email: { label: 'Email', type: 'email', placeholder: 'john@mail.com' },
+        email: { label: 'Email', type: 'email' },
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
-        const email = credentials?.email;
-        const password = credentials?.password;
-
-        if (typeof email !== 'string' || typeof password !== 'string') {
-          throw new Error('Email and password must be provided as strings');
+        if (!credentials?.email || !credentials?.password) {
+          throw new Error('Email and password required');
         }
 
-        if (!email || !password) {
-          throw new Error('Email and password are required');
-        }
+        // `login` returns a Response containing BackendJWT (access & refresh)
+        const res = await login(credentials.email, credentials.password);
+        const tokens = (await res.json()) as BackendJWT;
+        if (!res.ok) throw new Error('Invalid credentials');
 
-        try {
-          const res = await login(email, password);
-          const tokens: BackendJWT = await res.json();
-          if (!res.ok) throw new Error('Invalid credentials');
+        // decode tokens to extract user info and expiry
+        const accessDecoded = jwtDecode<DecodedJWT>(tokens.access);
+        const refreshDecoded = jwtDecode<DecodedJWT>(tokens.refresh!);
 
-          const access = jwtDecode<DecodedJWT>(tokens.access);
-          const refresh = jwtDecode<DecodedJWT>(tokens.refresh);
+        // find business profile if you need extra fields
+        const profile = await prisma.businessProfile.findFirst({
+          where: { userId: accessDecoded.id },
+          select: { business_number: true, phone_number: true },
+        });
 
-          let registered_number = '';
-          const profile = await prisma.businessProfile.findFirst({
-            where: { userId: access.id },
-            select: {
-              business_number: true,
-              phone_number: true,
-            },
-          });
-          console.log('Profile Information Here', profile);
-          if (profile) registered_number = profile.business_number!;
+        const user: UserObject = {
+          id: accessDecoded.id,
+          email: accessDecoded.email,
+          first_name: accessDecoded.first_name,
+          last_name: accessDecoded.last_name,
+          role: accessDecoded.role,
+          phone_number: profile?.phone_number,
+          registered_number: profile?.business_number ?? '',
+        };
 
-          if (!access.id || !access.email || !access.role || !access.exp || !refresh.jti || !refresh.exp) {
-            throw new Error('Invalid token structure');
-          }
+        const validity: AuthValidity = {
+          valid_until: accessDecoded.exp,
+          refresh_until: refreshDecoded.exp,
+        };
 
-          const roleRecord = await prisma.role.findUnique({
-            where: { name: access.role },
-          });
-          if (!roleRecord) {
-            throw new Error(`Role '${access.role}' not found in database`);
-          }
+        // IMPORTANT: The object returned here becomes `user` in the jwt callback
+        const credentialsUser: CredentialsUser = {
+          id: refreshDecoded.jti,
+          user,
+          validity,
+          tokens,
+        };
 
-          const user: UserObject = {
-            id: access.id,
-            email: access.email,
-            first_name: access.first_name,
-            last_name: access.last_name,
-            role: access.role,
-            phone_number: profile?.phone_number,
-            registered_number,
-          };
-          const validity: AuthValidity = {
-            valid_until: access.exp,
-            refresh_until: refresh.exp,
-          };
-
-          console.log('User Access Here', user);
-
-          await prisma.user.upsert({
-            where: { email: user.email },
-            update: {
-              first_name: user.first_name,
-              last_name: user.last_name,
-              roleId: roleRecord.id,
-              is_activated: true,
-            },
-            create: {
-              id: user.id,
-              email: user.email,
-              first_name: user.first_name,
-              last_name: user.last_name,
-              roleId: roleRecord.id,
-              is_activated: true,
-              is_deleted: false,
-            },
-          });
-
-          return {
-            id: refresh.jti,
-            user,
-            validity,
-            tokens,
-          };
-        } catch (error) {
-          console.error(error);
-          return null;
-        }
+        return credentialsUser as unknown as NextAuthUser;
       },
     }),
   ],
   callbacks: {
+    // preserve callbackUrl when present; otherwise default to baseUrl
     async redirect({ url, baseUrl }) {
-      return url.startsWith(baseUrl) ? url : baseUrl;
+      // If NextAuth provides a callbackUrl, prefer it
+      if (!url) return baseUrl;
+      // allow relative callback urls or same origin
+      try {
+        const target = new URL(url, baseUrl);
+        if (target.origin === baseUrl) return target.toString();
+        // If external redirect, refuse and send user to baseUrl for safety
+        return baseUrl;
+      } catch {
+        return baseUrl;
+      }
     },
-    async jwt({ token, user, account, profile }): Promise<JWT> {
-      // Initialize token to match JWT interface
-      const initializedToken: JWT = {
-        ...token,
-        data: token.data || { user: null, validity: {}, tokens: undefined },
-        error: token.error,
-      };
+
+    // jwt callback — unify data shape for both providers
+    async jwt({ token, user, account, profile }) {
+      // token: existing JWT between calls
+      // user: present only on initial sign-in
+      const nextToken: NextAuthJWT = { ...(token as NextAuthJWT) };
+
+      // INITIAL SIGN IN
       if (user && account) {
-        console.debug('Initial signin');
-        if (account.provider === 'google') {
-          const existingUser = await prisma.user.findUnique({ where: { email: user.email! } });
-          const roleRecord = await prisma.role.findUnique({ where: { name: 'Business' } });
-          const roleId = roleRecord?.id || 1;
-          const roleName = roleRecord?.name || 'Business';
-
-          if (existingUser) {
-            // Link Google account to existing user if not already linked
-            const existingAccount = await prisma.account.findFirst({
-              where: {
-                userId: existingUser.id,
-                provider: 'google',
-                providerAccountId: account.providerAccountId,
-              },
-            });
-            if (!existingAccount) {
-              await prisma.account.create({
-                data: {
-                  userId: existingUser.id,
-                  provider: 'google',
-                  type: 'OAuth',
-                  providerAccountId: account.providerAccountId,
-                  access_token: account.access_token,
-                  refresh_token: account.refresh_token,
-                  expires_at: account.expires_at,
-                  token_type: account.token_type,
-                  scope: account.scope,
-                  id_token: account.id_token,
-                },
-              });
-            }
-          } else {
-            // Create new user
-            await prisma.user.create({
-              data: {
-                id: user.id!,
-                email: user.email!,
-                first_name: (profile as GoogleProfile)?.given_name || null,
-                last_name: (profile as GoogleProfile)?.family_name || null,
-                image: user.image || null,
-                roleId,
-                is_activated: true,
-                is_deleted: false,
-              },
-            });
-
-            // Create account entry
-            await prisma.account.create({
-              data: {
-                userId: user.id!,
-                provider: 'google',
-                type: 'OAuth',
-                providerAccountId: account.providerAccountId,
-                access_token: account.access_token,
-                refresh_token: account.refresh_token,
-                expires_at: account.expires_at,
-                token_type: account.token_type,
-                scope: account.scope,
-                id_token: account.id_token,
-              },
-            });
-          }
-          // For Google provider, return a valid User object
-          // Since Google doesn't provide tokens like your Credentials provider,
-          // you can either omit tokens or generate them via your backend
-          return {
-            ...initializedToken,
-            data: {
-              user: {
-                id: user.id!,
-                email: user.email!,
-                first_name: (profile as GoogleProfile)?.given_name || null,
-                last_name: (profile as GoogleProfile)?.family_name || null,
-                image: user.image || null,
-                role: existingUser
-                  ? (await prisma.role.findUnique({ where: { id: existingUser.roleId } }))?.name || roleName
-                  : roleName,
-              },
-              validity: { valid_until: 0, refresh_until: 0 }, // Placeholder; adjust based on your logic
-              tokens: { access: '', refresh: '' }, // Placeholder; integrate with backend if needed
-            },
-            error: undefined,
+        // Credentials provider returned a custom object via authorize()
+        if (account.provider === 'credentials') {
+          // The CredentialsProvider returns a custom user-like object in authorize.
+          // We stored that as `user` so cast it.
+          const creds = user as unknown as CredentialsUser;
+          nextToken.data = {
+            user: creds.user,
+            validity: creds.validity,
+            tokens: creds.tokens,
           };
+          nextToken.error = undefined;
+          return nextToken;
         }
-        // Credentials provider
-        const credentialsUser = user as CredentialsUser;
-        return {
-          ...initializedToken,
-          data: {
-            user: credentialsUser.user,
-            validity: credentialsUser.validity,
-            tokens: credentialsUser.tokens,
-          },
-          error: undefined,
+
+        // OAuth provider (google)
+        // `user` here is the NextAuth user (created by Prisma adapter)
+        // map to your application UserObject consistently
+        const oauthUser = user as NextAuthUser;
+        const googleProfile = profile as GoogleProfile;
+        // Build a safe app user shape
+        const appUser: Partial<UserObject> = {
+          id: oauthUser.id as string,
+          email: oauthUser.email ?? undefined,
+          first_name: googleProfile.given_name ?? oauthUser.name?.split(' ')[0] ?? undefined,
+          last_name: googleProfile.family_name ?? oauthUser.name?.split(' ').slice(1).join(' ') ?? undefined,
+          image: oauthUser.image ?? null,
+          role: 'Business', // default role name; you may want to look up actual role from DB if needed
+        };
+
+        nextToken.data = {
+          user: appUser as UserObject,
+          validity: { valid_until: 0, refresh_until: 0 }, // placeholders (no backend tokens available)
+          tokens: undefined,
+        };
+        nextToken.error = undefined;
+        return nextToken;
+      }
+
+      // NOT initial sign-in: check token validity if we stored validity/tokens (credentials flow)
+      if (nextToken.data?.validity && typeof nextToken.data.validity === 'object') {
+        const v = nextToken.data.validity as AuthValidity;
+        // if access still valid
+        if (v.valid_until && Date.now() < v.valid_until * 1000) {
+          return nextToken;
+        }
+        // if refresh still valid, attempt refresh
+        if (v.refresh_until && Date.now() < v.refresh_until * 1000) {
+          return await refreshAccessToken(nextToken);
+        }
+        // expired
+        nextToken.error = 'RefreshTokenExpired';
+        return nextToken;
+      }
+
+      // fallback: return token unchanged
+      return nextToken;
+    },
+
+    // session: expose a stable session.user shape client-side
+    async session({ session, token }) {
+      // If we previously stored a rich user object on token.data.user, prefer it.
+      if (token?.data?.user) {
+        session.user = token.data.user;
+      } else {
+        // Fallback to NextAuth defaults if present
+        session.user = {
+          id: token.sub ?? '',
+          email: token.email!,
+          first_name: token.name?.split(' ')[0] ?? undefined,
+          last_name: token.name?.split(' ').slice(1).join(' ') ?? undefined,
+          image: token.picture ?? undefined,
+          role: token.role ?? 'Business',
         };
       }
-      if (
-        initializedToken.data.validity &&
-        'valid_until' in initializedToken.data.validity &&
-        initializedToken.data.validity.valid_until &&
-        Date.now() < initializedToken.data.validity.valid_until * 1000
-      ) {
-        console.debug('Access token is still valid');
-        return { ...initializedToken, error: undefined };
-      }
-
-      if (
-        initializedToken.data.validity &&
-        'refresh_until' in initializedToken.data.validity &&
-        initializedToken.data.validity.refresh_until &&
-        Date.now() < initializedToken.data.validity.refresh_until * 1000
-      ) {
-        console.debug('Access token is being refreshed');
-        return await refreshAccessToken(initializedToken);
-      }
-
-      console.debug('Both tokens have expired');
-      return { ...initializedToken, error: 'RefreshTokenExpired' };
-    },
-    async session({ session, token }) {
-      session.user = token.data?.user;
-      session.validity = token.data?.validity;
-      session.error = token.error;
+      // expose any validity or error fields
+      session.validity = token?.data?.validity ?? {};
+      session.error = token?.error;
       return session;
     },
   },
+
+  // custom pages
   pages: {
     signIn: '/login',
     error: '/error',
   },
+
+  // debug helpful while developing
+  debug: process.env.NODE_ENV === 'development',
 };
 
 export default authOptions;

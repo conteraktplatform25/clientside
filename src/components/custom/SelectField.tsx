@@ -6,7 +6,7 @@ import { isSelectOption } from '@/lib/hooks/default.hook';
 
 interface SelectFieldProps<T extends FieldValues> {
   name: Path<T>;
-  label: string;
+  label?: string;
   control: Control<T>;
   options: string[] | ISelectOption[];
   placeholder?: string;

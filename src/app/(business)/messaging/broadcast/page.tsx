@@ -1,5 +1,4 @@
 import React from 'react';
-import TopNotification from '../../custom/TopNotification';
 import { DataTableField } from '@/components/custom/DataTableField';
 import { BroadcastTableHeaders } from './_component/BroadcastTableHeader';
 import { ConstBroadcastProfile as broadcasts } from '@/lib/constants/broadcast-message.constant';
@@ -9,10 +8,10 @@ import BroadcastDrawer from './_component/BroadcastDrawer';
 const BroadcastMessaging = () => {
   return (
     <div className='flex flex-col item-start gap-0 m-0'>
-      <TopNotification />
+      {/* <TopNotification /> */}
       <div className='flex flex-col gap-3 px-4'>
         {/* <QuickReplyDataTable columns={QuickReplyTableHeaders} data={replies} /> */}
-        <DataTableField columns={BroadcastTableHeaders} data={broadcasts}>
+        <DataTableField columns={BroadcastTableHeaders} data={broadcasts} title='Broadcast Message'>
           <BroadcastDrawer />
         </DataTableField>
       </div>

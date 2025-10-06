@@ -1,14 +1,14 @@
-import type { Profile, DefaultSession } from 'next-auth';
+import type { Profile, DefaultSession, DefaultUser } from 'next-auth';
 
 declare module 'next-auth' {
   /**
    * Core user object stored in our database.
    */
-  export interface UserObject {
+  export interface UserObject extends DefaultUser {
     id: string;
     email: string;
-    first_name: string | null;
-    last_name: string | null;
+    first_name?: string | null;
+    last_name?: string | null;
     role: string;
     image?: string | null;
     phone_number?: string | null;
@@ -20,7 +20,7 @@ declare module 'next-auth' {
    */
   export interface BackendJWT {
     access: string;
-    refresh: string;
+    refresh?: string;
   }
 
   /**
@@ -80,5 +80,10 @@ declare module 'next-auth/jwt' {
       tokens?: import('next-auth').BackendJWT;
     };
     error?: 'RefreshTokenExpired' | 'RefreshAccessTokenError';
+    sub?: string;
+    email?: string;
+    name?: string;
+    picture?: string;
+    role?: string;
   }
 }

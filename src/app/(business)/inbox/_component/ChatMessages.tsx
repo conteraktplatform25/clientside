@@ -1,11 +1,9 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { MessageBubble } from './MessageBubble';
 import { useChatStore } from '@/lib/store/business/survey/inbox-survey.store';
-// import { useChatStore } from '@/lib/chat-store';
-// import { Message } from '@/types/chat';
 
 interface ChatMessagesProps {
   conversationId: string;
@@ -15,7 +13,8 @@ export function ChatMessages({ conversationId }: ChatMessagesProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { messages, currentUser, activeConversation } = useChatStore();
 
-  const conversationMessages = messages[conversationId] || [];
+  //const conversationMessages = messages[conversationId] || [];
+  const conversationMessages = useMemo(() => messages[conversationId] || [], [messages, conversationId]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });

@@ -1,72 +1,39 @@
+// src/actions/user-auth.ts
 import type { UserObject, BackendJWT } from 'next-auth';
-//import { PrismaClient } from '@prisma/client';
 import prisma from '@/lib/prisma';
 import { v4 as uuidv4 } from 'uuid';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { getErrorMessage } from '@/utils/errors';
 import { NextResponse } from 'next/server';
+import type { DecodedJWT } from 'next-auth';
 
-//const prisma = new PrismaClient();
-
+// find user by email and validate password (you had this)
 const RequestLogin = async (email: string, password: string): Promise<UserObject> => {
-  try {
-    const user = await prisma.user.findUnique({
-      where: { email: email },
-      include: { role: true },
-    });
+  const user = await prisma.user.findUnique({
+    where: { email },
+    include: { role: true },
+  });
+  if (!user || !user.password) throw new Error('Invalid credentials');
+  const ok = await bcrypt.compare(password, user.password);
+  if (!ok) throw new Error('Invalid credentials');
+  if (!user.is_activated) throw new Error('Account not verified.');
 
-    if (!user || !user.password) {
-      throw new Error('Invalid credentials');
-    }
-
-    const isValid = await bcrypt.compare(password, user.password);
-    if (!isValid) {
-      throw new Error('Invalid credentials');
-    }
-
-    if (!user.is_activated) {
-      throw new Error('Account not verified. Please check your email.');
-    }
-
-    const profile: UserObject = {
-      id: user.id,
-      email: user.email,
-      first_name: user.first_name,
-      last_name: user.last_name,
-      role: user.role.name,
-    };
-    return profile;
-  } catch (error) {
-    console.log(error);
-    throw getErrorMessage(error);
-  }
+  const profile: UserObject = {
+    id: user.id,
+    email: user.email,
+    first_name: user.first_name,
+    last_name: user.last_name,
+    role: user.role.name,
+  };
+  return profile;
 };
-// Dummy secret salt for signing tokens
+
 const secret_signing_salt = process.env.AUTH_SECRET || 'super-secret-salt';
 
-/**
- * Log in a user by sending a POST request to the backend using the supplied credentials.
- *
- * TODO: Implement the actual login functionality by sending a POST request to the backend
- *
- * @param email The email of the user
- * @param password The password of the user
- * @returns A BackendJWT response from the backend.
- */
 export async function login(email: string, password: string): Promise<Response> {
-  console.debug('Logging in');
-
-  if (!email) {
-    throw new Error('Email is required');
-  }
-  if (!password) {
-    throw new Error('Password is required');
-  }
-
   const profile = await RequestLogin(email, password);
 
-  // Dummy data to simulate a successful login
   const mock_data: BackendJWT = {
     access: create_access_token(profile),
     refresh: create_refresh_token(profile),
@@ -74,76 +41,52 @@ export async function login(email: string, password: string): Promise<Response> 
 
   return new Response(JSON.stringify(mock_data), {
     status: 200,
-    statusText: 'OK',
-    headers: {
-      'Content-type': 'application/json',
-    },
+    headers: { 'Content-Type': 'application/json' },
   });
 }
 
-/**
- * Refresh the access token by sending a POST request to the backend using the supplied refresh token.
- *
- * TODO: Implement the actual refresh functionality by sending a POST request to the backend
- *
- * @param token The current refresh token
- * @returns A BackendAccessJWT response from the backend.
- */
 export async function refresh(token: string): Promise<Response> {
-  console.debug('Refreshing token');
+  if (!token) throw new Error('Token required');
 
-  if (!token) {
-    throw new Error('Token is required');
-  }
-  // Verify that the token is valid and not expired
   try {
+    // will throw if invalid
     jwt.verify(token, secret_signing_salt);
   } catch (err) {
-    return NextResponse.json({ error: getErrorMessage(err) }, { status: 500 });
+    return NextResponse.json({ error: getErrorMessage(err) }, { status: 401 });
   }
-  // const new_access_token: BackendAccessJWT = {
-  //   access: create_access_token(),
-  // };
-  const new_access_token: BackendJWT = {
-    access: token,
-    refresh: '',
+
+  // produce a new access token (for test/demo return a token with longer expiry)
+  const decoded = jwt.decode(token) as DecodedJWT | null;
+  if (!decoded) {
+    throw new Error('Invalid token');
+  }
+  const profile: UserObject = {
+    id: decoded.id,
+    email: decoded.email,
+    first_name: decoded.first_name ?? null,
+    last_name: decoded.last_name ?? null,
+    role: decoded.role ?? 'Business',
   };
-  return new Response(JSON.stringify(new_access_token), {
+
+  const new_access: BackendJWT = {
+    access: create_access_token(profile),
+    refresh: token, // keep same refresh for demo
+  };
+
+  return new Response(JSON.stringify(new_access), {
     status: 200,
-    statusText: 'OK',
-    headers: {
-      'Content-type': 'application/json',
-    },
+    headers: { 'Content-Type': 'application/json' },
   });
 }
 
-// Dummy function to create an access token
-const create_access_token = (profile: UserObject): string => {
-  // `iat` and `exp` are generated by the jwt library
-  return jwt.sign(
-    {
-      ...profile,
-      jti: uuidv4(),
-    },
-    secret_signing_salt,
-    {
-      algorithm: 'HS384',
-      expiresIn: '5s', // Refresh token every 5 seconds for testing purposes
-    }
-  );
-};
-// Dummy function to create a refresh token
-const create_refresh_token = (profile: UserObject): string => {
-  // `iat` and `exp` are generated by the jwt library
-  return jwt.sign(
-    {
-      ...profile,
-      jti: uuidv4(),
-    },
-    secret_signing_salt,
-    {
-      algorithm: 'HS384',
-      expiresIn: '2m', // Expire refresh token every 2 minutes for testing purposes
-    }
-  );
-};
+const create_access_token = (profile: UserObject): string =>
+  jwt.sign({ ...profile, jti: uuidv4() }, secret_signing_salt, {
+    algorithm: 'HS384',
+    expiresIn: '15m', // now 15 minutes by default for dev
+  });
+
+const create_refresh_token = (profile: UserObject): string =>
+  jwt.sign({ ...profile, jti: uuidv4() }, secret_signing_salt, {
+    algorithm: 'HS384',
+    expiresIn: '7d', // refresh for 7 days for testing/demo
+  });

@@ -7,7 +7,6 @@ export default function LoginPage() {
     <Suspense fallback={<div className='flex items-center justify-center min-h-screen'>Loading...</div>}>
       <div className='flex min-h-screen overflow-y-hidden'>
         <div className='w-full grid bg-white grid-cols-1 lg:grid-cols-2 gap-0 box-border'>
-          {/* <div className='w-full mx-auto px-4 sm:px-6 lg:px-8 py-4'> */}
           <div className='w-full mx-auto py-4'>
             <LoginSection />
           </div>

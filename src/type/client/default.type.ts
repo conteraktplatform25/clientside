@@ -1,6 +1,7 @@
 import { ColumnDef } from '@tanstack/react-table';
 import { LucideProps } from 'lucide-react';
 import { ForwardRefExoticComponent, MouseEventHandler, ReactNode, RefAttributes } from 'react';
+import { IconType } from 'react-icons/lib';
 
 export type TSVGIconProps = {
   fileName: string; // file name without path, e.g., "my-icon.svg"
@@ -40,15 +41,20 @@ export interface IDialogOpen {
   confirmText: string;
   cancelText: string;
 }
+export interface ITabItem {
+  value: string;
+  label: string;
+  icon?: IconType;
+  content?: React.ReactNode;
+}
 
-// interface IColumnTableProps<TData> {
-//   onEdit: (row: TData) => void;
-//   buttonText: string;
-//   className?: string;
-// }
+export interface ICustomTabPanelProps {
+  tabs: ITabItem[];
+}
 
 export interface IDataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
+  title?: string;
   children?: ReactNode;
 }

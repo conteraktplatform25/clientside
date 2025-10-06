@@ -280,7 +280,7 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-white text-foreground;
   }
   /* Headings */
   /* --text-h1: [48px, 56px] -0.02em;
