@@ -82,7 +82,7 @@ export async function refresh(token: string): Promise<Response> {
 const create_access_token = (profile: UserObject): string =>
   jwt.sign({ ...profile, jti: uuidv4() }, secret_signing_salt, {
     algorithm: 'HS384',
-    expiresIn: '15m', // now 15 minutes by default for dev
+    expiresIn: '10m', // now 10 minutes by default for dev
   });
 
 const create_refresh_token = (profile: UserObject): string =>

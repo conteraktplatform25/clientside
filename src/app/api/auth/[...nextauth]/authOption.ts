@@ -230,7 +230,7 @@ export const authOptions: NextAuthOptions = {
 
   // custom pages
   pages: {
-    signIn: '/login',
+    signIn: '/auth/signin',
     error: '/error',
   },
 

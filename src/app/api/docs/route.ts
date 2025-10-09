@@ -1,0 +1,47 @@
+import { registry } from '@/lib/openapi';
+import { OpenApiGeneratorV3 } from '@asteasolutions/zod-to-openapi';
+import { NextResponse } from 'next/server';
+
+export async function GET() {
+  try {
+    const generator = new OpenApiGeneratorV3(registry.definitions);
+
+    // Generate the base document
+    let document = generator.generateDocument({
+      openapi: '3.0.0',
+      info: {
+        title: 'Authentication API',
+        version: '1.0.0',
+        description:
+          'API documentation for NextAuth-based authentication endpoints (OAuth + Credentials + Session + Profile)',
+      },
+      servers: [{ url: 'http://localhost:3000' }],
+      tags: [
+        {
+          name: 'Authentication',
+          description: 'Endpoints related to user authentication, OAuth, session management, and profile updates',
+        },
+      ],
+    });
+
+    // ✅ Merge components safely to add bearerAuth
+    document = {
+      ...document,
+      components: {
+        ...(document.components || {}),
+        securitySchemes: {
+          bearerAuth: {
+            type: 'http',
+            scheme: 'bearer',
+            bearerFormat: 'JWT',
+          },
+        },
+      },
+    };
+
+    return NextResponse.json(document);
+  } catch (err: unknown) {
+    console.error('❌ Error generating OpenAPI document:', err);
+    return NextResponse.json({ error: 'Failed to generate OpenAPI document', details: String(err) }, { status: 500 });
+  }
+}
