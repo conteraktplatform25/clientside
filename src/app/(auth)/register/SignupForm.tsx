@@ -37,7 +37,7 @@ const SignupForm = () => {
   }, [watchedValues, setFormData]);
 
   const handleRegisterSubmit = async (data: TRegisterFormSchema) => {
-    const response = await fetchWithIndicatorHook('/api/auth/register', {
+    const response = await fetchWithIndicatorHook('/api/auth/signup', {
       method: 'POST',
       body: JSON.stringify({ ...data }),
       headers: { 'Content-Type': 'application/json' },

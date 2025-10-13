@@ -1,5 +1,5 @@
 import { OpenAPIRegistry } from '@asteasolutions/zod-to-openapi';
-import { registerFormSchema } from './schemas/auth/signup.schema';
+//import { registerFormSchema } from './schemas/auth/signup.schema';
 import { profileFormSchema } from './schemas/auth/profile.schema';
 import { resetPasswordFormSchema } from './schemas/auth/resetpassword.schema';
 import { z } from 'zod';
@@ -8,6 +8,10 @@ import {
   loginResponseSchema,
   refreshTokenRequestSchema,
   refreshTokenResponseSchema,
+  registerRequestSchema,
+  registerResponseSchema,
+  verifyTokenRequestSchema,
+  VerifyTokenResponseSchema,
 } from './schemas/auth/nextauth-openapi.schema';
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 
@@ -42,10 +46,17 @@ registry.register('LoginRequest', loginResponseSchema);
 // registry.register('NextAuthSignInRequest', nextAuthSignInRequestSchema);
 registry.register('RefreshTokenRequest', refreshTokenRequestSchema);
 registry.register('RefreshTokenResponse', refreshTokenResponseSchema);
-registry.register('RegisterRequest', registerFormSchema);
+
+registry.register('RegisterRequest', registerRequestSchema);
+registry.register('RegisterResponse', registerResponseSchema);
+
+registry.register('VerifyTokenRequest', verifyTokenRequestSchema);
+registry.register('VerifyTokenResponse', VerifyTokenResponseSchema);
+
 registry.register('ProfileRequest', profileFormSchema);
 registry.register('ResetPasswordRequest', resetPasswordFormSchema);
 
+//Login Implementation
 registry.registerPath({
   method: 'post',
   path: '/api/auth/login',
@@ -73,6 +84,7 @@ registry.registerPath({
   },
 });
 
+// Token refresh Implementation
 registry.registerPath({
   method: 'post',
   path: '/api/auth/refresh',
@@ -106,33 +118,66 @@ registry.registerPath({
 registry.registerPath({
   method: 'post',
   path: '/api/auth/register',
-  summary: 'User Registration',
-  description: 'Register a user account',
+  summary: 'Register a new user',
+  description:
+    'Creates a new user account and sends an email verification code using Resend. The user remains inactive until OTP Code has been verified.',
   tags: ['Authentication'], // ✅ Tag assigned here
   request: {
     body: {
       content: {
-        'application/json': { schema: registerFormSchema },
+        'application/json': {
+          schema: registerRequestSchema,
+        },
       },
     },
   },
   responses: {
     201: {
-      description: 'User registered successfully',
+      description: 'User successfully registered and verification email sent',
       content: {
         'application/json': {
-          schema: {
-            type: 'object',
-            properties: {
-              ok: { type: 'boolean' },
-              message: { type: 'string' },
-              userId: { type: 'number' },
-            },
+          schema: registerResponseSchema,
+        },
+      },
+    },
+    400: { description: 'Missing or invalid fields' },
+    409: { description: 'Email already exists' },
+    500: { description: 'Internal server error' },
+  },
+});
+
+// OTP code verification Implementation
+registry.registerPath({
+  method: 'post',
+  path: '/api/auth/verify-otp',
+  summary: 'Verify email OTP code',
+  description:
+    'Verifies a one-time password (OTP) sent to the user email during registration. If valid, the user account is activated.',
+  tags: ['Authentication'], // ✅ Tag assigned here
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: verifyTokenRequestSchema,
+          example: {
+            email: 'user@example.com',
+            otp: '123456',
           },
         },
       },
     },
-    400: { description: 'Validation error' },
+  },
+  responses: {
+    200: {
+      description: 'Email verified successfully',
+      content: {
+        'application/json': {
+          schema: VerifyTokenResponseSchema,
+        },
+      },
+    },
+    400: { description: 'Invalid or expired OTP, or missing fields' },
+    500: { description: 'Internal server error' },
   },
 });
 

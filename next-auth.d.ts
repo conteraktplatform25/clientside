@@ -55,9 +55,10 @@ declare module 'next-auth' {
    * Returned by `useSession`, `getSession`, and the `session` callback.
    */
   export interface Session {
-    user: UserObject | null;
+    user: UserObject & DefaultSession['user'];
     validity: AuthValidity | object;
     error?: 'RefreshTokenExpired' | 'RefreshAccessTokenError';
+    redirectTo?: string;
   }
 
   /**
@@ -78,6 +79,7 @@ declare module 'next-auth/jwt' {
       user: import('next-auth').UserObject | null;
       validity: import('next-auth').AuthValidity | object;
       tokens?: import('next-auth').BackendJWT;
+      redirectTo?: string;
     };
     error?: 'RefreshTokenExpired' | 'RefreshAccessTokenError';
     sub?: string;

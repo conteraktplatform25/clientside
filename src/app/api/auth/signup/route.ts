@@ -1,11 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { Resend } from 'resend';
-//import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 import { getErrorMessage } from '@/utils/errors';
-//import { renderTemplate } from '@/lib/helpers/render-template.helper';
-import { generateOTP } from '@/lib/helpers/generate-otp.helper';
-import bcrypt from 'bcryptjs';
+import { renderTemplate } from '@/lib/helpers/render-template.helper';
 
 const resend = new Resend(process.env.RESEND_API_KEY!);
 
@@ -40,15 +38,15 @@ export async function POST(req: NextRequest) {
         is_activated: false, // Wait for email verification
       },
     });
+    console.log(user);
 
     // Generate verification token
-    const otp = generateOTP();
-    const hashedOTP = await bcrypt.hash(otp, 10);
-    const expires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    const token = uuidv4();
+    const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24h
     await prisma.verificationToken.create({
       data: {
         identifier: email,
-        token: hashedOTP,
+        token,
         expires,
       },
     });
@@ -64,12 +62,12 @@ export async function POST(req: NextRequest) {
     if (template) {
       const full_name = user.first_name + ' ' + user.last_name;
       const subject = template.subject || 'Verify your email';
-      // const content = renderTemplate(template.custom_content || template.default_content || '', {
-      //   name: full_name,
-      //   email: email,
-      //   token: otp,
-      //   APP_URL: process.env.NEXT_PUBLIC_APP_URL!,
-      // });
+      const content = renderTemplate(template.custom_content || template.default_content || '', {
+        name: full_name,
+        email: email,
+        token: token,
+        APP_URL: process.env.NEXT_PUBLIC_APP_URL!,
+      });
 
       // Send email verification
       await resend.emails.send({
@@ -77,12 +75,10 @@ export async function POST(req: NextRequest) {
         from: 'onboarding@resend.dev',
         to: ['conteraktplatform25@gmail.com'],
         subject: subject,
-        html: `<p>Hi ${full_name},</p>
-         <p>Your verification code is <strong>${otp}</strong>.</p>
-         <p>This code will expire in 10 minutes.</p>`,
+        html: content,
       });
       return NextResponse.json(
-        { ok: true, profile: user, message: 'Successful registration. Check email for OTP Code.' },
+        { ok: true, profile: user, message: 'Successful registration. Check email to verify.' },
         { status: 201 }
       );
     }

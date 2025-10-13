@@ -74,3 +74,35 @@ export const refreshTokenResponseSchema = z.object({
   message: z.string(),
   error: z.string().optional(),
 });
+
+export const registerRequestSchema = z.object({
+  email: z.email().describe('User email address'),
+  first_name: z.string().describe('User first name'),
+  last_name: z.string().describe('User last name'),
+});
+
+export const registerResponseSchema = z.object({
+  ok: z.boolean(),
+  profile: z
+    .object({
+      id: z.string().optional(),
+      email: z.string().optional(),
+      first_name: z.string().optional(),
+      last_name: z.string().optional(),
+      is_activated: z.boolean().optional(),
+    })
+    .optional(),
+  message: z.string(),
+  error: z.string().optional(),
+});
+
+export const verifyTokenRequestSchema = z.object({
+  email: z.email().describe('User email used during registration'),
+  otp: z.string().describe('6-digit one-time verification code'),
+});
+
+export const VerifyTokenResponseSchema = z.object({
+  ok: z.boolean(),
+  message: z.string().optional(),
+  error: z.string().optional(),
+});

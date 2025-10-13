@@ -7,6 +7,8 @@ import { NextAuthOptions, User as NextAuthUser } from 'next-auth';
 import type { JWT as NextAuthJWT } from 'next-auth/jwt';
 import { jwtDecode } from 'jwt-decode';
 import { login, refresh } from '@/actions/user-auth';
+import { PrismaClient } from '@prisma/client';
+import { Adapter, AdapterUser } from 'next-auth/adapters';
 
 // keep your custom types in next-auth.d.ts
 type BackendJWT = import('next-auth').BackendJWT;
@@ -22,6 +24,15 @@ interface GoogleProfile {
   picture?: string;
   email?: string;
 }
+
+// ==========================================
+// 🔹 Role-based redirect mapping
+// ==========================================
+const ROLE_REDIRECTS: Record<string, string> = {
+  Admin: '/admin',
+  Business: '/',
+  Agent: '/agent',
+};
 
 async function refreshAccessToken(nextAuthJWT: NextAuthJWT): Promise<NextAuthJWT> {
   try {
@@ -60,8 +71,67 @@ async function refreshAccessToken(nextAuthJWT: NextAuthJWT): Promise<NextAuthJWT
   }
 }
 
+function CustomPrismaAdapter(p: PrismaClient): Adapter {
+  // ✅ type parameter
+  const base = PrismaAdapter(p);
+
+  return {
+    ...base,
+    async createUser(data: Omit<AdapterUser, 'id'>): Promise<AdapterUser> {
+      // Ensure default "Business" role exists
+      const defaultRole = await p.role.findFirst({
+        where: { name: 'Business' },
+      });
+
+      if (!defaultRole) {
+        throw new Error('Default role "Business" not found in database');
+      }
+
+      // 🔹 Map NextAuth's `name` → `first_name` / `last_name`
+      const [firstName, ...rest] = (data.name ?? '').split(' ');
+      const lastName = rest.join(' ') || null;
+      // 🔹 Create your User with your own field names
+      const created = await p.user.create({
+        data: {
+          email: data.email ?? '',
+          first_name: firstName || null,
+          last_name: lastName,
+          image: data.image ?? null,
+          email_verified_date: new Date() ?? null,
+          is_activated: true,
+          role: { connect: { id: defaultRole.id } },
+        },
+      });
+
+      // 🔹 Return the shape NextAuth expects
+      return {
+        id: created.id,
+        name: `${created.first_name ?? ''} ${created.last_name ?? ''}`.trim(),
+        email: created.email,
+        image: created.image,
+        emailVerified: created.email_verified_date,
+      };
+    },
+    async getUser(id) {
+      const user = await p.user.findUnique({
+        where: { id },
+        include: { role: true },
+      });
+      if (!user) return null;
+
+      return {
+        id: user.id,
+        name: `${user.first_name ?? ''} ${user.last_name ?? ''}`.trim(),
+        email: user.email,
+        image: user.image,
+        emailVerified: user.email_verified_date,
+      };
+    },
+  };
+}
+
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma),
+  adapter: CustomPrismaAdapter(prisma),
   secret: process.env.NEXTAUTH_SECRET,
   session: { strategy: 'jwt' },
   providers: [
@@ -126,13 +196,18 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     // preserve callbackUrl when present; otherwise default to baseUrl
     async redirect({ url, baseUrl }) {
-      // If NextAuth provides a callbackUrl, prefer it
-      if (!url) return baseUrl;
-      // allow relative callback urls or same origin
       try {
-        const target = new URL(url, baseUrl);
-        if (target.origin === baseUrl) return target.toString();
-        // If external redirect, refuse and send user to baseUrl for safety
+        // 1️⃣ Always allow NextAuth's internal URLs
+        if (url.startsWith('/api/auth')) return baseUrl;
+
+        // 2️⃣ If it's a relative callback URL (like `/dashboard`), return it
+        if (url.startsWith('/')) return `${baseUrl}${url}`;
+
+        // 3️⃣ Same-origin absolute URLs
+        const target = new URL(url);
+        if (target.origin === baseUrl) return url;
+
+        // 4️⃣ Fallback
         return baseUrl;
       } catch {
         return baseUrl;
@@ -157,6 +232,7 @@ export const authOptions: NextAuthOptions = {
             validity: creds.validity,
             tokens: creds.tokens,
           };
+          nextToken.data.redirectTo = ROLE_REDIRECTS[creds.user.role] ?? '/';
           nextToken.error = undefined;
           return nextToken;
         }
@@ -180,6 +256,7 @@ export const authOptions: NextAuthOptions = {
           user: appUser as UserObject,
           validity: { valid_until: 0, refresh_until: 0 }, // placeholders (no backend tokens available)
           tokens: undefined,
+          redirectTo: ROLE_REDIRECTS[appUser.role!] ?? '/',
         };
         nextToken.error = undefined;
         return nextToken;
@@ -207,30 +284,42 @@ export const authOptions: NextAuthOptions = {
 
     // session: expose a stable session.user shape client-side
     async session({ session, token }) {
-      // If we previously stored a rich user object on token.data.user, prefer it.
       if (token?.data?.user) {
-        session.user = token.data.user;
+        const user = token.data.user;
+        // Handle Prisma nested role object
+        session.user = {
+          id: user.id,
+          email: user.email,
+          first_name: user.first_name ?? null,
+          last_name: user.last_name ?? null,
+          image: user.image ?? null,
+          role: typeof user.role === 'string' ? user.role : (user.role ?? 'Business'), // flatten role object
+        };
       } else {
-        // Fallback to NextAuth defaults if present
+        // --- 2️⃣ Fallback to NextAuth defaults (e.g., Google) ---
         session.user = {
           id: token.sub ?? '',
-          email: token.email!,
-          first_name: token.name?.split(' ')[0] ?? undefined,
-          last_name: token.name?.split(' ').slice(1).join(' ') ?? undefined,
-          image: token.picture ?? undefined,
-          role: token.role ?? 'Business',
+          email: token.email ?? '',
+          first_name: token.name?.split(' ')[0] ?? null,
+          last_name: token.name?.split(' ').slice(1).join(' ') ?? null,
+          image: token.picture ?? null,
+          role: 'Business',
         };
       }
-      // expose any validity or error fields
+
       session.validity = token?.data?.validity ?? {};
       session.error = token?.error;
+
+      const role = session.user.role;
+      session.redirectTo = ROLE_REDIRECTS[role] ?? '/';
+
       return session;
     },
   },
 
   // custom pages
   pages: {
-    signIn: '/auth/signin',
+    signIn: '/login',
     error: '/error',
   },
 

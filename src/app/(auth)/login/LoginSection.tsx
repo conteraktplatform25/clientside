@@ -11,7 +11,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 
 const LoginSection = () => {
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get('callbackUrl') || '';
+  const callbackUrl = searchParams.get('callbackUrl') || '/';
   return (
     <section className='w-full flex flex-col'>
       <div className='flex items-start justify-between px-4 sm:px-6 lg:px-8'>
