@@ -42,6 +42,7 @@ const SignupForm = () => {
       body: JSON.stringify({ ...data }),
       headers: { 'Content-Type': 'application/json' },
     });
+    console.log(response);
     if (response?.ok) {
       resetForm();
       reset();

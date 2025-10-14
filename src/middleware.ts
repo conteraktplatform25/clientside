@@ -6,6 +6,7 @@ const PUBLIC_PATHS = [
   '/swagger',
   '/login',
   '/register',
+  '/verification',
   '/forgot-password',
   '/reset-password',
   '/connect-number',
@@ -50,6 +51,6 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!api/auth|api/docs|login|register|forgot-password|reset-password|_next|.*\\.(?:png|jpg|jpeg|svg|css|js|ico)$).*)',
+    '/((?!api/auth|api/docs|login|register|verification|forgot-password|reset-password|_next|.*\\.(?:png|jpg|jpeg|svg|css|js|ico)$).*)',
   ],
 };

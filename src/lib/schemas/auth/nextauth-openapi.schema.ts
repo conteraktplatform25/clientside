@@ -106,3 +106,34 @@ export const VerifyTokenResponseSchema = z.object({
   message: z.string().optional(),
   error: z.string().optional(),
 });
+
+// ✅ Define request and response schemas
+export const CreateProfileRequestSchema = z.object({
+  password: z.string().min(6, 'Password must be at least 6 characters'),
+  phone_country_code: z.string().min(1, 'Country code is required'),
+  phone_number: z.string().min(6, 'Phone number is required'),
+  company_name: z.string().optional(),
+  company_website: z.string().url().optional(),
+  company_location: z.string().optional(),
+  business_industry: z.string().optional(),
+  business_category: z.string().optional(),
+  annual_revenue: z.string().optional(),
+});
+
+export const CreateProfileResponseSchema = z.object({
+  ok: z.boolean(),
+  profile: z
+    .object({
+      id: z.number(),
+      userId: z.number(),
+      company_name: z.string().nullable(),
+      phone_number: z.string(),
+      company_location: z.string().nullable(),
+      company_website: z.string().nullable(),
+      business_industry: z.string().nullable(),
+      business_category: z.string().nullable(),
+      annual_revenue: z.string().nullable(),
+    })
+    .optional(),
+  message: z.string(),
+});

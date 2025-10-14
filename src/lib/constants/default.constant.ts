@@ -1,5 +1,5 @@
 import { ISideMenuProps } from '@/type/client/default.type';
-import { Bolt, House, Mail, Megaphone, NotepadText, Settings, UserRound } from 'lucide-react';
+import { Bolt, House, Mail, Megaphone, NotepadText, Settings, ShoppingCart, UserRound } from 'lucide-react';
 // Menu items.
 export const ConstAdminSideMenu: ISideMenuProps[] = [
   {
@@ -11,6 +11,11 @@ export const ConstAdminSideMenu: ISideMenuProps[] = [
     title: 'Inbox',
     url: '/inbox',
     icon: Mail,
+  },
+  {
+    title: 'Orders',
+    url: '/orders',
+    icon: ShoppingCart,
   },
   {
     title: 'Automated Messaging',

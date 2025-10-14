@@ -3,6 +3,7 @@
 import { useSession } from 'next-auth/react';
 import TopNotification from './custom/TopNotification';
 import GetStarted from '../component/GetStarted';
+import ContaktGetStarted from '../component/ContaktGetStarted';
 
 export default function Dashboard() {
   const { data: session, status } = useSession();
@@ -18,8 +19,9 @@ export default function Dashboard() {
   return (
     <div className='flex flex-col item-start gap-4 m-0'>
       <TopNotification />
-      <div className='mt-8 px-64 flex flex-col gap-3'>
-        <GetStarted />
+      <div className='mt-8 flex flex-col gap-3'>
+        <ContaktGetStarted />
+        {/* <GetStarted /> */}
       </div>
     </div>
   );

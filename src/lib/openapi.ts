@@ -1,9 +1,9 @@
 import { OpenAPIRegistry } from '@asteasolutions/zod-to-openapi';
-//import { registerFormSchema } from './schemas/auth/signup.schema';
-import { profileFormSchema } from './schemas/auth/profile.schema';
 import { resetPasswordFormSchema } from './schemas/auth/resetpassword.schema';
 import { z } from 'zod';
 import {
+  CreateProfileRequestSchema,
+  CreateProfileResponseSchema,
   loginRequestSchema,
   loginResponseSchema,
   refreshTokenRequestSchema,
@@ -42,8 +42,10 @@ registry.register('ErrorResponse', errorResponseSchema);
 =========================== */
 registry.register('LoginRequest', loginRequestSchema);
 registry.register('LoginRequest', loginResponseSchema);
-// registry.register('NextAuthSession', nextAuthSessionSchema);
-// registry.register('NextAuthSignInRequest', nextAuthSignInRequestSchema);
+
+registry.register('CreateProfileRequest', CreateProfileRequestSchema);
+registry.register('CreateProfileResponse', CreateProfileResponseSchema);
+
 registry.register('RefreshTokenRequest', refreshTokenRequestSchema);
 registry.register('RefreshTokenResponse', refreshTokenResponseSchema);
 
@@ -53,7 +55,7 @@ registry.register('RegisterResponse', registerResponseSchema);
 registry.register('VerifyTokenRequest', verifyTokenRequestSchema);
 registry.register('VerifyTokenResponse', VerifyTokenResponseSchema);
 
-registry.register('ProfileRequest', profileFormSchema);
+//registry.register('ProfileRequest', profileFormSchema);
 registry.register('ResetPasswordRequest', resetPasswordFormSchema);
 
 //Login Implementation
@@ -185,32 +187,36 @@ registry.registerPath({
 registry.registerPath({
   method: 'post',
   path: '/api/auth/profile',
-  summary: 'Update Profile',
-  description: 'Create or update user business profile',
-  tags: ['Authentication'], // ✅ Tag assigned here
+  description: 'Create or update user business profile.',
+  summary: 'Create Business Profile',
+  tags: ['Authentication'],
   request: {
+    query: z.object({
+      email: z.email(),
+    }),
     body: {
       content: {
-        'application/json': { schema: profileFormSchema },
+        'application/json': {
+          schema: CreateProfileRequestSchema,
+        },
       },
     },
   },
   responses: {
-    200: {
-      description: 'Profile saved successfully',
+    201: {
+      description: 'Successfully created or updated profile',
       content: {
         'application/json': {
-          schema: {
-            type: 'object',
-            properties: {
-              ok: { type: 'boolean' },
-              message: { type: 'string' },
-            },
-          },
+          schema: CreateProfileResponseSchema,
         },
       },
     },
-    400: { description: 'Validation error' },
+    400: {
+      description: 'Missing or invalid fields',
+    },
+    500: {
+      description: 'Internal server error',
+    },
   },
 });
 

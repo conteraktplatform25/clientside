@@ -15,7 +15,7 @@ const DashboardLayout = async ({ children }: ILayoutProps) => {
   const session = await getServerSession(authOptions);
   return (
     <SidebarProvider className='has-data-[variant=inset]:bg-white' defaultOpen={defaultOpen}>
-      <div className='relative p-0 m-0 flex h-screen overflow-y-hidden w-full'>
+      <div className='relative p-0 m-0 flex h-screen w-full'>
         <SidebarComponent />
         <div className='flex flex-1 flex-col gap-0 w-full p-0'>
           <div className='inline-flex space-x-1 bg-white'>
