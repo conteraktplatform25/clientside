@@ -14,42 +14,8 @@ import {
 import { Search, Plus, Share2 } from 'lucide-react';
 import ProductCard from './ProductCard';
 import { FaGreaterThan } from 'react-icons/fa6';
-import { IProductCatalogueProp } from '@/type/client/business/product-catalogue.type';
 import Link from 'next/link';
 import { useProductCatalogueStore } from '@/lib/store/business/catalogue-sharing.store';
-
-// import React, { useState, useMemo } from 'react';
-// import { Input } from '@/components/ui/input';
-// import { Button } from '@/components/ui/button';
-// import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-// import {
-//   Pagination,
-//   PaginationContent,
-//   PaginationItem,
-//   PaginationLink,
-//   PaginationNext,
-//   PaginationPrevious,
-// } from '@/components/ui/pagination';
-// import { Search, Plus, Share2 } from 'lucide-react';
-// import ProductCard from './ProductCard';
-// import { IProductCatalogueProp } from '@/type/client/business/product-catalogue.type';
-// import { FaGreaterThan } from 'react-icons/fa6';
-// import { ScrollArea } from '@radix-ui/react-scroll-area';
-// import Link from 'next/link';
-//import { Product } from "@/types/product";
-
-// Dummy Data for Products
-// const DUMMY_PRODUCTS: IProductCatalogueProp[] = Array.from({ length: 25 }, (_, i) => ({
-//   id: `prod-${i + 1}`,
-//   imageUrl: '', // Placeholder image
-//   category: i % 3 === 0 ? 'Clothing' : i % 3 === 1 ? 'Electronics' : 'Home Goods',
-//   name: `Loafers ${i + 1}`,
-//   description:
-//     'It takes inspiration from vintage design to create the Dice Lo sneakers. Displaying a design in black, the p...',
-//   amount: 35000 + i * 100,
-//   currency: '₦',
-//   availability: i % 5 === 0 ? 'Out of Stock' : 'Available',
-// }));
 
 const PRODUCTS_PER_PAGE = 6;
 

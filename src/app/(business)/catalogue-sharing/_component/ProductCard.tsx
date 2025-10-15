@@ -2,6 +2,7 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { IProductCatalogueProp } from '@/type/client/business/product-catalogue.type';
 import { cn } from '@/lib/utils';
+import Image from 'next/image';
 
 interface ProductCardProps {
   product: IProductCatalogueProp;
@@ -13,7 +14,13 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
       <CardContent className='p-0'>
         <div className='relative w-full h-48 bg-gray-100 flex items-center justify-center'>
           {product.imageUrl ? (
-            <img src={product.imageUrl} alt={product.name} className='object-cover w-full h-full' />
+            <Image
+              height={48}
+              width={48}
+              src={product.imageUrl}
+              alt={product.name}
+              className='object-cover w-full h-full'
+            />
           ) : (
             <svg width='144' height='117' viewBox='0 0 144 117' fill='none' xmlns='http://www.w3.org/2000/svg'>
               <rect width='143.505' height='115.185' transform='translate(0.25 0.907959)' fill='#F3F4F6' />

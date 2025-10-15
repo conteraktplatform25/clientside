@@ -1,7 +1,7 @@
 'use client';
 import React from 'react';
 import { ColumnDef } from '@tanstack/react-table';
-import { IQuickReplyTableHeaderProps } from '@/type/client/business/quickreply.type';
+import { IQuickReplyTableProps } from '@/type/client/business/quickreply.type';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   DropdownMenu,
@@ -15,7 +15,7 @@ import { Button } from '@/components/ui/button';
 import { FaRegTrashAlt } from 'react-icons/fa';
 import { LucidePencil, MoreHorizontal } from 'lucide-react';
 
-export const QuickReplyTableHeaders: ColumnDef<IQuickReplyTableHeaderProps>[] = [
+export const QuickReplyTableHeaders: ColumnDef<IQuickReplyTableProps>[] = [
   {
     id: 'select',
     header: ({ table }) => (

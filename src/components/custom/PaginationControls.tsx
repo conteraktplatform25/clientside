@@ -25,7 +25,7 @@ const PaginationControls: React.FC<PaginationControlsProps> = ({
       <div className='flex items-center space-x-2'>
         <span className='text-sm font-medium'>Show:</span>
         <Select value={String(rowsPerPage)} onValueChange={(value) => onRowsPerPageChange(Number(value))}>
-          <SelectTrigger className='h-8 w-[70px]'>
+          <SelectTrigger className='h-8 w-fit'>
             <SelectValue placeholder={rowsPerPage} />
           </SelectTrigger>
           <SelectContent side='top'>

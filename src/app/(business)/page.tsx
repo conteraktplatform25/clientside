@@ -2,7 +2,6 @@
 
 import { useSession } from 'next-auth/react';
 import TopNotification from './custom/TopNotification';
-import GetStarted from '../component/GetStarted';
 import ContaktGetStarted from '../component/ContaktGetStarted';
 
 export default function Dashboard() {

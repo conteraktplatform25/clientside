@@ -1,9 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-// import { useForm } from "react-hook-form";
-// import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from 'zod';
 import {
   productCatalogueFormSchema,
   TProductCatalogueFormValues,
@@ -21,6 +18,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import InputField from '@/components/custom/InputField';
 import { Label } from '@/components/ui/label';
 import { IProductCatalogueProp } from '@/type/client/business/product-catalogue.type';
+import Image from 'next/image';
 
 const categories = ['Clothing', 'Electronics', 'Home Goods', 'Books', 'Food'];
 
@@ -216,7 +214,13 @@ const NewProductCatalogueForm: React.FC = () => {
             <div className='flex flex-wrap gap-2 mt-4'>
               {imagePreviews.map((src, index) => (
                 <div key={index} className='relative w-24 h-24 rounded-md overflow-hidden border border-gray-200'>
-                  <img src={src} alt={`Product preview ${index + 1}`} className='object-cover w-full h-full' />
+                  <Image
+                    src={src}
+                    width={24}
+                    height={24}
+                    alt={`Product preview ${index + 1}`}
+                    className='object-cover w-full h-full'
+                  />
                   <Button
                     type='button'
                     variant='ghost'

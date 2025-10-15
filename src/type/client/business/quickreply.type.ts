@@ -1,5 +1,5 @@
 // Define a generic interface for the data structure
-export interface IQuickReplyTableHeaderProps {
+export interface IQuickReplyTableProps {
   id?: string | number;
   title: string;
   created_by?: string;

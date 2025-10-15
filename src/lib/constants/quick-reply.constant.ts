@@ -1,6 +1,6 @@
-import { IQuickReplyTableHeaderProps } from '@/type/client/business/quickreply.type';
+import { IQuickReplyTableProps } from '@/type/client/business/quickreply.type';
 
-export const ConstQuickReplyProfile: IQuickReplyTableHeaderProps[] = [
+export const ConstQuickReplyProfile: IQuickReplyTableProps[] = [
   {
     id: 1,
     title: 'Catalogue',
