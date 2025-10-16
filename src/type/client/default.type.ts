@@ -27,6 +27,15 @@ export interface ISideMenuProps {
   submenu?: IMenuProps[];
 }
 
+export interface ISidebarLinkProps {
+  to: string;
+  icon?: React.ElementType;
+  label: string;
+  badge?: number;
+  isSubItem?: boolean;
+  onClick?: () => void;
+}
+
 export interface ISelectOption {
   label: string;
   value: string;
