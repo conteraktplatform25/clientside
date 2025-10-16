@@ -13,9 +13,11 @@ import {
 } from '../ui/dropdown-menu';
 import { Session, UserObject } from 'next-auth';
 import NotificationBell from '../notification/NotificationBell';
+import { usePageTitleStore } from '@/lib/store/defaults/usePageTitleStore';
 
 const TopNavigation = ({ session }: { session: Session | null }) => {
   const [profileName, setProfileName] = useState<UserObject | null>(session?.user ?? null);
+  const { title } = usePageTitleStore();
 
   //console.log('Top Navigation:', session?.user);
   useEffect(() => {
@@ -24,7 +26,7 @@ const TopNavigation = ({ session }: { session: Session | null }) => {
   return (
     <header className='flex items-center justify-between border-b bg-background py-2 px-10 w-full'>
       <div className='flex'>
-        <h6 className='text-neutral-800'>Get Started</h6>
+        <h6 className='font-semibold text-2xl leading-[140%] text-neutral-800'>{title}</h6>
       </div>
       <div className='flex items-end space-x-4'>
         <NotificationBell userId={session?.user?.id} />

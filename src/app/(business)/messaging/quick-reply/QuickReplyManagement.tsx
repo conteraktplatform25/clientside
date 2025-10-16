@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { IQuickReplyTableProps } from '@/type/client/business/quickreply.type';
 import QuickReplyTable from './_component/table/QuickReplyTable';
 import { ConstQuickReplyProfile as quickReplies } from '@/lib/constants/quick-reply.constant';
@@ -8,15 +8,20 @@ import AddReplyDialog from './AddReplyDialog';
 import { Button } from '@/components/ui/button';
 import { FaPlus } from 'react-icons/fa6';
 import PaginationControls from '@/components/custom/PaginationControls';
+import { usePageTitleStore } from '@/lib/store/defaults/usePageTitleStore';
 
 const QuickReplyManagement = () => {
+  const { setTitle } = usePageTitleStore();
   const [replies] = useState<IQuickReplyTableProps[]>(quickReplies);
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
   // State for Order Details Dialog
   const [isAddReplyDialogOpen, setIsAddReplyDialogOpen] = useState(false);
-  //const [selectedReplyDetails, setSelectedReplyDetails] = useState<IQuickReplyTableProps | null>(null);
+
+  useEffect(() => {
+    setTitle('Automated Messaging');
+  }, [setTitle]);
 
   const totalPages = Math.ceil(replies.length / rowsPerPage);
   const filteredReplies = useMemo(() => {

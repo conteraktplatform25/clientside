@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -16,6 +16,7 @@ import ProductCard from './ProductCard';
 import { FaGreaterThan } from 'react-icons/fa6';
 import Link from 'next/link';
 import { useProductCatalogueStore } from '@/lib/store/business/catalogue-sharing.store';
+import { usePageTitleStore } from '@/lib/store/defaults/usePageTitleStore';
 
 const PRODUCTS_PER_PAGE = 6;
 
@@ -25,6 +26,11 @@ const ProductCatalogueGallery: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All products');
   const [currentPage, setCurrentPage] = useState(1);
+  const { setTitle } = usePageTitleStore();
+
+  useEffect(() => {
+    setTitle('Catalogue');
+  }, [setTitle]);
 
   const filteredProducts = useMemo(() => {
     let products = catalogueProducts;

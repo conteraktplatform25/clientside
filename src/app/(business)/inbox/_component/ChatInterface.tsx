@@ -10,13 +10,17 @@ import { useChatStore } from '@/lib/store/business/survey/inbox-survey.store';
 // import { useChatStore } from '@/lib/chat-store';
 //import { getPusherClient, subscribeToChannel } from '@/lib/pusher-client';
 import { UserProfile, Message, Conversation } from '@/type/client/business/survey/inbox-survey.type';
+import { usePageTitleStore } from '@/lib/store/defaults/usePageTitleStore';
 // import { Message, User, Conversation } from '@/types/chat';
 
 export default function ChatInterface() {
-  const { currentUser, activeConversation, conversations, addMessage, setCurrentUser } = useChatStore();
-
-  console.log(conversations);
+  const { currentUser, activeConversation, addMessage, setCurrentUser } = useChatStore();
+  const { setTitle } = usePageTitleStore();
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    setTitle('Inbox');
+  }, [setTitle]);
 
   // Mock data for demo
   useEffect(() => {

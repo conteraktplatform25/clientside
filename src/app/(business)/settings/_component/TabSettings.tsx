@@ -1,11 +1,17 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ICustomTabPanelProps } from '@/type/client/default.type';
+import { usePageTitleStore } from '@/lib/store/defaults/usePageTitleStore';
 
 const TabSettings: React.FC<ICustomTabPanelProps> = ({ tabs }) => {
   const firstTabValue = tabs[0]?.value || '';
   const [activeTab, setActiveTab] = useState<string>(firstTabValue || 'business_profile');
+  const { setTitle } = usePageTitleStore();
+
+  useEffect(() => {
+    setTitle('Settings');
+  }, [setTitle]);
 
   return (
     <Tabs

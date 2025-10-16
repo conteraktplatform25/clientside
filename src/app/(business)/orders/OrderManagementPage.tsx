@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import OrderSummaryCard from './_component/OrderSummaryCard';
 import { IOrderProps, OrderStatus } from '@/type/client/business/order.type';
 import { OrdersTable } from './_component/table/OrdersTable';
@@ -11,8 +11,10 @@ import { ConstMockOrder as mocks } from '@/lib/constants/orders.constant';
 import { showSuccess } from '@/utils/toast';
 import { Label } from '@/components/ui/label';
 import OrderDetailsDialog from './OrderDetailsDialog';
+import { usePageTitleStore } from '@/lib/store/defaults/usePageTitleStore';
 
 const OrderManagementPage: React.FC = () => {
+  const { setTitle } = usePageTitleStore();
   const [orders, setOrders] = useState<IOrderProps[]>(mocks);
   const [selectedStatusFilter, setSelectedStatusFilter] = useState<'All orders' | OrderStatus>('All orders');
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined); // Changed from new Date() to undefined
@@ -22,6 +24,10 @@ const OrderManagementPage: React.FC = () => {
   // State for Order Details Dialog
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
   const [selectedOrderDetails, setSelectedOrderDetails] = useState<IOrderProps | null>(null);
+
+  useEffect(() => {
+    setTitle('Orders');
+  }, [setTitle]);
 
   const filteredOrders = useMemo(() => {
     let tempOrders = orders;

@@ -1,10 +1,17 @@
 'use client';
-import React from 'react';
+import React, { useEffect } from 'react';
 import IntegrationCard from './_component/IntegrationCard';
 import { showSuccess } from '@/utils/toast';
 import { ConstIntegrations as integrations } from '@/lib/constants/integration.constant';
+import { usePageTitleStore } from '@/lib/store/defaults/usePageTitleStore';
 
 const IntegrationContentPage: React.FC = () => {
+  const { setTitle } = usePageTitleStore();
+
+  useEffect(() => {
+    setTitle('Integrations');
+  }, [setTitle]);
+
   const handleConnect = (integrationName: string) => {
     showSuccess(`Connecting to ${integrationName}... (functionality to be implemented)`);
     // In a real application, this would trigger an authentication flow or API call
@@ -12,7 +19,6 @@ const IntegrationContentPage: React.FC = () => {
 
   return (
     <div className='container mx-auto p-4'>
-      <h1 className='text-2xl font-bold mb-6'>Integrations</h1>
       <p className='text-muted-foreground mb-8'>
         Connect your favorite tools and services to enhance your workflow and expand your capabilities.
       </p>

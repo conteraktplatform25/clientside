@@ -3,9 +3,16 @@
 import { useSession } from 'next-auth/react';
 import TopNotification from './custom/TopNotification';
 import ContaktGetStarted from '../component/ContaktGetStarted';
+import { usePageTitleStore } from '@/lib/store/defaults/usePageTitleStore';
+import { useEffect } from 'react';
 
 export default function Dashboard() {
   const { data: session, status } = useSession();
+  const { setTitle } = usePageTitleStore();
+
+  useEffect(() => {
+    setTitle('Get Started');
+  }, [setTitle]);
 
   if (status === 'loading') {
     return <p>Loading...</p>;

@@ -4,6 +4,7 @@ import TabSettings from './_component/TabSettings';
 import BusinessProfileForm from './_component/BusinessProfileForm';
 import ManageUserProfile from './_component/ManageUserProfile';
 import ManageTags from './_component/ManageTags';
+import RolesAndPermissions from './_component/RolesAndPermissions';
 
 const BusinessSettingsPage = () => {
   const tabs: ITabItem[] = [
@@ -25,7 +26,7 @@ const BusinessSettingsPage = () => {
     {
       value: 'roles_permissions',
       label: 'Roles & permission',
-      content: <p>Roles and permission section here</p>,
+      content: <RolesAndPermissions />,
     },
   ];
 
