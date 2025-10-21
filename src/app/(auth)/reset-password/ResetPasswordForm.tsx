@@ -9,7 +9,7 @@ import InputField from '@/components/custom/InputField';
 import { Button } from '@/components/ui/button';
 import { fetchWithIndicatorHook } from '@/lib/hooks/fetch-with-indicator.hook';
 
-const ResetPasswordForm = ({ email, token }: { email: string; token: string }) => {
+const ResetPasswordForm = ({ email, otpcode }: { email: string; otpcode: string }) => {
   const [alert, setAlert] = useState<IAlertProps>({ type: null });
   //const router = useRouter();
 
@@ -31,9 +31,9 @@ const ResetPasswordForm = ({ email, token }: { email: string; token: string }) =
     const response = await fetchWithIndicatorHook('/api/auth/reset-password', {
       method: 'POST',
       body: JSON.stringify({
-        token,
         email,
         password: data.password,
+        otp: otpcode,
       }),
       headers: { 'Content-Type': 'application/json' },
     });

@@ -137,3 +137,62 @@ export const CreateProfileResponseSchema = z.object({
     .optional(),
   message: z.string(),
 });
+
+export const ForgotPasswordRequestSchema = z.object({
+  email: z.email().describe('User email address'),
+});
+export const ForgotPasswordResponseSchema = z.object({
+  ok: z.boolean().openapi({ example: true }),
+  message: z.string().openapi({ example: 'If an account exists, an email will be sent.' }),
+});
+
+// 🧩 Request schema
+export const ResetPasswordRequestSchema = z.object({
+  email: z.email().openapi({ example: 'user@example.com' }),
+  password: z
+    .string()
+    .min(8)
+    .openapi({ example: 'newSecurePassword123', description: 'New password (min 8 characters)' }),
+  otp: z.string().min(4).max(6).openapi({
+    example: '483920',
+    description: 'The one-time password (OTP) sent to the user’s email.',
+  }),
+});
+
+// 🧩 Success response schema
+export const ResetPasswordResponseSchema = z.object({
+  ok: z.boolean().openapi({ example: true }),
+  message: z.string().openapi({ example: 'Password reset successful' }),
+});
+
+// 🧱 Request Schema
+export const VerifyOtpRequestSchema = z.object({
+  email: z.email().openapi({
+    example: 'user@example.com',
+    description: 'The email address associated with the OTP code.',
+  }),
+  otp: z.string().min(4).max(6).openapi({
+    example: '834290',
+    description: 'The one-time password (OTP) sent to the user’s email.',
+  }),
+  flow: z.enum(['signup', 'reset']).optional().openapi({
+    example: 'signup',
+    description: 'The process where this OTP is being used, e.g., "signup" or "reset".',
+  }),
+});
+
+// 🧱 Success Response Schema
+export const VerifyOtpResponseSchema = z.object({
+  ok: z.boolean().openapi({ example: true }),
+  message: z.string().openapi({ example: 'One time Password verified successfully.' }),
+  flow: z
+    .string()
+    .optional()
+    .openapi({ example: 'signup', description: 'Indicates which verification flow was used.' }),
+});
+
+// 🧱 Error Response Schema
+export const VerifyOtpErrorSchema = z.object({
+  ok: z.boolean().optional().openapi({ example: false }),
+  message: z.string().optional().openapi({ example: 'Invalid or expired OTP' }),
+});

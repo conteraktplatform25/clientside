@@ -9,6 +9,7 @@ import { Form } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
 import InputField from '@/components/custom/InputField';
 import AlertDisplayField, { IAlertProps } from '@/components/custom/AlertMessageField';
+import { useRouter } from 'next/navigation';
 
 const schema = z.object({
   email: z.email('Invalid email address'),
@@ -18,7 +19,7 @@ type FormData = z.infer<typeof schema>;
 
 const ForgotPasswordForm = () => {
   const [alert, setAlert] = useState<IAlertProps>({ type: null });
-  //const router = useRouter();
+  const router = useRouter();
   const forgotPasswordForm = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -45,9 +46,10 @@ const ForgotPasswordForm = () => {
       reset();
       setAlert({
         type: 'success',
-        title: json.message || 'Check your email for reset instructions.',
-        description: 'Check your email for password reset.',
+        title: json.message || 'Check your Mail for one time password.',
+        description: 'Check your Mail for one time password.',
       });
+      router.push(`/otp-verification?email=${data.email}`);
     } else {
       setAlert({
         type: 'error',

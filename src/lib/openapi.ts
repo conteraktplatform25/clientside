@@ -1,9 +1,11 @@
 import { OpenAPIRegistry } from '@asteasolutions/zod-to-openapi';
-import { resetPasswordFormSchema } from './schemas/auth/resetpassword.schema';
+//import { resetPasswordFormSchema } from './schemas/auth/resetpassword.schema';
 import { z } from 'zod';
 import {
   CreateProfileRequestSchema,
   CreateProfileResponseSchema,
+  ForgotPasswordRequestSchema,
+  ForgotPasswordResponseSchema,
   loginRequestSchema,
   loginResponseSchema,
   refreshTokenRequestSchema,
@@ -12,6 +14,11 @@ import {
   registerResponseSchema,
   verifyTokenRequestSchema,
   VerifyTokenResponseSchema,
+  ResetPasswordRequestSchema,
+  ResetPasswordResponseSchema,
+  VerifyOtpRequestSchema,
+  VerifyOtpResponseSchema,
+  VerifyOtpErrorSchema,
 } from './schemas/auth/nextauth-openapi.schema';
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 
@@ -56,7 +63,11 @@ registry.register('VerifyTokenRequest', verifyTokenRequestSchema);
 registry.register('VerifyTokenResponse', VerifyTokenResponseSchema);
 
 //registry.register('ProfileRequest', profileFormSchema);
-registry.register('ResetPasswordRequest', resetPasswordFormSchema);
+registry.register('ResetPasswordRequest', ResetPasswordRequestSchema);
+registry.register('ResetPasswordResponse', ResetPasswordResponseSchema);
+
+registry.register('VerifyOtpRequest', VerifyOtpRequestSchema);
+registry.register('VerifyOtpResponse', VerifyOtpResponseSchema);
 
 //Login Implementation
 registry.registerPath({
@@ -220,35 +231,126 @@ registry.registerPath({
   },
 });
 
-// Reset Password
+// Forgot Password
 registry.registerPath({
   method: 'post',
-  path: '/api/auth/reset-password',
-  summary: 'Reset Password',
-  description: 'Reset user password with confirmation',
-  tags: ['Authentication'], // ✅ Tag assigned here
+  path: '/api/auth/forgot-password',
+  tags: ['Authentication'],
+  summary: 'Request password reset link',
+  description:
+    'Sends a password reset email with a verification token if the user exists. Always responds successfully to prevent user enumeration.',
   request: {
     body: {
       content: {
-        'application/json': { schema: resetPasswordFormSchema },
+        'application/json': {
+          schema: ForgotPasswordRequestSchema,
+        },
       },
     },
   },
   responses: {
     200: {
-      description: 'Password reset successful',
+      description: 'Password reset email triggered successfully (even if user not found).',
       content: {
         'application/json': {
-          schema: {
-            type: 'object',
-            properties: {
-              ok: { type: 'boolean' },
-              message: { type: 'string' },
-            },
-          },
+          schema: ForgotPasswordResponseSchema,
         },
       },
     },
-    400: { description: 'Invalid or mismatched passwords' },
+    400: {
+      description: 'Bad request or unexpected error',
+      content: {
+        'application/json': {
+          schema: z.object({
+            ok: z.boolean().optional(),
+            message: z.string().optional(),
+          }),
+        },
+      },
+    },
+  },
+});
+
+// Reset Password
+registry.registerPath({
+  method: 'post',
+  path: '/api/auth/reset-password',
+  summary: 'Reset user password with OTP verification',
+  description:
+    'Verifies a one-time password (OTP) sent to the user’s email and resets their password if the OTP is valid.',
+  tags: ['Authentication'], // ✅ Tag assigned here
+  request: {
+    body: {
+      content: {
+        'application/json': { schema: ResetPasswordRequestSchema },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: 'Password successfully reset.',
+      content: {
+        'application/json': {
+          schema: ResetPasswordResponseSchema,
+        },
+      },
+    },
+    400: {
+      description: 'Missing fields, invalid OTP, or expired token.',
+      content: {
+        'application/json': {
+          schema: z.object({
+            ok: z.boolean().optional(),
+            message: z.string().optional(),
+          }),
+        },
+      },
+    },
+    409: {
+      description: 'Email does not exist.',
+      content: {
+        'application/json': {
+          schema: z.object({
+            ok: z.boolean().optional(),
+            message: z.string().optional(),
+          }),
+        },
+      },
+    },
+  },
+});
+
+//Verify OTP
+registry.registerPath({
+  method: 'post',
+  path: '/api/auth/verify-otp',
+  summary: 'Verify a one-time password (OTP) for email verification or password reset',
+  description:
+    'Validates a one-time password (OTP) sent to a user’s email. If valid, the OTP is marked as used. For signup flows, the user account is activated.',
+  tags: ['Authentication'],
+  request: {
+    body: {
+      content: {
+        'application/json': { schema: VerifyOtpRequestSchema },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: 'OTP successfully verified and user activated (if applicable).',
+      content: {
+        'application/json': {
+          schema: VerifyOtpResponseSchema,
+        },
+      },
+    },
+    400: {
+      description: 'Missing fields, invalid, or expired OTP.',
+      content: {
+        'application/json': {
+          schema: VerifyOtpErrorSchema,
+        },
+      },
+    },
   },
 });

@@ -50,7 +50,7 @@ const SidebarComponent = () => {
     return () => document.removeEventListener('mousedown', onDocClick);
   }, [collapsedPopoverOpen]);
   return (
-    <Sidebar variant='inset' collapsible='icon'>
+    <Sidebar variant='inset' collapsible='icon' className='border-r border-[#EAECF2]'>
       <SidebarInset>
         <SidebarHeader>
           <div className='flex gap-2 px-1'>
