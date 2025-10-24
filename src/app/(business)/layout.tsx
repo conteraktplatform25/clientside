@@ -6,7 +6,6 @@ import TopNavigation from '@/components/layout-component/TopNavigation';
 import SidebarComponent from '@/components/layout-component/SidebarComponent';
 import { getServerSession } from 'next-auth';
 import authOptions from '../api/auth/[...nextauth]/authOption';
-import { ScrollArea } from '@/components/ui/scroll-area';
 
 const DashboardLayout = async ({ children }: ILayoutProps) => {
   const cookieStore = await cookies();
@@ -22,7 +21,7 @@ const DashboardLayout = async ({ children }: ILayoutProps) => {
             <SidebarTrigger className='mt-4' />
             <TopNavigation session={session} />
           </div>
-          <ScrollArea className='h-[9ovh]'>{children}</ScrollArea>
+          {children}
         </div>
       </div>
     </SidebarProvider>

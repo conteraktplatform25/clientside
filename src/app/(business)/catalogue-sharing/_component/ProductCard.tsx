@@ -35,7 +35,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             </svg>
           )}
           <span className='absolute top-2 left-2 font-medium bg-white text-neutral-800 text-xs px-2 py-1 rounded-full'>
-            {product.category}
+            {product.category?.name}
           </span>
         </div>
         <div className='p-3'>
@@ -43,7 +43,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           <p className='text-sm leading-[155%] text-neutral-500 line-clamp-2 mb-3'>{product.description}</p>
           <div className='flex items-center justify-between'>
             <span className='text-base font-semibold text-neutral-900'>
-              {product.currency} {product.amount.toLocaleString()}
+              {product.currency} {product.price.toLocaleString()}
             </span>
             <span
               className={cn(

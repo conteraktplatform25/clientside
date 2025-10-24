@@ -6,11 +6,11 @@ import { IProductCatalogueProp } from '@/type/client/business/product-catalogue.
 const INITIAL_DUMMY_PRODUCTS: IProductCatalogueProp[] = Array.from({ length: 25 }, (_, i) => ({
   id: `prod-${i + 1}`,
   imageUrl: '', // Placeholder image
-  category: i % 3 === 0 ? 'Clothing' : i % 3 === 1 ? 'Electronics' : 'Home Goods',
+  category: null,
   name: `Loafers ${i + 1}`,
   description:
     'It takes inspiration from vintage design to create the Dice Lo sneakers. Displaying a design in black, the p...',
-  amount: 35000 + i * 100,
+  price: 35000 + i * 100,
   currency: '₦',
   availability: i % 5 === 0 ? 'Out of Stock' : 'Available',
 }));

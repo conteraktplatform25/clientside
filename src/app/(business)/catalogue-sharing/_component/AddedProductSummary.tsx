@@ -30,10 +30,12 @@ const AddedProductsSummary: React.FC = () => {
                 <div className='flex justify-between items-start mb-1'>
                   <h3 className='font-medium text-sm leading-[155%]'>{product.name}</h3>
                   <span className='mt-1 font-medium text-sm'>
-                    {product.currency} {product.amount.toLocaleString()}
+                    {product.currency} {product.price.toLocaleString()}
                   </span>
                 </div>
-                <div className='text-xs mb-1 max-w-fit border rounded-[8px] p-3 bg-[#F3F4F6]'>{product.category}</div>
+                <div className='text-xs mb-1 max-w-fit border rounded-[8px] p-3 bg-[#F3F4F6]'>
+                  {product.category?.name}
+                </div>
                 <p className='text-sm line-clamp-2 px-2'>{product.description}</p>
               </CardContent>
             </Card>

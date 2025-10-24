@@ -10,16 +10,19 @@ export async function GET() {
     let document = generator.generateDocument({
       openapi: '3.1.0',
       info: {
-        title: 'Authentication API',
+        title: 'Contakt Server API',
         version: '1.0.0',
-        description:
-          'API documentation for NextAuth-based authentication endpoints (OAuth + Credentials + Session + Profile)',
+        description: 'API documentation for Contakt Commerce platform',
       },
       servers: [{ url: process.env.NEXT_PUBLIC_APP_URL! }],
       tags: [
         {
           name: 'Authentication',
           description: 'Endpoints related to user authentication, OAuth, session management, and profile updates',
+        },
+        {
+          name: 'Product Categories',
+          description: 'Endpoints related to product categories',
         },
       ],
     });

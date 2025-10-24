@@ -1,13 +1,15 @@
 export interface IProductCatalogueProp {
   id: string;
-  imageUrl: string; // This will be the URL or base64 string of the main image
-  category: string;
   name: string;
+  price: number;
   description: string;
-  amount: number;
   currency: string;
-  availability: 'Available' | 'Out of Stock';
+  stock?: number; // Optional stock quantity
+  category?: {
+    name: string;
+  } | null;
+  media?: { url: string }[];
   sku?: string; // Optional SKU
-  stockQuantity?: number; // Optional stock quantity
-  images?: string[]; // Array of image URLs/base64 strings
+  imageUrl?: string;
+  availability?: 'Available' | 'Out of Stock';
 }

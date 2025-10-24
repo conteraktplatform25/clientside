@@ -65,13 +65,13 @@ const NewProductCatalogueForm: React.FC = () => {
       name: values.productName,
       sku: values.productSKU,
       description: values.description,
-      amount: values.price,
-      stockQuantity: values.stockQuantity,
-      category: values.category,
-      imageUrl: values.productImages && values.productImages.length > 0 ? values.productImages[0] : '/placeholder.svg', // Use first image as main
-      images: values.productImages,
-      currency: '₦', // Default currency
-      availability: values.stockQuantity && values.stockQuantity > 0 ? 'Available' : 'Out of Stock',
+      price: values.price,
+      stock: values.stockQuantity,
+      category: { name: values.category },
+      // media: {url: values.productImages && values.productImages.length > 0 ? values.productImages[0] : '/placeholder.svg'} // Use first image as main
+      // images: values.productImages,
+      currency: 'NAIRA', // Default currency
+      //availability: values.stockQuantity && values.stockQuantity > 0 ? 'Available' : 'Out of Stock',
     };
     addProduct(newProduct);
     form.reset();

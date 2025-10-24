@@ -22,6 +22,12 @@ import {
 } from './schemas/auth/nextauth-openapi.schema';
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 
+import {
+  CreateCategorySchema,
+  CategoryResponseSchema,
+  UpdateCategorySchema,
+} from '@/lib/schemas/business/server/catalogue.schema';
+
 // ✅ Initialize zod-openapi
 extendZodWithOpenApi(z);
 
@@ -349,6 +355,241 @@ registry.registerPath({
       content: {
         'application/json': {
           schema: VerifyOtpErrorSchema,
+        },
+      },
+    },
+  },
+});
+
+//Catalogue Module Registry
+registry.registerPath({
+  method: 'get',
+  path: '/api/catalogue/categories',
+  tags: ['Product Categories'],
+  summary: 'Get all categories for the authenticated business',
+  security: [{ BearerAuth: [] }],
+  responses: {
+    200: {
+      description: 'List of categories retrieved successfully',
+      content: {
+        'application/json': {
+          schema: z.object({
+            ok: z.boolean(),
+            message: z.string(),
+            categories: z.array(CategoryResponseSchema),
+          }),
+        },
+      },
+    },
+    401: { description: 'Unauthorized' },
+    404: { description: 'Business profile not found' },
+  },
+});
+
+registry.registerPath({
+  method: 'post',
+  path: '/api/catalogue/categories',
+  tags: ['Product Categories'],
+  summary: 'Create a new category under the authenticated business profile',
+  security: [{ BearerAuth: [] }],
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: CreateCategorySchema,
+        },
+      },
+    },
+  },
+  responses: {
+    201: {
+      description: 'Category created successfully',
+      content: {
+        'application/json': {
+          schema: z.object({
+            ok: z.boolean(),
+            message: z.string(),
+            category: CategoryResponseSchema,
+          }),
+        },
+      },
+    },
+    400: { description: 'Invalid input or missing data' },
+    401: { description: 'Unauthorized' },
+    403: { description: 'Forbidden: Insufficient permissions' },
+  },
+});
+
+registry.registerPath({
+  method: 'get',
+  path: '/api/catalogue/categories/{id}',
+  tags: ['Product Categories'],
+  summary: 'Retrieve a single category by ID (including subcategories)',
+  security: [{ BearerAuth: [] }],
+  request: {
+    params: z.object({
+      id: z.uuid().openapi({
+        example: 'b8d43f9e-cc8b-4b84-a20d-8e85acb8a654',
+        description: 'The UUID of the category to retrieve',
+      }),
+    }),
+  },
+  responses: {
+    200: {
+      description: 'Successful retrieval of a category and its subcategories',
+      content: {
+        'application/json': {
+          schema: z.object({
+            ok: z.boolean().openapi({ example: true }),
+            message: z.string().openapi({ example: 'Successful retrieval' }),
+            profile: CategoryResponseSchema, // note: your success() function wraps payload under "profile"
+          }),
+        },
+      },
+    },
+    401: { description: 'Unauthorized' },
+    404: { description: 'Category not found' },
+  },
+});
+
+registry.registerPath({
+  method: 'patch',
+  path: '/api/catalogue/categories/{id}',
+  tags: ['Product Categories'],
+  summary: 'Update a category by ID',
+  description:
+    'Allows authorized users (Business/Admin) to modify the name, description, or parent category of an existing category.',
+  security: [{ BearerAuth: [] }],
+  request: {
+    params: z.object({
+      id: z.string().uuid().openapi({
+        example: 'b8d43f9e-cc8b-4b84-a20d-8e85acb8a654',
+      }),
+    }),
+    body: {
+      content: {
+        'application/json': {
+          schema: UpdateCategorySchema.openapi('UpdateCategoryRequest'),
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: 'Category successfully updated',
+      content: {
+        'application/json': {
+          schema: z.object({
+            ok: z.boolean().openapi({ example: true }),
+            message: z.string().openapi({ example: 'Successful updated Category' }),
+            profile: CategoryResponseSchema,
+          }),
+        },
+      },
+    },
+    400: { description: 'Invalid input' },
+    401: { description: 'Unauthorized' },
+    403: { description: 'Forbidden: Insufficient permissions' },
+    404: { description: 'Category not found' },
+  },
+});
+
+registry.registerPath({
+  method: 'delete',
+  path: '/api/catalogue/categories/{id}',
+  tags: ['Product Categories'],
+  summary: 'Delete a category by ID',
+  description: 'Removes a category (and optionally its subcategories) from the catalogue.',
+  security: [{ BearerAuth: [] }],
+  request: {
+    params: z.object({
+      id: z.string().uuid().openapi({
+        example: 'b8d43f9e-cc8b-4b84-a20d-8e85acb8a654',
+      }),
+    }),
+  },
+  responses: {
+    200: {
+      description: 'Category deleted successfully',
+      content: {
+        'application/json': {
+          schema: z.object({
+            ok: z.boolean().openapi({ example: true }),
+            message: z.string().openapi({ example: 'Category deleted' }),
+          }),
+        },
+      },
+    },
+    401: { description: 'Unauthorized' },
+    403: { description: 'Forbidden: Insufficient permissions' },
+    404: { description: 'Category not found' },
+  },
+});
+
+registry.registerPath({
+  method: 'get',
+  path: '/api/catalogue/categories/count',
+  tags: ['Product Categories'],
+  summary: 'Get the total count of categories for the authenticated business',
+  description:
+    "Returns the number of categories belonging to the authenticated user's business profile. Requires `Business` role authorization.",
+  security: [{ BearerAuth: [] }],
+  responses: {
+    200: {
+      description: 'Category count retrieved successfully',
+      content: {
+        'application/json': {
+          schema: z.object({
+            ok: z.boolean().openapi({ example: true }),
+            message: z.string().openapi({ example: 'Category count retrieved successfully' }),
+            profile: z.object({
+              count: z.number().openapi({ example: 42 }),
+            }),
+          }),
+        },
+      },
+    },
+    401: {
+      description: 'Unauthorized — user not authenticated',
+      content: {
+        'application/json': {
+          schema: z.object({
+            ok: z.boolean().openapi({ example: false }),
+            message: z.string().openapi({ example: 'Unauthorized' }),
+          }),
+        },
+      },
+    },
+    403: {
+      description: 'Forbidden — insufficient permissions',
+      content: {
+        'application/json': {
+          schema: z.object({
+            ok: z.boolean().openapi({ example: false }),
+            message: z.string().openapi({ example: 'Forbidden: Insufficient permissions' }),
+          }),
+        },
+      },
+    },
+    404: {
+      description: 'Business profile not configured or not found',
+      content: {
+        'application/json': {
+          schema: z.object({
+            ok: z.boolean().openapi({ example: false }),
+            message: z.string().openapi({ example: 'Whatsapp Profile has not been configured.' }),
+          }),
+        },
+      },
+    },
+    500: {
+      description: 'Unexpected server error',
+      content: {
+        'application/json': {
+          schema: z.object({
+            ok: z.boolean().openapi({ example: false }),
+            message: z.string().openapi({ example: 'An unexpected error occurred' }),
+          }),
         },
       },
     },

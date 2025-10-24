@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-// import { v4 as uuidv4 } from 'uuid';
-// import { addHours } from 'date-fns';
 import { Resend } from 'resend';
 import { getErrorMessage } from '@/utils/errors';
 import { renderTemplate } from '@/lib/helpers/render-template.helper';

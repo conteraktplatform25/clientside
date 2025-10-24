@@ -10,23 +10,28 @@ export const ConstGetStarted: string[] = [
 
 export const ConstUserTask: ISelectOption[] = [
   {
-    value: 'connect_number',
+    value: 'phoneNumber',
     label: 'Connect your number',
+    href: '/profile/settings',
   },
   {
-    value: 'whatsapp_profile',
+    value: 'businessProfile',
     label: 'Setup whatsapp profile',
+    href: '/business/profile',
   },
   {
-    value: 'create_catalogue',
+    value: 'productCatalogue',
     label: 'Create product catalogue',
+    href: '/catalogue/create',
   },
   {
-    value: 'quick_replies',
+    value: 'quickReplies',
     label: 'Setup quick replies',
+    href: '/messaging/quick-replies',
   },
   {
-    value: 'add_contact',
+    value: 'contactInformtion',
     label: 'Add contacts',
+    href: '/profile/contact-info',
   },
 ];

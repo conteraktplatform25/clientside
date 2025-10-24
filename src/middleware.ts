@@ -52,6 +52,6 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!api/auth|api/docs|login|register|verification|forgot-password|otp-verification|reset-password|_next|.*\\.(?:png|jpg|jpeg|svg|css|js|ico)$).*)',
+    '/((?!api|login|register|verification|forgot-password|otp-verification|reset-password|_next|.*\\.(?:png|jpg|jpeg|svg|css|js|ico)$).*)',
   ],
 };

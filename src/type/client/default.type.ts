@@ -39,6 +39,7 @@ export interface ISidebarLinkProps {
 export interface ISelectOption {
   label: string;
   value: string;
+  href?: string;
 }
 
 export interface IDialogOpen {
