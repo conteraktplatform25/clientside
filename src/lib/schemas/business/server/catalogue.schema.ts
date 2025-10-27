@@ -93,3 +93,58 @@ export const ProductQuerySchema = z.object({
   sortBy: z.enum(['created_at', 'price']).default('created_at'),
   sortOrder: z.enum(['asc', 'desc']).default('desc'),
 });
+
+export const ProductResponseSchema = z
+  .object({
+    id: z.uuid().openapi({ example: 'b8d43f9e-cc8b-4b84-a20d-8e85acb8a654' }),
+    name: z.string(),
+    slug: z.string(),
+    description: z.string().optional(),
+    price: z.number(),
+    sku: z.string().optional(),
+    stock: z.number(),
+    currency: z.string(),
+    category: z
+      .object({
+        name: z.string(),
+      })
+      .optional(),
+    media: z
+      .array(
+        z.object({
+          id: z.uuid(),
+          url: z.url(),
+        })
+      )
+      .optional(),
+    variants: z
+      .array(
+        z.object({
+          id: z.uuid(),
+          name: z.string(),
+          price: z.number(),
+        })
+      )
+      .optional(),
+  })
+  .openapi('ProductResponse');
+
+export const ProductMediaResponseSchema = z
+  .object({
+    id: z.uuid().openapi({ example: 'b8d43f9e-cc8b-4b84-a20d-8e85acb8a654' }),
+    productId: z.uuid().openapi({ example: 'b8d43f9e-cc8b-4b84-a20d-8e85acb8a654' }),
+    url: z.string(),
+    altText: z.string(),
+    order: z.string().optional(),
+  })
+  .openapi('ProductMediaResponse');
+
+export const ProductVariantsResponseSchema = z
+  .object({
+    id: z.uuid().openapi({ example: 'b8d43f9e-cc8b-4b84-a20d-8e85acb8a654' }),
+    productId: z.uuid().openapi({ example: 'b8d43f9e-cc8b-4b84-a20d-8e85acb8a654' }),
+    sku: z.string().optional(),
+    price: z.number(),
+    stock: z.number(),
+  })
+  .openapi('ProductVariantResponse');

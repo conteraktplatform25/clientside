@@ -24,6 +24,10 @@ export async function GET() {
           name: 'Product Categories',
           description: 'Endpoints related to product categories',
         },
+        {
+          name: 'Products',
+          description: 'Endpoints related to products implementation',
+        },
       ],
     });
 

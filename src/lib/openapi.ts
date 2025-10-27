@@ -26,6 +26,13 @@ import {
   CreateCategorySchema,
   CategoryResponseSchema,
   UpdateCategorySchema,
+  ProductResponseSchema,
+  CreateProductSchema,
+  UpdateProductSchema,
+  ProductMediaResponseSchema,
+  CreateMediaSchema,
+  ProductVariantsResponseSchema,
+  CreateVariantSchema,
 } from '@/lib/schemas/business/server/catalogue.schema';
 
 // ✅ Initialize zod-openapi
@@ -361,7 +368,7 @@ registry.registerPath({
   },
 });
 
-//Catalogue Module Registry
+//Category Module Registry
 registry.registerPath({
   method: 'get',
   path: '/api/catalogue/categories',
@@ -593,5 +600,337 @@ registry.registerPath({
         },
       },
     },
+  },
+});
+
+/** Product Catalogue Implementation */
+registry.registerPath({
+  method: 'post',
+  path: '/api/catalogue/products',
+  tags: ['Products'],
+  summary: 'Create a new product under the authenticated business profile',
+  security: [{ BearerAuth: [] }],
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: CreateProductSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    201: {
+      description: 'Product successfully created',
+      content: {
+        'application/json': {
+          schema: z.object({
+            ok: z.boolean(),
+            message: z.string(),
+            product: ProductResponseSchema,
+          }),
+        },
+      },
+    },
+    400: { description: 'Invalid input or missing fields' },
+    401: { description: 'Unauthorized' },
+    403: { description: 'Forbidden: Insufficient permissions' },
+    404: { description: 'Business profile not configured' },
+  },
+});
+
+registry.registerPath({
+  method: 'get',
+  path: '/api/catalogue/products',
+  tags: ['Products'],
+  summary: 'Retrieve paginated and filtered list of products',
+  security: [{ BearerAuth: [] }],
+  request: {
+    query: z.object({
+      page: z.number().default(1),
+      limit: z.number().default(10),
+      search: z.string().optional(),
+      categoryId: z.uuid().optional(),
+      minPrice: z.number().optional(),
+      maxPrice: z.number().optional(),
+      sortBy: z.enum(['created_at', 'price']).default('created_at'),
+      sortOrder: z.enum(['asc', 'desc']).default('desc'),
+    }),
+  },
+  responses: {
+    200: {
+      description: 'Products retrieved successfully',
+      content: {
+        'application/json': {
+          schema: z.object({
+            ok: z.boolean(),
+            message: z.string(),
+            data: z.object({
+              pagination: z.object({
+                page: z.number(),
+                limit: z.number(),
+                total: z.number(),
+                totalPages: z.number(),
+              }),
+              products: z.array(ProductResponseSchema),
+            }),
+          }),
+        },
+      },
+    },
+    400: { description: 'Invalid query parameters' },
+    401: { description: 'Unauthorized' },
+    404: { description: 'Business profile not configured' },
+  },
+});
+
+registry.registerPath({
+  method: 'get',
+  path: '/api/catalogue/products/{id}',
+  tags: ['Products'],
+  summary: 'Retrieve a single product by ID',
+  security: [{ BearerAuth: [] }],
+  request: {
+    params: z.object({
+      id: z.uuid().openapi({
+        example: 'b8d43f9e-cc8b-4b84-a20d-8e85acb8a654',
+        description: 'The UUID of the product to retrieve',
+      }),
+    }),
+  },
+  responses: {
+    200: {
+      description: 'Successful retrieval of a product',
+      content: {
+        'application/json': {
+          schema: z.object({
+            ok: z.boolean().openapi({ example: true }),
+            message: z.string().openapi({ example: 'Successful retrieval' }),
+            profile: ProductResponseSchema, // note: your success() function wraps payload under "profile"
+          }),
+        },
+      },
+    },
+    401: { description: 'Unauthorized' },
+    404: { description: 'Product not found' },
+  },
+});
+
+registry.registerPath({
+  method: 'patch',
+  path: '/api/catalogue/products/{id}',
+  tags: ['Products'],
+  summary: 'Update a product by ID',
+  description:
+    'Allows authorized users (Business/Admin) to modify the name, category, price, description, sku, stock or currency of an existing product.',
+  security: [{ BearerAuth: [] }],
+  request: {
+    params: z.object({
+      id: z.uuid().openapi({
+        example: 'b8d43f9e-cc8b-4b84-a20d-8e85acb8a654',
+      }),
+    }),
+    body: {
+      content: {
+        'application/json': {
+          schema: UpdateProductSchema.openapi('UpdateProductSchema'),
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: 'Product successfully updated',
+      content: {
+        'application/json': {
+          schema: z.object({
+            ok: z.boolean().openapi({ example: true }),
+            message: z.string().openapi({ example: 'Successful updated Category' }),
+            profile: ProductResponseSchema,
+          }),
+        },
+      },
+    },
+    400: { description: 'Invalid input' },
+    401: { description: 'Unauthorized' },
+    403: { description: 'Forbidden: Insufficient permissions' },
+  },
+});
+
+registry.registerPath({
+  method: 'delete',
+  path: '/api/catalogue/products/{id}',
+  tags: ['Products'],
+  summary: 'Delete a product by ID',
+  description: 'Removes a product from the catalogue. Only users with Business or Admin roles are authorized.',
+  security: [{ BearerAuth: [] }],
+  request: {
+    params: z.object({
+      id: z.uuid().openapi({
+        example: 'b8d43f9e-cc8b-4b84-a20d-8e85acb8a654',
+      }),
+    }),
+  },
+  responses: {
+    200: {
+      description: 'Product deleted successfully',
+      content: {
+        'application/json': {
+          schema: z.object({
+            ok: z.boolean().openapi({ example: true }),
+            message: z.string().openapi({ example: 'Category deleted' }),
+          }),
+        },
+      },
+    },
+    401: { description: 'Unauthorized' },
+    403: { description: 'Forbidden: Insufficient permissions' },
+    500: { description: 'Internal server error' },
+  },
+});
+
+/***Product Media here... */
+registry.registerPath({
+  method: 'get',
+  path: '/api/catalogue/products/{id}/media',
+  tags: ['Products'],
+  summary: 'Retrieve a product media both images and video by the product unique ID',
+  security: [{ BearerAuth: [] }],
+  request: {
+    params: z.object({
+      id: z.uuid().openapi({
+        example: 'b8d43f9e-cc8b-4b84-a20d-8e85acb8a654',
+        description: 'The UUID of the product to retrieve',
+      }),
+    }),
+  },
+  responses: {
+    200: {
+      description: 'Successful retrieval',
+      content: {
+        'application/json': {
+          schema: z.object({
+            ok: z.boolean().openapi({ example: true }),
+            message: z.string().openapi({ example: 'Successful retrieval' }),
+            profile: ProductMediaResponseSchema, // note: your success() function wraps payload under "profile"
+          }),
+        },
+      },
+    },
+    401: { description: 'Unauthorized' },
+  },
+});
+
+registry.registerPath({
+  method: 'post',
+  path: '/api/catalogue/products/{id}/media',
+  tags: ['Products'],
+  summary: 'Insert new product media which could be an image or a video',
+  description:
+    'Allows authorized users (Business/Admin) to insert a new product image or video based on the product unique ID. It request body are media url, alternate text and the meida order.',
+  security: [{ BearerAuth: [] }],
+  request: {
+    params: z.object({
+      id: z.uuid().openapi({
+        example: 'b8d43f9e-cc8b-4b84-a20d-8e85acb8a654',
+      }),
+    }),
+    body: {
+      content: {
+        'application/json': {
+          schema: CreateMediaSchema.openapi('CreateMediaSchema'),
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: 'Product Media successfully updated',
+      content: {
+        'application/json': {
+          schema: z.object({
+            ok: z.boolean().openapi({ example: true }),
+            message: z.string().openapi({ example: 'Successful updated Product Image' }),
+            profile: ProductResponseSchema,
+          }),
+        },
+      },
+    },
+    400: { description: 'Invalid input' },
+    401: { description: 'Unauthorized' },
+    403: { description: 'Forbidden: Insufficient permissions' },
+  },
+});
+
+/***Product Variant here... */
+registry.registerPath({
+  method: 'get',
+  path: '/api/catalogue/products/{id}/variants',
+  tags: ['Products'],
+  summary: 'Retrieve an array of product variants by the product unique ID',
+  security: [{ BearerAuth: [] }],
+  request: {
+    params: z.object({
+      id: z.uuid().openapi({
+        example: 'b8d43f9e-cc8b-4b84-a20d-8e85acb8a654',
+        description: 'The UUID of the product to retrieve',
+      }),
+    }),
+  },
+  responses: {
+    200: {
+      description: 'Successful retrieval',
+      content: {
+        'application/json': {
+          schema: z.object({
+            ok: z.boolean().openapi({ example: true }),
+            message: z.string().openapi({ example: 'Successful retrieval' }),
+            profile: ProductVariantsResponseSchema, // note: your success() function wraps payload under "profile"
+          }),
+        },
+      },
+    },
+    401: { description: 'Unauthorized' },
+  },
+});
+
+registry.registerPath({
+  method: 'post',
+  path: '/api/catalogue/products/{id}/variants',
+  tags: ['Products'],
+  summary: 'Insert a new product variant',
+  description:
+    'Allows authorized users (Business/Admin) to insert a new product variant based on the product unique ID. It request body is an optional sku, price, stock and a json attribute.',
+  security: [{ BearerAuth: [] }],
+  request: {
+    params: z.object({
+      id: z.uuid().openapi({
+        example: 'b8d43f9e-cc8b-4b84-a20d-8e85acb8a654',
+      }),
+    }),
+    body: {
+      content: {
+        'application/json': {
+          schema: CreateVariantSchema.openapi('CreateVariantSchema'),
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: 'Product Variant successfully updated',
+      content: {
+        'application/json': {
+          schema: z.object({
+            ok: z.boolean().openapi({ example: true }),
+            message: z.string().openapi({ example: 'Successful updated product variant' }),
+            profile: ProductVariantsResponseSchema,
+          }),
+        },
+      },
+    },
+    400: { description: 'Invalid input' },
+    401: { description: 'Unauthorized' },
+    403: { description: 'Forbidden: Insufficient permissions' },
   },
 });
