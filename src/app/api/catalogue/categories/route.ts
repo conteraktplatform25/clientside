@@ -11,6 +11,7 @@ import { failure, success } from '@/utils/response';
 export async function GET(req: NextRequest) {
   try {
     const user = await authenticateRequest(req);
+    //console.log('Authorization Testing:', req);
     if (!user) return failure('Unauthorized', 404);
 
     if (user.businessProfile.length === 0 || !user.businessProfile[0].id)
@@ -19,9 +20,11 @@ export async function GET(req: NextRequest) {
     const businessProfileId = user.businessProfile[0].id;
 
     const categories = await prisma.category.findMany({
-      where: businessProfileId ? { businessProfileId } : {},
-      include: { subCategories: true },
-      orderBy: { created_at: 'desc' },
+      where: { businessProfileId, parentCategoryId: null },
+      select: {
+        id: true,
+        name: true,
+      },
     });
 
     return success({ categories }, 'Successful retrieval');

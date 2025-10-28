@@ -6,7 +6,6 @@ export async function GET() {
   try {
     const generator = new OpenApiGeneratorV31(registry.definitions);
 
-    // Generate the base document
     let document = generator.generateDocument({
       openapi: '3.1.0',
       info: {
@@ -20,23 +19,18 @@ export async function GET() {
           name: 'Authentication',
           description: 'Endpoints related to user authentication, OAuth, session management, and profile updates',
         },
-        {
-          name: 'Product Categories',
-          description: 'Endpoints related to product categories',
-        },
-        {
-          name: 'Products',
-          description: 'Endpoints related to products implementation',
-        },
+        { name: 'Product Categories', description: 'Endpoints related to product categories' },
+        { name: 'Products', description: 'Endpoints related to products implementation' },
       ],
     });
 
-    // ✅ Merge components safely to add bearerAuth
+    // ✅ Add Bearer Auth globally
     document = {
       ...document,
       components: {
-        ...(document.components || {}),
+        ...(document.components ?? {}),
         securitySchemes: {
+          ...(document.components?.securitySchemes ?? {}),
           bearerAuth: {
             type: 'http',
             scheme: 'bearer',
@@ -44,6 +38,11 @@ export async function GET() {
           },
         },
       },
+      security: [
+        {
+          bearerAuth: [],
+        },
+      ],
     };
 
     return NextResponse.json(document);

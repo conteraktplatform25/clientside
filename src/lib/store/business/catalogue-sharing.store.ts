@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 //import { Product } from '@/types/product';
 import { IProductCatalogueProp } from '@/type/client/business/product-catalogue.type';
+import { TCreateCategoryRequest } from '@/lib/hooks/business/catalogue-sharing.hook';
 
 // Dummy Data for Products - moved here to be part of the store's initial state
 const INITIAL_DUMMY_PRODUCTS: IProductCatalogueProp[] = Array.from({ length: 25 }, (_, i) => ({
@@ -13,6 +14,29 @@ const INITIAL_DUMMY_PRODUCTS: IProductCatalogueProp[] = Array.from({ length: 25 
   price: 35000 + i * 100,
   currency: '₦',
   availability: i % 5 === 0 ? 'Out of Stock' : 'Available',
+}));
+
+interface CategoryCatalogueState {
+  addedCategories: TCreateCategoryRequest[];
+  allCategories: TCreateCategoryRequest[];
+  addCategory: (category: TCreateCategoryRequest) => void;
+  commitAddedCategories: () => void;
+  clearAddedCategories: () => void;
+}
+
+export const useCategoryCatalogueStore = create<CategoryCatalogueState>((set) => ({
+  addedCategories: [],
+  allCategories: [],
+  addCategory: (category) =>
+    set((state) => ({
+      addedCategories: [category, ...state.addedCategories],
+    })),
+  commitAddedCategories: () =>
+    set((state) => ({
+      allCategories: [...state.addedCategories, ...state.allCategories],
+      addedCategories: [],
+    })),
+  clearAddedCategories: () => set({ addedCategories: [] }),
 }));
 
 interface ProductCatalogueState {

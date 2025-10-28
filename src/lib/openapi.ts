@@ -374,7 +374,7 @@ registry.registerPath({
   path: '/api/catalogue/categories',
   tags: ['Product Categories'],
   summary: 'Get all categories for the authenticated business',
-  security: [{ BearerAuth: [] }],
+  security: [{ bearerAuth: [] }],
   responses: {
     200: {
       description: 'List of categories retrieved successfully',
@@ -398,7 +398,7 @@ registry.registerPath({
   path: '/api/catalogue/categories',
   tags: ['Product Categories'],
   summary: 'Create a new category under the authenticated business profile',
-  security: [{ BearerAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     body: {
       content: {
@@ -432,7 +432,7 @@ registry.registerPath({
   path: '/api/catalogue/categories/{id}',
   tags: ['Product Categories'],
   summary: 'Retrieve a single category by ID (including subcategories)',
-  security: [{ BearerAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     params: z.object({
       id: z.uuid().openapi({
@@ -466,7 +466,7 @@ registry.registerPath({
   summary: 'Update a category by ID',
   description:
     'Allows authorized users (Business/Admin) to modify the name, description, or parent category of an existing category.',
-  security: [{ BearerAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     params: z.object({
       id: z.string().uuid().openapi({
@@ -507,7 +507,7 @@ registry.registerPath({
   tags: ['Product Categories'],
   summary: 'Delete a category by ID',
   description: 'Removes a category (and optionally its subcategories) from the catalogue.',
-  security: [{ BearerAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     params: z.object({
       id: z.string().uuid().openapi({
@@ -540,7 +540,7 @@ registry.registerPath({
   summary: 'Get the total count of categories for the authenticated business',
   description:
     "Returns the number of categories belonging to the authenticated user's business profile. Requires `Business` role authorization.",
-  security: [{ BearerAuth: [] }],
+  security: [{ bearerAuth: [] }],
   responses: {
     200: {
       description: 'Category count retrieved successfully',
@@ -609,7 +609,7 @@ registry.registerPath({
   path: '/api/catalogue/products',
   tags: ['Products'],
   summary: 'Create a new product under the authenticated business profile',
-  security: [{ BearerAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     body: {
       content: {
@@ -644,7 +644,7 @@ registry.registerPath({
   path: '/api/catalogue/products',
   tags: ['Products'],
   summary: 'Retrieve paginated and filtered list of products',
-  security: [{ BearerAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     query: z.object({
       page: z.number().default(1),
@@ -689,7 +689,7 @@ registry.registerPath({
   path: '/api/catalogue/products/{id}',
   tags: ['Products'],
   summary: 'Retrieve a single product by ID',
-  security: [{ BearerAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     params: z.object({
       id: z.uuid().openapi({
@@ -723,7 +723,7 @@ registry.registerPath({
   summary: 'Update a product by ID',
   description:
     'Allows authorized users (Business/Admin) to modify the name, category, price, description, sku, stock or currency of an existing product.',
-  security: [{ BearerAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     params: z.object({
       id: z.uuid().openapi({
@@ -763,7 +763,7 @@ registry.registerPath({
   tags: ['Products'],
   summary: 'Delete a product by ID',
   description: 'Removes a product from the catalogue. Only users with Business or Admin roles are authorized.',
-  security: [{ BearerAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     params: z.object({
       id: z.uuid().openapi({
@@ -795,7 +795,7 @@ registry.registerPath({
   path: '/api/catalogue/products/{id}/media',
   tags: ['Products'],
   summary: 'Retrieve a product media both images and video by the product unique ID',
-  security: [{ BearerAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     params: z.object({
       id: z.uuid().openapi({
@@ -828,7 +828,7 @@ registry.registerPath({
   summary: 'Insert new product media which could be an image or a video',
   description:
     'Allows authorized users (Business/Admin) to insert a new product image or video based on the product unique ID. It request body are media url, alternate text and the meida order.',
-  security: [{ BearerAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     params: z.object({
       id: z.uuid().openapi({
@@ -868,7 +868,7 @@ registry.registerPath({
   path: '/api/catalogue/products/{id}/variants',
   tags: ['Products'],
   summary: 'Retrieve an array of product variants by the product unique ID',
-  security: [{ BearerAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     params: z.object({
       id: z.uuid().openapi({
@@ -901,7 +901,7 @@ registry.registerPath({
   summary: 'Insert a new product variant',
   description:
     'Allows authorized users (Business/Admin) to insert a new product variant based on the product unique ID. It request body is an optional sku, price, stock and a json attribute.',
-  security: [{ BearerAuth: [] }],
+  security: [{ bearerAuth: [] }],
   request: {
     params: z.object({
       id: z.uuid().openapi({
