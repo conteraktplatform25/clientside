@@ -34,6 +34,15 @@ import {
   ProductVariantsResponseSchema,
   CreateVariantSchema,
 } from '@/lib/schemas/business/server/catalogue.schema';
+import {
+  ContactListResponseSchema,
+  ContactResponseSchema,
+  ContactTagResponse,
+  CreateContactSchema,
+  CreateContactTagSchema,
+  UpdateContactSchema,
+  UpdateContactTagSchema,
+} from './schemas/business/server/contacts.schema';
 
 // ✅ Initialize zod-openapi
 extendZodWithOpenApi(z);
@@ -925,6 +934,215 @@ registry.registerPath({
             ok: z.boolean().openapi({ example: true }),
             message: z.string().openapi({ example: 'Successful updated product variant' }),
             profile: ProductVariantsResponseSchema,
+          }),
+        },
+      },
+    },
+    400: { description: 'Invalid input' },
+    401: { description: 'Unauthorized' },
+    403: { description: 'Forbidden: Insufficient permissions' },
+  },
+});
+
+/** Contact Open API Generation */
+registry.registerPath({
+  method: 'get',
+  path: '/api/contacts',
+  tags: ['Contacts'],
+  summary: 'Get all Contacts for the authenticated business',
+  security: [{ bearerAuth: [] }],
+  responses: {
+    200: {
+      description: 'List of categories retrieved successfully',
+      content: {
+        'application/json': {
+          schema: z.object({
+            ok: z.boolean(),
+            message: z.string(),
+            profile: z.array(ContactListResponseSchema),
+          }),
+        },
+      },
+    },
+    401: { description: 'Unauthorized' },
+    404: { description: 'Business profile not found' },
+  },
+});
+
+registry.registerPath({
+  method: 'post',
+  path: '/api/contacts',
+  tags: ['Contacts'],
+  summary: 'Create a new contact profile under the authenticated business profile',
+  security: [{ bearerAuth: [] }],
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: CreateContactSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    201: {
+      description: 'Product successfully created',
+      content: {
+        'application/json': {
+          schema: z.object({
+            ok: z.boolean(),
+            message: z.string(),
+            product: ProductResponseSchema,
+          }),
+        },
+      },
+    },
+    400: { description: 'Invalid input or missing fields' },
+    401: { description: 'Unauthorized' },
+    403: { description: 'Forbidden: Insufficient permissions' },
+    404: { description: 'Business profile not configured' },
+  },
+});
+
+registry.registerPath({
+  method: 'get',
+  path: '/api/contacts/{id}',
+  tags: ['Contacts'],
+  summary: 'Retrieve a single contact by ID',
+  security: [{ bearerAuth: [] }],
+  request: {
+    params: z.object({
+      id: z.uuid().openapi({
+        example: 'b8d43f9e-cc8b-4b84-a20d-8e85acb8a654',
+        description: 'The UUID of the product to retrieve',
+      }),
+    }),
+  },
+  responses: {
+    200: {
+      description: 'Successful retrieval of a product',
+      content: {
+        'application/json': {
+          schema: z.object({
+            ok: z.boolean().openapi({ example: true }),
+            message: z.string().openapi({ example: 'Successful retrieval' }),
+            profile: ContactResponseSchema, // note: your success() function wraps payload under "profile"
+          }),
+        },
+      },
+    },
+    401: { description: 'Unauthorized' },
+    404: { description: 'Contact not found' },
+  },
+});
+
+registry.registerPath({
+  method: 'patch',
+  path: '/api/contacts/{id}',
+  tags: ['Contacts'],
+  summary: 'Update a contact profile by ID',
+  description: 'Allows authorized users (Business/Admin) to modify the contact of an existing business owner Contact.',
+  security: [{ bearerAuth: [] }],
+  request: {
+    params: z.object({
+      id: z.uuid().openapi({
+        example: 'b8d43f9e-cc8b-4b84-a20d-8e85acb8a654',
+      }),
+    }),
+    body: {
+      content: {
+        'application/json': {
+          schema: UpdateContactSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: 'Product successfully updated',
+      content: {
+        'application/json': {
+          schema: z.object({
+            ok: z.boolean().openapi({ example: true }),
+            message: z.string().openapi({ example: 'Successful updated Category' }),
+            profile: ContactResponseSchema,
+          }),
+        },
+      },
+    },
+    400: { description: 'Invalid input' },
+    401: { description: 'Unauthorized' },
+    403: { description: 'Forbidden: Insufficient permissions' },
+  },
+});
+
+/** Contact Tag Open API Generation */
+registry.registerPath({
+  method: 'post',
+  path: '/api/contacts/tags',
+  tags: ['Contact Tags'],
+  summary: 'Create a new contact Tag for a business owner contact',
+  security: [{ bearerAuth: [] }],
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: CreateContactTagSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    201: {
+      description: 'Contact Tag successfully created',
+      content: {
+        'application/json': {
+          schema: z.object({
+            ok: z.boolean(),
+            message: z.string(),
+            profile: ContactTagResponse,
+          }),
+        },
+      },
+    },
+    400: { description: 'Invalid input or missing fields' },
+    401: { description: 'Unauthorized' },
+    403: { description: 'Forbidden: Insufficient permissions' },
+    404: { description: 'Business profile not configured' },
+  },
+});
+
+registry.registerPath({
+  method: 'patch',
+  path: '/api/contacts/tags/{id}',
+  tags: ['Contact Tags'],
+  summary: 'Update a contact tag by ID',
+  description:
+    'Allows authorized users (Business/Admin) to modify the contact tag of an existing business owner Contact.',
+  security: [{ bearerAuth: [] }],
+  request: {
+    params: z.object({
+      id: z.uuid().openapi({
+        example: 'b8d43f9e-cc8b-4b84-a20d-8e85acb8a654',
+      }),
+    }),
+    body: {
+      content: {
+        'application/json': {
+          schema: UpdateContactTagSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: 'Product successfully updated',
+      content: {
+        'application/json': {
+          schema: z.object({
+            ok: z.boolean().openapi({ example: true }),
+            message: z.string().openapi({ example: 'Successful updated Category' }),
+            profile: ContactTagResponse,
           }),
         },
       },

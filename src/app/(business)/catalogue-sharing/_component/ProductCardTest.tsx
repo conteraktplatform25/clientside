@@ -1,11 +1,11 @@
 import React from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
-import { IProductProps } from '@/lib/hooks/business/catalogue-sharing.hook';
+import { TCreateProductRequest } from '@/lib/hooks/business/catalogue-sharing.hook';
 
 interface ProductCardProps {
-  product: IProductProps;
+  product: TCreateProductRequest;
 }
 
 const ProductCardTest: React.FC<ProductCardProps> = ({ product }) => {
@@ -34,8 +34,11 @@ const ProductCardTest: React.FC<ProductCardProps> = ({ product }) => {
               />
             </svg>
           )}
-          <span className='absolute top-2 left-2 font-medium bg-white text-neutral-800 text-xs px-2 py-1 rounded-full'>
+          {/* <span className='absolute top-2 left-2 font-medium bg-white text-neutral-800 text-xs px-2 py-1 rounded-full'>
             {product.category?.name}
+          </span> */}
+          <span className='absolute top-2 left-2 font-medium bg-white text-neutral-800 text-xs px-2 py-1 rounded-full'>
+            {product.categoryId}
           </span>
         </div>
         <div className='p-3'>
@@ -45,7 +48,7 @@ const ProductCardTest: React.FC<ProductCardProps> = ({ product }) => {
           </p>
           <div className='flex items-center justify-between'>
             <span className='text-base font-semibold text-neutral-900'>
-              {product.currency} {product.price.toFixed(2)}
+              {product.currency} {product.price.toLocaleString()}
             </span>
           </div>
         </div>

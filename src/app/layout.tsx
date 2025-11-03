@@ -66,6 +66,7 @@ export default function RootLayout({
   children: ReactNode;
 }>) {
   const [queryClient] = useState(() => new QueryClient());
+
   return (
     <html lang='en'>
       <body className={`${sfProRounded.className} antialiased`}>

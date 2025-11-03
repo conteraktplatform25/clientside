@@ -22,7 +22,7 @@ export const ConstUserTask: ISelectOption[] = [
   {
     value: 'productCatalogue',
     label: 'Create product catalogue',
-    href: '/catalogue/create',
+    href: '/catalogue-sharing',
   },
   {
     value: 'quickReplies',

@@ -12,7 +12,6 @@ import {
   PaginationPrevious,
 } from '@/components/ui/pagination';
 import { Search, Plus, Share2 } from 'lucide-react';
-import ProductCard from './ProductCard';
 import { FaGreaterThan } from 'react-icons/fa6';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -24,8 +23,6 @@ const PRODUCTS_PER_PAGE = 6;
 
 const ProductCatalogueGallery: React.FC = () => {
   // Get products from store
-  //const catalogueProducts = useProductCatalogueStore((state) => state.catalogueProducts);
-  //const catalogueProducts: IProductCatalogueProp[] = [];
   const { setTitle } = usePageTitleStore();
   const [products, setProducts] = useState<IProductCatalogueProp[]>([]);
   const [searchTerm, setSearchTerm] = useState('');

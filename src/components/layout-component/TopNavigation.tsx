@@ -14,6 +14,7 @@ import {
 import { Session, UserObject } from 'next-auth';
 import NotificationBell from '../notification/NotificationBell';
 import { usePageTitleStore } from '@/lib/store/defaults/usePageTitleStore';
+import { getInitials } from '@/lib/helpers/string-manipulator.helper';
 
 const TopNavigation = ({ session }: { session: Session | null }) => {
   const [profileName, setProfileName] = useState<UserObject | null>(session?.user ?? null);
@@ -23,6 +24,8 @@ const TopNavigation = ({ session }: { session: Session | null }) => {
   useEffect(() => {
     setProfileName(session?.user ?? null);
   }, [session]);
+
+  const nameInitials = getInitials(profileName?.first_name ?? '', profileName?.last_name ?? '');
   return (
     <header className='flex items-center justify-between border-b bg-background py-3 px-10 w-full'>
       <div className='flex'>
@@ -41,7 +44,7 @@ const TopNavigation = ({ session }: { session: Session | null }) => {
                 variant='default'
                 className='relative h-12 w-12 border border-neutral-200 rounded-full bg-primary-900'
               >
-                <h6 className=' text-white text-lg leading-[150%]'>SE</h6>
+                <h5 className=' text-white text-lg leading-[150%]'>{nameInitials}</h5>
               </Button>
               <div className='mt-1 flex flex-col gap-0'>
                 <h6 className='text-base font-semibold leading-[150%] text-neutral-800'>{`${
@@ -55,7 +58,7 @@ const TopNavigation = ({ session }: { session: Session | null }) => {
             <DropdownMenuLabel className='font-normal'>
               <div className='inline-flex space-x-3 h-auto'>
                 <div className='relative h-16 w-16 border border-neutral-200 rounded-full bg-primary-900 flex items-center justify-center'>
-                  <h5 className='font-semibold text-white text-2xl leading-[140%] text-center'>SE</h5>
+                  <h5 className='font-semibold text-white text-2xl leading-[140%] text-center'>{nameInitials}</h5>
                 </div>
                 <div className='flex flex-col items-start justify-center'>
                   <p className='text-left text-lg font-semibold leading-[150%] text-neutral-700'>{`${

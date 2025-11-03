@@ -1,5 +1,5 @@
 // lib/schema/business/server/catalogue.ts
-import { CurrencyType } from '@prisma/client';
+import { CurrencyType, ProductStatus } from '@prisma/client';
 import { z } from 'zod';
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 
@@ -20,7 +20,7 @@ export const CreateCategorySchema = z
   .openapi('CreateCategoryRequest');
 
 // Category response schema
-export const CategoryResponseSchema2 = z
+export const CategoryResponseSchema = z
   .object({
     id: z.uuid().openapi({ example: 'b8d43f9e-cc8b-4b84-a20d-8e85acb8a654' }),
     name: z.string().openapi({ example: 'Electronics' }),
@@ -51,12 +51,27 @@ export const CategoryResponseSchema2 = z
   })
   .openapi('CategoryResponse2');
 
-export const CategoryResponseSchema = z
+export const CategoryDDSchema = z
   .object({
     id: z.uuid().openapi({ example: 'b8d43f9e-cc8b-4b84-a20d-8e85acb8a654' }),
     name: z.string().openapi({ example: 'Electronics' }),
   })
   .openapi('CategoryResponse');
+
+export const CategoryDetailsSchema = z
+  .object({
+    id: z.uuid().openapi({ example: 'b8d43f9e-cc8b-4b84-a20d-8e85acb8a654' }),
+    name: z.string().min(2, 'Category Name is required').openapi({
+      example: 'Electronics',
+    }),
+    description: z.string().optional().openapi({
+      example: 'All kinds of electronic gadgets and appliances.',
+    }),
+    parentCategoryId: z.uuid().nullable().optional().openapi({
+      example: null,
+    }),
+  })
+  .openapi('CreateCategoryRequest');
 
 export const UpdateCategorySchema = z.object({
   name: z.string().min(2).optional().openapi({ example: 'Electronics' }),
@@ -72,9 +87,25 @@ export const CreateProductSchema = z.object({
   sku: z.string().optional(),
   stock: z.number().min(0).default(0),
   currency: z.enum(Object.values(CurrencyType)).default(CurrencyType.NAIRA),
+  media: z
+    .array(
+      z.object({
+        url: z.url(),
+        altText: z.string().optional(),
+        order: z.number().optional(),
+      })
+    )
+    .optional(),
 });
 
 export const UpdateProductSchema = CreateProductSchema.partial();
+
+// Zod schema for status or soft-delete actions
+export const UpdateProductStatusSchema = z.object({
+  id: z.uuid(),
+  status: z.enum(Object.values(ProductStatus)).default(ProductStatus.DRAFT).optional(),
+  deleted: z.boolean().optional(),
+});
 
 export const CreateVariantSchema = z.object({
   sku: z.string().optional(),
@@ -91,7 +122,11 @@ export const CreateMediaSchema = z.object({
 
 // ✅ Query validation schema
 export const ProductQuerySchema = z.object({
-  page: z.string().transform(Number).default(1),
+  page: z
+    .string()
+    .transform(Number)
+    .refine((n) => n > 0, 'Page must be positive')
+    .default(1),
   limit: z.string().transform(Number).default(10),
   search: z.string().optional(),
   categoryId: z.uuid().optional(),
@@ -155,5 +190,3 @@ export const ProductVariantsResponseSchema = z
     stock: z.number(),
   })
   .openapi('ProductVariantResponse');
-
-//export type TCreateCategorySchema = z.infer<typeof CreateCategorySchema>;

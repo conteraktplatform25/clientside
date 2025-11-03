@@ -9,41 +9,39 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import InputField from '@/components/custom/InputField';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import { ArrowRight } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { useCategoryCatalogueStore } from '@/lib/store/business/catalogue-sharing.store';
 import { TCreateCategoryRequest, useCreateCategory } from '@/lib/hooks/business/catalogue-sharing.hook';
-import { getErrorMessage } from '@/utils/errors';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import UILoaderIndicator from '@/components/custom/UILoaderIndicator';
 
 interface CategoryProfileDialogProps {
+  listedCategories: TCreateCategoryRequest[];
   isOpen: boolean;
   onClose: () => void;
 }
 
 const CategoryProfileDialog: React.FC<CategoryProfileDialogProps> = ({ isOpen, onClose }) => {
-  const { addCategory, addedCategories, clearAddedCategories } = useCategoryCatalogueStore();
-  const createCategory = useCreateCategory();
+  const { allCategories } = useCategoryCatalogueStore();
+  const createCategoryMutation = useCreateCategory();
 
   const form = useForm<TCreateCategoryRequest>({
     resolver: zodResolver(CreateCategorySchema),
     defaultValues: { name: '', description: '' },
   });
 
-  const handleSaveCategory = (data: TCreateCategoryRequest) => {
-    addCategory(data);
+  const handleSaveCategory = async (data: TCreateCategoryRequest) => {
+    if (!data.name) {
+      toast.error('Category Name is required');
+    }
+    toast.info('Syncing categories to server...');
+    await createCategoryMutation.mutateAsync(data);
     toast.success('Category added locally!');
     form.reset();
   };
 
-  const handleSaveToServer = async () => {
-    try {
-      for (const category of addedCategories) {
-        await createCategory.mutateAsync(category);
-      }
-      toast.success('All categories saved successfully!');
-      clearAddedCategories();
-    } catch (err) {
-      toast.error('Failed to save categories: ' + getErrorMessage(err));
-    }
+  const handleClose = async () => {
+    onClose();
   };
 
   return (
@@ -57,71 +55,84 @@ const CategoryProfileDialog: React.FC<CategoryProfileDialogProps> = ({ isOpen, o
 
         <Separator />
 
-        <div className='flex flex-col lg:flex-row gap-6'>
-          {/* Left side: Create form */}
-          <div className='lg:w-1/2 px-6 py-4'>
-            <h2 className='text-xl font-semibold mb-2'>Create Category</h2>
-            <p className='text-gray-600 text-sm mb-6'>Fill in the information for your category.</p>
-
-            <form onSubmit={form.handleSubmit(handleSaveCategory)} className='space-y-6'>
-              <InputField<TCreateCategoryRequest>
-                name='name'
-                control={form.control}
-                placeholder='Category name...'
-                label='Category Name'
-                important
-              />
-
-              <InputField<TCreateCategoryRequest>
-                name='description'
-                control={form.control}
-                placeholder='Category description...'
-                label='Category Description'
-              />
-
-              <Button
-                type='submit'
-                disabled={form.formState.isSubmitting}
-                className='w-full md:w-auto bg-primary-base hover:bg-primary-700'
-              >
-                Save Category
-              </Button>
-            </form>
+        {/* 🌀 Show loader when backend call is in progress */}
+        {createCategoryMutation.isPending ? (
+          <div className='flex justify-center items-center h-[400px]'>
+            <UILoaderIndicator label='Saving categories to server...' />
           </div>
+        ) : (
+          <div className='flex flex-col lg:flex-row gap-6'>
+            {/* Left side: Create form */}
+            <div className='lg:w-1/2 px-6 py-4'>
+              <h2 className='text-xl font-semibold mb-2'>Create Category</h2>
+              <p className='text-gray-600 text-sm mb-6'>Fill in the information for your category.</p>
 
-          {/* Right side: Added categories */}
-          <div className='lg:w-1/2 p-6'>
-            <div className='w-full bg-white border-2 border-[#EEEFF1] rounded-[12px] p-4 shadow-sm'>
-              <h2 className='text-base font-semibold mb-2'>Added Categories</h2>
-              <p className='text-sm mb-4 text-gray-600'>
-                {addedCategories.length} categor{addedCategories.length !== 1 ? 'ies' : 'y'} added
-              </p>
+              <form onSubmit={form.handleSubmit(handleSaveCategory)} className='space-y-6'>
+                <InputField<TCreateCategoryRequest>
+                  name='name'
+                  control={form.control}
+                  placeholder='Category name...'
+                  label='Category Name'
+                  important
+                />
 
-              <div className='space-y-3'>
-                {addedCategories.length > 0 ? (
-                  addedCategories.map((cat) => (
-                    <Card key={cat.name} className='border-none shadow-none'>
-                      <CardContent className='p-4 border border-[#EEEFF1] rounded-[12px]'>
-                        <h3 className='font-medium text-base'>{cat.name}</h3>
-                        <p className='text-sm line-clamp-2'>{cat.description}</p>
-                      </CardContent>
-                    </Card>
-                  ))
-                ) : (
-                  <p className='text-sm text-center py-4 text-gray-500'>No product category added yet.</p>
+                <InputField<TCreateCategoryRequest>
+                  name='description'
+                  control={form.control}
+                  placeholder='Category description...'
+                  label='Category Description'
+                />
+
+                <Button
+                  type='submit'
+                  disabled={form.formState.isSubmitting}
+                  className='w-full md:w-auto bg-primary-base hover:bg-primary-700'
+                >
+                  Save Category
+                </Button>
+              </form>
+            </div>
+
+            {/* Right side: Added categories */}
+            <div className='lg:w-1/2 p-3'>
+              <div className='w-full bg-white border-2 border-[#EEEFF1] rounded-[12px] p-4 shadow-sm'>
+                <h2 className='text-base font-semibold leading-[150%]'>Added Categories</h2>
+                <p className='text-sm text-gray-600'>
+                  {allCategories.length} categor{allCategories.length !== 1 ? 'ies' : 'y'} already added
+                </p>
+
+                <ScrollArea className='h-84'>
+                  <div className='space-y-1'>
+                    {allCategories.length > 0 ? (
+                      allCategories.map((cat) => (
+                        <Card key={cat.name} className='border-none shadow-none p-0'>
+                          <CardContent className='px-4 py-2'>
+                            <h3 className='font-medium text-base leading-[150%]'>{cat.name}</h3>
+                            <p className='text-sm line-clamp-2 leading-[155%]'>{cat.description}</p>
+                          </CardContent>
+                        </Card>
+                      ))
+                    ) : (
+                      <p className='text-sm text-center py-4 text-gray-500'>No product category added yet.</p>
+                    )}
+                  </div>
+                </ScrollArea>
+
+                {allCategories.length > 0 && (
+                  <CardFooter className='mt-4'>
+                    <Button
+                      variant={'default'}
+                      onClick={handleClose}
+                      className='w-full flex items-center justify-center bg-gray-600 hover:bg-gray-700'
+                    >
+                      <ArrowLeft className='ml-2 h-4 w-4' /> Back to Product List
+                    </Button>
+                  </CardFooter>
                 )}
               </div>
-
-              {addedCategories.length > 0 && (
-                <CardFooter className='mt-4'>
-                  <Button onClick={handleSaveToServer} className='w-full flex items-center justify-center'>
-                    Save to Server <ArrowRight className='ml-2 h-4 w-4' />
-                  </Button>
-                </CardFooter>
-              )}
             </div>
           </div>
-        </div>
+        )}
       </SheetContent>
     </Sheet>
   );

@@ -1,0 +1,129 @@
+import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
+import { ContactSource, ContactStatus } from '@prisma/client';
+import { z } from 'zod';
+
+extendZodWithOpenApi(z);
+
+export const ContactQuerySchema = z
+  .object({
+    page: z
+      .string()
+      .transform(Number)
+      .refine((n) => n > 0, 'Page must be positive')
+      .default(1)
+      .openapi({ example: 1 }),
+    limit: z
+      .string()
+      .transform(Number)
+      .refine((n) => n > 0 && n <= 100, 'Limit must be between 1 and 100')
+      .default(10)
+      .openapi({ example: 10 }),
+    search: z.string().optional(),
+    sortBy: z
+      .enum(['created_at', 'name'])
+      .default('created_at')
+      .openapi({ example: 'created_at or name', default: 'name' }),
+    sortOrder: z.enum(['asc', 'desc']).default('desc').openapi({ example: 'asc or desc', default: 'desc' }),
+    status: z
+      .enum(['ACTIVE', 'BLOCKED', 'UNSUBSCRIBED'])
+      .optional()
+      .openapi({ example: 'ACTIVE or BLOCKED or UNSUBSCRIBED' }),
+    source: z
+      .enum(['MANUAL', 'IMPORT', 'API', 'WHATSAPP', 'CHATBOT'])
+      .optional()
+      .openapi({ example: 'MANUAL or IMPORT or API or WHATSAPP or CHATBOT' }),
+    tag: z.string().optional(), // Filter by tag name or ID
+  })
+  .openapi('ContactQuery');
+
+export const CreateContactSchema = z
+  .object({
+    name: z.string().min(2),
+    phone_number: z.string(),
+    email: z.string().optional(),
+    source: z.enum(Object.values(ContactSource)).default(ContactSource.MANUAL),
+  })
+  .openapi('CreateContactRequest');
+
+export const UpdateContactSchema = z
+  .object({
+    name: z.string().min(2).optional(),
+    phone_number: z.string().optional(),
+    email: z.string().optional(),
+    whatsapp_opt_in: z.boolean().optional(),
+    status: z.enum(ContactStatus).optional(),
+    source: z.enum(ContactSource).optional(),
+    custom_fields: z.record(z.string(), z.any()).optional(), // For flexible metadata like { city: "Lagos" }
+    tags: z
+      .array(
+        z.object({
+          name: z.string().min(1),
+          color: z.string().optional(),
+        })
+      )
+      .optional(),
+  })
+  .openapi('UpdateContactRequest');
+
+export const ContactTagSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  color: z.string().nullable().optional(),
+});
+
+export const ContactResponseSchema = z
+  .object({
+    id: z.string(),
+    name: z.string().nullable(),
+    phone_number: z.string(),
+    email: z.string().nullable(),
+    status: z.string(),
+    tags: z.array(ContactTagSchema),
+  })
+  .openapi('ContactReponse');
+
+export const ContactListResponseSchema = z
+  .object({
+    pagination: z.object({
+      page: z.number(),
+      limit: z.number(),
+      total: z.number(),
+      totalPages: z.number(),
+    }),
+    contacts: z.array(ContactResponseSchema),
+  })
+  .openapi('ContactListResponse');
+
+export const CreateContactTagSchema = z
+  .object({
+    name: z.string().min(1, 'Tag name is required').openapi({ example: 'ATTACH' }),
+    color: z
+      .string()
+      .regex(/^#([0-9A-F]{3}){1,2}$/i, 'Invalid color hex code')
+      .optional()
+      .openapi({ example: '#FFFFFF' }),
+    contactId: z.uuid('Invalid contact ID'),
+  })
+  .openapi('CreateContactTagRequest');
+
+export const UpdateContactTagSchema = z
+  .object({
+    name: z.string().min(1, 'Tag name is required').openapi({ example: 'ATTACH' }),
+    color: z
+      .string()
+      .regex(/^#([0-9A-F]{3}){1,2}$/i, 'Invalid color hex code')
+      .optional()
+      .openapi({ example: '#FFFFFF' }),
+  })
+  .openapi('UpdateContactTagRequest');
+
+export const BulkContactTagSchema = z.object({
+  tags: z.array(CreateContactTagSchema).min(1, 'At least one tag is required'),
+});
+
+export const ContactTagResponse = z.object({
+  id: z.uuid(),
+  name: z.string().openapi({ example: 'ATTACH' }),
+  color: z.string(),
+  contactId: z.uuid(),
+});

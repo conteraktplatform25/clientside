@@ -112,6 +112,8 @@ model BusinessProfile {
   user       User       @relation(fields: [userId], references: [id])
   Categories Category[]
   Products   Product[]
+
+  Contact Contact[]
 }
 
 model Account {
@@ -203,47 +205,6 @@ model NotificationPreference {
   @@unique([userId, type, channel])
 }
 
-// Conversation (WhatsApp/Chat support)
-model Conversation {
-  id         String             @id @default(cuid())
-  userId     String
-  status     ConversationStatus @default(OPEN)
-  isGroup    Boolean            @default(false)
-  created_at DateTime           @default(now())
-  updated_at DateTime           @updatedAt
-
-  // Relations
-  users    ConversationUser[]
-  messages Message[]
-}
-
-model ConversationUser {
-  userId         String
-  conversationId String
-  joinedAt       DateTime @default(now())
-
-  user         User         @relation(fields: [userId], references: [id])
-  conversation Conversation @relation(fields: [conversationId], references: [id])
-
-  @@id([userId, conversationId])
-}
-
-// Message (Chat messages)
-model Message {
-  id             String           @id @default(cuid())
-  conversationId String
-  content        String
-  direction      MessageDirection
-  senderId       String?
-  is_deleted     Boolean          @default(false)
-  created_at     DateTime         @default(now())
-  updated_at     DateTime         @updatedAt
-
-  // Relations
-  conversation Conversation @relation(fields: [conversationId], references: [id])
-  user         User?        @relation(fields: [senderId], references: [id])
-}
-
 model Category {
   id                String   @id @default(uuid())
   businessProfileId String
@@ -274,6 +235,8 @@ model Product {
   stock             Int           @default(0)
   status            ProductStatus @default(DRAFT)
   currency          CurrencyType  @default(NAIRA)
+  deleted           Boolean       @default(false)
+  deletedAt         DateTime?
   created_at        DateTime      @default(now())
   updated_at        DateTime      @updatedAt
 
@@ -308,6 +271,85 @@ model ProductVariant {
   updated_at DateTime @updatedAt
 
   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model Contact {
+  id                String        @id @default(uuid())
+  businessProfileId String
+  name              String?
+  phone_number      String        @unique
+  email             String?
+  whatsapp_opt_in   Boolean       @default(false)
+  status            ContactStatus @default(ACTIVE) // e.g., ACTIVE, BLOCKED, UNSUBSCRIBED
+  source            ContactSource @default(MANUAL) // e.g., imported, chatbot, API, form
+  custom_fields     Json? // e.g., { "city": "Lagos", "gender": "Male" }
+  created_at        DateTime      @default(now())
+  updated_at        DateTime      @updatedAt
+
+  // Relations
+  businessProfile BusinessProfile @relation(fields: [businessProfileId], references: [id])
+  tags            ContactTag[]
+  conversations   Conversation[] // Link to chat history if needed
+
+  @@index([businessProfileId])
+  @@index([phone_number])
+  @@index([status])
+}
+
+// Conversation (WhatsApp/Chat support)
+model Conversation {
+  id         String             @id @default(cuid())
+  userId     String
+  status     ConversationStatus @default(OPEN)
+  isGroup    Boolean            @default(false)
+  created_at DateTime           @default(now())
+  updated_at DateTime           @updatedAt
+
+  // Relations
+  users    ConversationUser[]
+  messages Message[]
+
+  Contact Contact[]
+}
+
+model ConversationUser {
+  userId         String
+  conversationId String
+  joinedAt       DateTime @default(now())
+
+  user         User         @relation(fields: [userId], references: [id])
+  conversation Conversation @relation(fields: [conversationId], references: [id])
+
+  @@id([userId, conversationId])
+}
+
+// Message (Chat messages)
+model Message {
+  id             String           @id @default(cuid())
+  conversationId String
+  content        String
+  direction      MessageDirection
+  senderId       String?
+  is_deleted     Boolean          @default(false)
+  created_at     DateTime         @default(now())
+  updated_at     DateTime         @updatedAt
+
+  // Relations
+  conversation Conversation @relation(fields: [conversationId], references: [id])
+  user         User?        @relation(fields: [senderId], references: [id])
+}
+
+model ContactTag {
+  id        String   @id @default(uuid())
+  name      String
+  color     String? // Optional: UI color
+  createdAt DateTime @default(now())
+
+  // Relation
+  contactId String
+  contact   Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  @@index([contactId])
 }
 
 // model ProductOption {
@@ -624,4 +666,18 @@ enum CurrencyType {
   POUND
   EURO
   CNY
+}
+
+enum ContactStatus {
+  ACTIVE
+  BLOCKED
+  UNSUBSCRIBED
+}
+
+enum ContactSource {
+  MANUAL
+  IMPORT
+  API
+  WHATSAPP
+  CHATBOT
 }

@@ -5,7 +5,7 @@ import {
   productCatalogueFormSchema,
   TProductCatalogueFormValues,
 } from '@/lib/schemas/business/catalogue-sharing.schema';
-import { useProductCatalogueStore } from '@/lib/store/business/catalogue-sharing.store';
+import { useCategoryCatalogueStore } from '@/lib/store/business/catalogue-sharing.store';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -17,13 +17,11 @@ import { Resolver, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import InputField from '@/components/custom/InputField';
 import { Label } from '@/components/ui/label';
-import { IProductCatalogueProp } from '@/type/client/business/product-catalogue.type';
 import Image from 'next/image';
 
-const categories = ['Clothing', 'Electronics', 'Home Goods', 'Books', 'Food'];
-
 const NewProductCatalogueForm: React.FC = () => {
-  const addProduct = useProductCatalogueStore((state) => state.addProduct);
+  const ddCategories = useCategoryCatalogueStore((state) => state.ddCategories);
+
   const form = useForm<TProductCatalogueFormValues>({
     resolver: zodResolver(productCatalogueFormSchema) as Resolver<TProductCatalogueFormValues>,
     defaultValues: {
@@ -60,20 +58,21 @@ const NewProductCatalogueForm: React.FC = () => {
   };
 
   const onSubmit = (values: TProductCatalogueFormValues) => {
-    const newProduct: IProductCatalogueProp = {
-      id: `prod-${Date.now()}`, // Simple unique ID
-      name: values.productName,
-      sku: values.productSKU,
-      description: values.description,
-      price: values.price,
-      stock: values.stockQuantity,
-      category: { name: values.category },
-      // media: {url: values.productImages && values.productImages.length > 0 ? values.productImages[0] : '/placeholder.svg'} // Use first image as main
-      // images: values.productImages,
-      currency: 'NAIRA', // Default currency
-      //availability: values.stockQuantity && values.stockQuantity > 0 ? 'Available' : 'Out of Stock',
-    };
-    addProduct(newProduct);
+    // const newProduct: IProductCatalogueProp = {
+    //   id: `prod-${Date.now()}`, // Simple unique ID
+    //   name: values.productName,
+    //   sku: values.productSKU,
+    //   description: values.description,
+    //   price: values.price,
+    //   stock: values.stockQuantity,
+    //   category: { name: values.category },
+    //   // media: {url: values.productImages && values.productImages.length > 0 ? values.productImages[0] : '/placeholder.svg'} // Use first image as main
+    //   // images: values.productImages,
+    //   currency: 'NAIRA', // Default currency
+    //   //availability: values.stockQuantity && values.stockQuantity > 0 ? 'Available' : 'Out of Stock',
+    // };
+    //addProduct(newProduct);
+    console.log(values);
     form.reset();
     setImagePreviews([]);
     toast.success('Product saved successfully!');
@@ -179,9 +178,9 @@ const NewProductCatalogueForm: React.FC = () => {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {categories.map((category) => (
-                      <SelectItem key={category} value={category}>
-                        {category}
+                    {ddCategories.map((category) => (
+                      <SelectItem key={category.id} value={category.id}>
+                        {category.name}
                       </SelectItem>
                     ))}
                   </SelectContent>

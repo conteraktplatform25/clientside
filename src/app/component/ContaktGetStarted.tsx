@@ -6,26 +6,23 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import UILoaderIndicator from '@/components/custom/UILoaderIndicator';
 import Link from 'next/link';
+import { useCategoryCatalogueStore } from '@/lib/store/business/catalogue-sharing.store';
 
 const ContaktGetStarted = () => {
   const [onboardingStatus, setOnboardingStatus] = useState<Record<string, boolean>>({});
   const [progress, setProgress] = useState(0);
   const [loading, setLoading] = useState(true);
-  // Simulate a data store for completed tasks
-  // const [completedTasks, setCompletedTasks] = useState<Record<string, boolean>>(() => {
-  //   // Initialize from local storage or a default state
-  //   const savedState = localStorage.getItem('getStartedChecklist');
-  //   return savedState ? JSON.parse(savedState) : {};
-  // });
+  const setAllCategories = useCategoryCatalogueStore((state) => state.setAllCategories);
 
   useEffect(() => {
     async function fetchOnboarding() {
       try {
         const res = await fetch('/api/user/onboarding-status');
         const data = await res.json();
-        console.log(data.profile.onboardingStatus);
+        console.log(data.profile);
         setOnboardingStatus(data.profile.onboardingStatus);
         setProgress(data.profile.progress);
+        setAllCategories(data.profile.dependentField.productCategoryList);
       } catch (err) {
         console.error(err);
       } finally {
@@ -33,7 +30,7 @@ const ContaktGetStarted = () => {
       }
     }
     fetchOnboarding();
-  }, []);
+  }, [setOnboardingStatus, setProgress, setAllCategories]);
 
   // const handleCheckboxChange = (taskId: string, checked: boolean) => {
   //   setCompletedTasks((prev) => ({

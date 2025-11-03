@@ -17,7 +17,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import UILoaderIndicator from '@/components/custom/UILoaderIndicator';
 import CategoryProfileDialog from './CategoryProfileDialog';
-import { useCategoryCatalogueStore } from '@/lib/store/business/catalogue-sharing.store';
+import { useCategoryCatalogueStore, useProductCatalogueStore } from '@/lib/store/business/catalogue-sharing.store';
 import { useGetCategories, useGetProducts } from '@/lib/hooks/business/catalogue-sharing.hook';
 import ProductCardTest from './ProductCardTest';
 
@@ -29,7 +29,13 @@ const ProductCatalogueGalleryTest: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isCategoriesDialogOpen, setIsCategoriesDialogOpen] = useState(false);
 
-  const { clearAddedCategories } = useCategoryCatalogueStore();
+  const allCategories = useCategoryCatalogueStore((state) => state.allCategories);
+  const clearAddedCategories = useCategoryCatalogueStore((state) => state.clearAddedCategories);
+  const ddCategories = useCategoryCatalogueStore((state) => state.ddCategories);
+  const setDDCategories = useCategoryCatalogueStore((state) => state.setDDCategories);
+
+  const setProductCatalogue = useProductCatalogueStore((state) => state.addedProductsToCatalogue);
+  const allProducts = useProductCatalogueStore((state) => state.catalogueProducts);
 
   // ✅ React Query data fetching
   const { data: categoriesData, isLoading: isLoadingCategories, isError: isErrorCategories } = useGetCategories();
@@ -40,10 +46,21 @@ const ProductCatalogueGalleryTest: React.FC = () => {
   } = useGetProducts(selectedCategory, searchQuery, currentPage, PRODUCTS_PER_PAGE);
 
   // ✅ Extract real data
-  const categories = categoriesData?.categories ?? [];
-  const products = productsData?.products ?? [];
+  //const products = productsData?.products ?? [];
   const pagination = productsData?.pagination;
   const totalPages = pagination?.totalPages ?? 1;
+
+  useEffect(() => {
+    if (categoriesData && categoriesData.categories.length > 0 && ddCategories.length === 0) {
+      setDDCategories(categoriesData.categories);
+    }
+  }, [categoriesData, ddCategories, setDDCategories]);
+
+  useEffect(() => {
+    if (productsData && productsData.products.length > 0) {
+      setProductCatalogue(productsData.products);
+    }
+  }, [productsData, setProductCatalogue]);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -54,20 +71,22 @@ const ProductCatalogueGalleryTest: React.FC = () => {
   }
 
   if (isErrorCategories || isErrorProducts) {
-    return <EmptyProductTest numberOfCategories={categories.length} />;
+    return <EmptyProductTest />;
   }
 
-  const hasCategories = categories.length > 0;
-  const hasProducts = products.length > 0;
+  const hasCategories = ddCategories.length > 0;
+  const hasProducts = allProducts.length > 0;
 
   const handleCloseCategoryDialog = () => {
     setIsCategoriesDialogOpen(false);
     clearAddedCategories();
   };
 
-  const handleCreateCategory = () => setIsCategoriesDialogOpen(true);
+  const handleCreateCategory = () => {
+    setIsCategoriesDialogOpen(true);
+  };
 
-  if (!hasCategories || !hasProducts) return <EmptyProductTest numberOfCategories={categories.length} />;
+  if (!hasCategories || !hasProducts) return <EmptyProductTest />;
 
   return (
     <div className='container w-full mx-auto xl:mx-48 px-6 py-2'>
@@ -106,7 +125,7 @@ const ProductCatalogueGalleryTest: React.FC = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value='all'>All categories</SelectItem>
-              {categories.map((category) => (
+              {ddCategories.map((category) => (
                 <SelectItem key={category.id} value={category.id}>
                   {category.name}
                 </SelectItem>
@@ -127,8 +146,8 @@ const ProductCatalogueGalleryTest: React.FC = () => {
       {/* Product Grid */}
       {hasProducts && (
         <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8'>
-          {products.map((product) => (
-            <ProductCardTest key={product.id} product={product} />
+          {allProducts.map((product) => (
+            <ProductCardTest key={product.name} product={product} />
           ))}
         </div>
       )}
@@ -155,13 +174,17 @@ const ProductCatalogueGalleryTest: React.FC = () => {
       )}
 
       {/* Category Modal */}
-      <CategoryProfileDialog isOpen={isCategoriesDialogOpen} onClose={handleCloseCategoryDialog} />
+      <CategoryProfileDialog
+        listedCategories={allCategories}
+        isOpen={isCategoriesDialogOpen}
+        onClose={handleCloseCategoryDialog}
+      />
     </div>
   );
 };
 
-const EmptyProductTest = ({ numberOfCategories }: { numberOfCategories: number }) => {
-  const { clearAddedCategories } = useCategoryCatalogueStore();
+const EmptyProductTest = () => {
+  const { clearAddedCategories, allCategories } = useCategoryCatalogueStore();
   const [isCategoriesDialogOpen, setIsCategoriesDialogOpen] = useState(false);
 
   const handleCloseCategoryDialog = () => {
@@ -172,7 +195,7 @@ const EmptyProductTest = ({ numberOfCategories }: { numberOfCategories: number }
   return (
     <div className='flex flex-col items-center justify-center h-[80vh] text-center bg-white relative'>
       <div className='absolute top-6 right-6'>
-        {numberOfCategories === 0 ? (
+        {allCategories.length === 0 ? (
           <Button variant='link' className='text-primary-base' onClick={() => setIsCategoriesDialogOpen(true)}>
             Create Categories
           </Button>
@@ -197,7 +220,11 @@ const EmptyProductTest = ({ numberOfCategories }: { numberOfCategories: number }
       />
       <p className='text-gray-500 text-base'>You don’t have any catalogue items yet.</p>
 
-      <CategoryProfileDialog isOpen={isCategoriesDialogOpen} onClose={handleCloseCategoryDialog} />
+      <CategoryProfileDialog
+        listedCategories={allCategories}
+        isOpen={isCategoriesDialogOpen}
+        onClose={handleCloseCategoryDialog}
+      />
     </div>
   );
 };

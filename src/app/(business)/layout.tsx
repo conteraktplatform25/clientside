@@ -12,6 +12,7 @@ const DashboardLayout = async ({ children }: ILayoutProps) => {
   const defaultOpen = cookieStore.get('sidebar_state')?.value === 'true';
 
   const session = await getServerSession(authOptions);
+
   return (
     <SidebarProvider className='has-data-[variant=inset]:bg-white' defaultOpen={defaultOpen}>
       <div className='relative p-0 m-0 flex h-screen w-full'>
