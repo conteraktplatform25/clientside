@@ -64,8 +64,6 @@ export async function PATCH(req: NextRequest, context: { params: Promise<{ id: s
         phone_number: data.phone_number,
         email: data.email,
         whatsapp_opt_in: data.whatsapp_opt_in,
-        status: data.status,
-        source: data.source,
         custom_fields: data.custom_fields,
         updated_at: new Date(),
       },

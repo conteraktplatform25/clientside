@@ -35,6 +35,7 @@ import {
   CreateVariantSchema,
 } from '@/lib/schemas/business/server/catalogue.schema';
 import {
+  ContactDetailsResponseSchema,
   ContactListResponseSchema,
   ContactResponseSchema,
   ContactTagResponse,
@@ -43,6 +44,18 @@ import {
   UpdateContactSchema,
   UpdateContactTagSchema,
 } from './schemas/business/server/contacts.schema';
+import {
+  CreateOrderSchema,
+  OrderDetailsResponseSchema,
+  OrderListResponseSchema,
+  OrderQuerySchema,
+  UpdateOrderSchema,
+} from './schemas/business/server/order.schema';
+import {
+  CreateOrderItemSchema,
+  OrderItemResponseSchema,
+  UpdateOrderItemSchema,
+} from './schemas/business/server/order-item.schema';
 
 // ✅ Initialize zod-openapi
 extendZodWithOpenApi(z);
@@ -986,13 +999,13 @@ registry.registerPath({
   },
   responses: {
     201: {
-      description: 'Product successfully created',
+      description: 'Client Contact successfully created',
       content: {
         'application/json': {
           schema: z.object({
             ok: z.boolean(),
             message: z.string(),
-            product: ProductResponseSchema,
+            contact: ContactResponseSchema,
           }),
         },
       },
@@ -1014,19 +1027,19 @@ registry.registerPath({
     params: z.object({
       id: z.uuid().openapi({
         example: 'b8d43f9e-cc8b-4b84-a20d-8e85acb8a654',
-        description: 'The UUID of the product to retrieve',
+        description: 'The UUID of the client contact to retrieve',
       }),
     }),
   },
   responses: {
     200: {
-      description: 'Successful retrieval of a product',
+      description: 'Successful retrieval of a client contact for the business owner',
       content: {
         'application/json': {
           schema: z.object({
             ok: z.boolean().openapi({ example: true }),
             message: z.string().openapi({ example: 'Successful retrieval' }),
-            profile: ContactResponseSchema, // note: your success() function wraps payload under "profile"
+            profile: ContactDetailsResponseSchema, // note: your success() function wraps payload under "profile"
           }),
         },
       },
@@ -1065,7 +1078,7 @@ registry.registerPath({
           schema: z.object({
             ok: z.boolean().openapi({ example: true }),
             message: z.string().openapi({ example: 'Successful updated Category' }),
-            profile: ContactResponseSchema,
+            profile: ContactDetailsResponseSchema,
           }),
         },
       },
@@ -1150,5 +1163,360 @@ registry.registerPath({
     400: { description: 'Invalid input' },
     401: { description: 'Unauthorized' },
     403: { description: 'Forbidden: Insufficient permissions' },
+  },
+});
+
+/** Client Order Open API Generation */
+registry.registerPath({
+  method: 'get',
+  path: '/api/orders',
+  tags: ['Product Order'],
+  summary: 'Get all client order for the authenticated business',
+  security: [{ bearerAuth: [] }],
+  request: {
+    query: OrderQuerySchema,
+  },
+  responses: {
+    200: {
+      description: 'List of orders retrieved successfully',
+      content: {
+        'application/json': {
+          schema: z.object({
+            ok: z.boolean(),
+            message: z.string(),
+            profile: OrderListResponseSchema,
+          }),
+        },
+      },
+    },
+    401: { description: 'Unauthorized' },
+    404: { description: 'Business profile not found' },
+  },
+});
+
+registry.registerPath({
+  method: 'post',
+  path: '/api/orders',
+  tags: ['Product Order'],
+  summary: 'Create a new client order profile under the authenticated business profile',
+  security: [{ bearerAuth: [] }],
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: CreateOrderSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    201: {
+      description: 'Client Order successfully created',
+      content: {
+        'application/json': {
+          schema: z.object({
+            ok: z.boolean(),
+            message: z.string(),
+            profile: OrderDetailsResponseSchema,
+          }),
+        },
+      },
+    },
+    400: { description: 'Invalid input or missing fields' },
+    401: { description: 'Unauthorized' },
+    403: { description: 'Forbidden: Insufficient permissions' },
+    404: { description: 'Business profile not configured' },
+  },
+});
+
+registry.registerPath({
+  method: 'get',
+  path: '/api/orders/{id}',
+  tags: ['Product Order'],
+  summary: 'Retrieve a single client order by ID',
+  security: [{ bearerAuth: [] }],
+  request: {
+    params: z.object({
+      id: z.uuid().openapi({
+        example: 'b8d43f9e-cc8b-4b84-a20d-8e85acb8a654',
+        description: 'The UUID of the client order to retrieve',
+      }),
+    }),
+  },
+  responses: {
+    200: {
+      description: 'Successful retrieval of a client order for the business owner',
+      content: {
+        'application/json': {
+          schema: z.object({
+            ok: z.boolean().openapi({ example: true }),
+            message: z.string().openapi({ example: 'Successful retrieval' }),
+            profile: OrderDetailsResponseSchema, // note: your success() function wraps payload under "profile"
+          }),
+        },
+      },
+    },
+    401: { description: 'Unauthorized' },
+    404: { description: 'Contact not found' },
+  },
+});
+
+registry.registerPath({
+  method: 'patch',
+  path: '/api/contacts/{id}',
+  tags: ['Product Order'],
+  summary: 'Update a client order by the order ID',
+  description: 'Allows authorized users (Business/Admin) to modify the contact of an existing business owner Contact.',
+  security: [{ bearerAuth: [] }],
+  request: {
+    params: z.object({
+      id: z.uuid().openapi({
+        example: 'b8d43f9e-cc8b-4b84-a20d-8e85acb8a654',
+      }),
+    }),
+    body: {
+      content: {
+        'application/json': {
+          schema: UpdateOrderSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: 'Product successfully updated',
+      content: {
+        'application/json': {
+          schema: z.object({
+            ok: z.boolean().openapi({ example: true }),
+            message: z.string().openapi({ example: 'Successful updated Category' }),
+            profile: OrderDetailsResponseSchema,
+          }),
+        },
+      },
+    },
+    400: { description: 'Invalid input' },
+    401: { description: 'Unauthorized' },
+    403: { description: 'Forbidden: Insufficient permissions' },
+  },
+});
+
+registry.registerPath({
+  method: 'delete',
+  path: '/api/contacts/{id}',
+  tags: ['Product Order'],
+  summary: 'Delete a client order by ID',
+  description: 'Delete a client order. Only users with Business or Admin roles are authorized.',
+  security: [{ bearerAuth: [] }],
+  request: {
+    params: z.object({
+      id: z.uuid().openapi({
+        example: 'b8d43f9e-cc8b-4b84-a20d-8e85acb8a654',
+      }),
+    }),
+  },
+  responses: {
+    200: {
+      description: 'Client order deleted successfully',
+      content: {
+        'application/json': {
+          schema: z.object({
+            ok: z.boolean().openapi({ example: true }),
+            message: z.string().openapi({ example: 'Client Order deleted' }),
+          }),
+        },
+      },
+    },
+    401: { description: 'Unauthorized' },
+    403: { description: 'Forbidden: Insufficient permissions' },
+    500: { description: 'Internal server error' },
+  },
+});
+
+/** Client Order Item Open API Generation */
+registry.registerPath({
+  method: 'get',
+  path: '/api/orders/{id}/items',
+  tags: ['Product Order Items'],
+  summary: 'Retrieve a client order Items by the order ID',
+  security: [{ bearerAuth: [] }],
+  request: {
+    params: z.object({
+      id: z.uuid().openapi({
+        example: 'b8d43f9e-cc8b-4b84-a20d-8e85acb8a654',
+        description: 'The UUID of the client order to retrieve',
+      }),
+    }),
+  },
+  responses: {
+    200: {
+      description: 'Successful retrieval of a client order for the business owner',
+      content: {
+        'application/json': {
+          schema: z.object({
+            ok: z.boolean().openapi({ example: true }),
+            message: z.string().openapi({ example: 'Successful retrieval' }),
+            profile: OrderItemResponseSchema, // note: your success() function wraps payload under "profile"
+          }),
+        },
+      },
+    },
+    401: { description: 'Unauthorized' },
+    404: { description: 'Contact not found' },
+  },
+});
+
+registry.registerPath({
+  method: 'post',
+  path: '/api/orders/{id}/items',
+  tags: ['Product Order Items'],
+  summary: 'Create a new Order Item from an existing Client Order using the Order ID.',
+  security: [{ bearerAuth: [] }],
+  request: {
+    params: z.object({
+      id: z.uuid().openapi({
+        example: 'b8d43f9e-cc8b-4b84-a20d-8e85acb8a654',
+        description: 'The UUID of the client order to retrieve',
+      }),
+    }),
+    body: {
+      content: {
+        'application/json': {
+          schema: CreateOrderItemSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: 'Successful creation of a client order Item for the business owner',
+      content: {
+        'application/json': {
+          schema: z.object({
+            ok: z.boolean().openapi({ example: true }),
+            message: z.string().openapi({ example: 'Successful retrieval' }),
+            profile: OrderItemResponseSchema, // note: your success() function wraps payload under "profile"
+          }),
+        },
+      },
+    },
+    401: { description: 'Unauthorized' },
+    404: { description: 'Contact not found' },
+  },
+});
+
+registry.registerPath({
+  method: 'get',
+  path: '/api/orders/{id}/items/{itemid}',
+  tags: ['Product Order Items'],
+  summary: 'Retrieve a client order Item by the order ID and the Item ID',
+  security: [{ bearerAuth: [] }],
+  request: {
+    params: z.object({
+      id: z.uuid().openapi({
+        example: 'b8d43f9e-cc8b-4b84-a20d-8e85acb8a654',
+        description: 'The UUID of the client order to retrieve',
+      }),
+      itemid: z.uuid().openapi({
+        example: 'b8d43f9e-cc8b-4b84-a20d-8e85acb8a654',
+        description: 'The UUID of the client order to retrieve',
+      }),
+    }),
+  },
+  responses: {
+    200: {
+      description: 'Successful retrieval of a client order item for the business owner',
+      content: {
+        'application/json': {
+          schema: z.object({
+            ok: z.boolean().openapi({ example: true }),
+            message: z.string().openapi({ example: 'Successful retrieval' }),
+            profile: OrderItemResponseSchema, // note: your success() function wraps payload under "profile"
+          }),
+        },
+      },
+    },
+    401: { description: 'Unauthorized' },
+    404: { description: 'Contact not found' },
+  },
+});
+
+registry.registerPath({
+  method: 'patch',
+  path: '/api/orders/{id}/items/{itemid}',
+  tags: ['Product Order Items'],
+  summary: 'Update an Order Item from an existing Client Order Item using the Order ID and the Item ID.',
+  security: [{ bearerAuth: [] }],
+  request: {
+    params: z.object({
+      id: z.uuid().openapi({
+        example: 'b8d43f9e-cc8b-4b84-a20d-8e85acb8a654',
+        description: 'The UUID of the client order to retrieve',
+      }),
+      itemid: z.uuid().openapi({
+        example: 'b8d43f9e-cc8b-4b84-a20d-8e85acb8a654',
+        description: 'The UUID of the client order Item to retrieve',
+      }),
+    }),
+    body: {
+      content: {
+        'application/json': {
+          schema: UpdateOrderItemSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: 'Successful updating of a client order Item for the business owner',
+      content: {
+        'application/json': {
+          schema: z.object({
+            ok: z.boolean().openapi({ example: true }),
+            message: z.string().openapi({ example: 'Successful retrieval' }),
+            profile: OrderItemResponseSchema, // note: your success() function wraps payload under "profile"
+          }),
+        },
+      },
+    },
+    401: { description: 'Unauthorized' },
+    404: { description: 'Contact not found' },
+  },
+});
+
+registry.registerPath({
+  method: 'delete',
+  path: '/api/orders/{id}/items/{itemid}',
+  tags: ['Product Order Items'],
+  summary: 'Delete a client order Item by the Order Id and the Item ID',
+  description: 'Delete a client order Item. Only users with Business or Admin roles are authorized.',
+  security: [{ bearerAuth: [] }],
+  request: {
+    params: z.object({
+      id: z.uuid().openapi({
+        example: 'b8d43f9e-cc8b-4b84-a20d-8e85acb8a654',
+        description: 'The UUID of the client order to retrieve',
+      }),
+      itemid: z.uuid().openapi({
+        example: 'b8d43f9e-cc8b-4b84-a20d-8e85acb8a654',
+        description: 'The UUID of the client order Item to retrieve',
+      }),
+    }),
+  },
+  responses: {
+    200: {
+      description: 'Client order deleted successfully',
+      content: {
+        'application/json': {
+          schema: z.object({
+            ok: z.boolean().openapi({ example: true }),
+            message: z.string().openapi({ example: 'Client Order deleted' }),
+          }),
+        },
+      },
+    },
+    401: { description: 'Unauthorized' },
+    403: { description: 'Forbidden: Insufficient permissions' },
+    500: { description: 'Internal server error' },
   },
 });

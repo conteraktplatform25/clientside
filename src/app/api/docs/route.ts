@@ -21,6 +21,10 @@ export async function GET() {
         },
         { name: 'Product Categories', description: 'Endpoints related to product categories' },
         { name: 'Products', description: 'Endpoints related to products implementation' },
+        // { name: 'Contacts', description: 'Endpoints related to client contact implementation' },
+        // { name: 'Contact Tags', description: 'Endpoints related to client contact tag implementation' },
+        // { name: 'Product Orders', description: 'Endpoints related to client product order implementation' },
+        // { name: 'Product Order Items', description: 'Endpoints related to client product order items implementation' },
       ],
     });
 

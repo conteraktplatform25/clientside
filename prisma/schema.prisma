@@ -114,6 +114,8 @@ model BusinessProfile {
   Products   Product[]
 
   Contact Contact[]
+
+  Order Order[]
 }
 
 model Account {
@@ -177,21 +179,6 @@ model ApplicationNotification {
   @@index([type, createdAt(sort: Desc)]) // For filtering/sorting notifications
 }
 
-model UserActivity {
-  id          String   @id @default(uuid())
-  userId      String // The user who performed the action
-  type        String // e.g., 'order_placed', 'product_reviewed', 'cart_added'
-  description String // Human-readable log, e.g., "Added iPhone to cart"
-  metadata    Json? // e.g., { productId: "xyz", quantity: 1 }
-  createdAt   DateTime @default(now())
-
-  // Relation
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId]) // For fast user-specific queries
-  @@index([type, createdAt(sort: Desc)]) // For timelines
-}
-
 model NotificationPreference {
   id        String                   @id @default(uuid())
   userId    String
@@ -244,6 +231,7 @@ model Product {
   category        Category         @relation(fields: [categoryId], references: [id])
   media           ProductMedia[]
   variants        ProductVariant[]
+  OrderItem       OrderItem[]
 
   @@unique([businessProfileId, sku])
 }
@@ -277,7 +265,7 @@ model Contact {
   id                String        @id @default(uuid())
   businessProfileId String
   name              String?
-  phone_number      String        @unique
+  phone_number      String
   email             String?
   whatsapp_opt_in   Boolean       @default(false)
   status            ContactStatus @default(ACTIVE) // e.g., ACTIVE, BLOCKED, UNSUBSCRIBED
@@ -290,26 +278,102 @@ model Contact {
   businessProfile BusinessProfile @relation(fields: [businessProfileId], references: [id])
   tags            ContactTag[]
   conversations   Conversation[] // Link to chat history if needed
+  Order           Order[]
+  UserActivity    UserActivity[]
 
+  @@unique([businessProfileId, phone_number])
   @@index([businessProfileId])
   @@index([phone_number])
   @@index([status])
 }
 
+model ContactTag {
+  id        String   @id @default(uuid())
+  name      String
+  color     String? // Optional: UI color
+  createdAt DateTime @default(now())
+
+  // Relation
+  contactId String
+  contact   Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  @@index([contactId])
+}
+
+model Order {
+  id                String        @id @default(uuid())
+  businessProfileId String
+  contactId         String
+  order_number      String        @unique
+  status            OrderStatus   @default(PENDING)
+  total_amount      Decimal       @db.Decimal(10, 2)
+  currency          CurrencyType  @default(NAIRA)
+  payment_status    PaymentStatus @default(PENDING)
+  payment_method    String?
+  delivery_address  Json?
+  notes             String?
+  created_at        DateTime      @default(now())
+  updated_at        DateTime      @updatedAt
+
+  businessProfile BusinessProfile @relation(fields: [businessProfileId], references: [id])
+  contact         Contact         @relation(fields: [contactId], references: [id])
+  OrderItem       OrderItem[]
+  UserActivity    UserActivity[]  @relation(name: "OrderActivities")
+
+  @@index([businessProfileId])
+  @@index([contactId])
+  @@index([order_number])
+}
+
+model OrderItem {
+  id         String   @id @default(uuid())
+  orderId    String
+  productId  String?
+  name       String
+  quantity   Int      @default(1)
+  price      Decimal  @db.Decimal(10, 2)
+  total      Decimal  @db.Decimal(10, 2)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  order   Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product? @relation(fields: [productId], references: [id])
+}
+
+model UserActivity {
+  id          String   @id @default(uuid())
+  userId      String // The user who performed the action
+  contactId   String?
+  orderId     String?
+  type        String // e.g., 'order_placed', 'product_reviewed', 'cart_added'
+  description String // Human-readable log, e.g., "Added iPhone to cart"
+  metadata    Json? // e.g., { productId: "xyz", quantity: 1 }
+  createdAt   DateTime @default(now())
+
+  // Relation
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contact Contact? @relation(fields: [contactId], references: [id])
+  order   Order?   @relation(fields: [orderId], references: [id], name: "OrderActivities")
+  //@@index([type, createdAt(sort: Desc)]) // For timelines
+
+  @@index([userId])
+  @@index([contactId])
+  @@index([orderId])
+}
+
 // Conversation (WhatsApp/Chat support)
 model Conversation {
   id         String             @id @default(cuid())
-  userId     String
+  contactId  String?
   status     ConversationStatus @default(OPEN)
   isGroup    Boolean            @default(false)
   created_at DateTime           @default(now())
   updated_at DateTime           @updatedAt
 
   // Relations
+  contact  Contact?           @relation(fields: [contactId], references: [id])
   users    ConversationUser[]
   messages Message[]
-
-  Contact Contact[]
 }
 
 model ConversationUser {
@@ -339,263 +403,6 @@ model Message {
   user         User?        @relation(fields: [senderId], references: [id])
 }
 
-model ContactTag {
-  id        String   @id @default(uuid())
-  name      String
-  color     String? // Optional: UI color
-  createdAt DateTime @default(now())
-
-  // Relation
-  contactId String
-  contact   Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
-
-  @@index([contactId])
-}
-
-// model ProductOption {
-//   id         String   @id @default(uuid())
-//   productId  String
-//   name       String // e.g., "Color", "Size"
-//   created_at DateTime @default(now())
-//   updated_at DateTime @updatedAt
-
-//   product Product              @relation(fields: [productId], references: [id], onDelete: Cascade)
-//   values  ProductOptionValue[]
-// }
-
-// model ProductOptionValue {
-//   id              String   @id @default(uuid())
-//   productOptionId String
-//   value           String // e.g., "Red", "Small"
-//   created_at      DateTime @default(now())
-//   updated_at      DateTime @updatedAt
-
-//   productOption ProductOption @relation(fields: [productOptionId], references: [id], onDelete: Cascade)
-// }
-
-// model ProductVariant {
-//   id           String   @id @default(uuid())
-//   productId    String
-//   sku          String?
-//   price        Decimal  @db.Decimal(10, 2)
-//   stock        Int      @default(0)
-//   imageUrls    Json? // Array of image URLs specific to this variant
-//   optionValues Json? // JSON array of { optionId: string, valueId: string }
-//   created_at   DateTime @default(now())
-//   updated_at   DateTime @updatedAt
-
-//   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-//   //orderItems OrderItem[]
-
-//   @@unique([productId, sku]) // Ensure unique SKU per product
-// }
-
-/**
- * Core Application Models
- */
-// model Account {
-//   id                String   @id @default(cuid())
-//   userId            String
-//   type              String
-//   provider          String
-//   providerAccountId String
-//   whatsapp_phone    String? // Business WhatsApp phone number
-//   whatsapp_api_key  String? // For WhatsApp Business API integration
-//   is_deleted        Boolean  @default(false)
-//   refresh_token     String?
-//   access_token      String?
-//   created_at        DateTime @default(now())
-//   updated_at        DateTime @updatedAt
-//   expires_at        Int?
-//   token_type        String?
-//   scope             String?
-//   id_token          String?
-//   session_state     String?
-
-//   user             User              @relation(fields: [userId], references: [id])
-//   shops            Shop[]
-//   messageTemplates MessageTemplate[]
-//   campaigns        Campaign[]
-// }
-
-// model Session {
-//   id            String   @id @default(cuid())
-//   session_token String   @unique
-//   userId        String
-//   expires       DateTime
-
-//   user User @relation(fields: [userId], references: [id])
-//}
-
-// model VerificationToken {
-//   identifier String
-//   token      String   @unique
-//   expires    DateTime
-
-//   @@unique([identifier, token])
-// }
-
-// model MessageTemplate {
-//   id         Int      @id @default(autoincrement())
-//   accountId  String
-//   name       String
-//   content    String
-//   approved   Boolean  @default(false) // WhatsApp approval status
-//   created_at DateTime @default(now())
-//   updated_at DateTime @updatedAt
-//   account    Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
-//}
-
-// model Shop {
-//   id         String   @id @default(cuid())
-//   name       String
-//   ownerId    String
-//   accountId  String
-//   is_deleted Boolean  @default(false)
-//   created_at DateTime @default(now())
-//   updated_at DateTime @updatedAt
-//   updatedAt  DateTime @updatedAt
-
-//   // Relations
-//   owner    User      @relation("ShopOwner", fields: [ownerId], references: [id])
-//   account  Account   @relation(fields: [accountId], references: [id], onDelete: Cascade)
-//   products Product[]
-//   orders   Order[]
-// }
-
-// model Category {
-//   id         String   @id @default(cuid())
-//   name       String
-//   created_at DateTime @default(now())
-//   updated_at DateTime @updatedAt
-
-//   // Relations
-//   products Product[]
-// }
-
-// model Product {
-//   id          String   @id @default(cuid())
-//   name        String
-//   description String?
-//   price       Float
-//   stock       Int      @default(0)
-//   image_url   String?
-//   categoryId  String?
-//   shopId      String
-//   is_deleted  Boolean  @default(false)
-//   created_at  DateTime @default(now())
-//   updated_at  DateTime @updatedAt
-
-//   // Relations
-//   shop       Shop        @relation(fields: [shopId], references: [id])
-//   category   Category?   @relation(fields: [categoryId], references: [id])
-//   orderItems OrderItem[]
-// }
-
-// model Order {
-//   id         String      @id @default(cuid())
-//   userId     String
-//   shopId     String
-//   status     OrderStatus @default(PENDING)
-//   total      Float
-//   is_deleted Boolean     @default(false)
-//   created_at DateTime    @default(now())
-//   updated_at DateTime    @updatedAt
-
-//   // Relations
-//   user    User        @relation(fields: [userId], references: [id])
-//   shop    Shop        @relation(fields: [shopId], references: [id])
-//   items   OrderItem[]
-//   payment Payment?
-// }
-
-// model OrderItem {
-//   id         String   @id @default(cuid())
-//   orderId    String
-//   productId  String
-//   quantity   Int
-//   price      Float
-//   is_deleted Boolean  @default(false)
-//   created_at DateTime @default(now())
-//   updated_at DateTime @updatedAt
-
-//   // Relations
-//   order   Order   @relation(fields: [orderId], references: [id])
-//   product Product @relation(fields: [productId], references: [id])
-// }
-
-// model Payment {
-//   id         String        @id @default(cuid())
-//   orderId    String        @unique
-//   amount     Float
-//   status     PaymentStatus @default(PENDING)
-//   provider   String? // e.g. Razorpay, Stripe, PayStack etc.
-//   created_at DateTime      @default(now())
-//   updated_at DateTime      @updatedAt
-
-//   // Relations
-//   order Order @relation(fields: [orderId], references: [id])
-// }
-
-// // Conversation (WhatsApp/Chat support)
-// model Conversation {
-//   id         String             @id @default(cuid())
-//   userId     String
-//   status     ConversationStatus @default(OPEN)
-//   created_at DateTime           @default(now())
-//   updated_at DateTime           @updatedAt
-
-//   // Relations
-//   user     User      @relation(fields: [userId], references: [id])
-//   messages Message[]
-// }
-
-// // Message (Chat messages)
-// model Message {
-//   id             String           @id @default(cuid())
-//   conversationId String
-//   userId         String?
-//   content        String
-//   direction      MessageDirection
-//   is_deleted     Boolean          @default(false)
-//   created_at     DateTime         @default(now())
-//   updated_at     DateTime         @updatedAt
-
-//   // Relations
-//   conversation Conversation @relation(fields: [conversationId], references: [id])
-//   user         User?        @relation(fields: [userId], references: [id])
-// }
-
-// // Campaigns / Broadcasts
-// model Campaign {
-//   id           String         @id @default(cuid())
-//   name         String
-//   message      String
-//   accountId    String
-//   status       CampaignStatus @default(DRAFT)
-//   is_deleted   Boolean        @default(false)
-//   scheduled_at DateTime?
-//   created_at   DateTime       @default(now())
-//   updated_at   DateTime       @updatedAt
-
-//   // Relations
-//   recipients CampaignRecipient[]
-//   account    Account             @relation(fields: [accountId], references: [id], onDelete: Restrict)
-// }
-
-// model CampaignRecipient {
-//   id         String        @id @default(cuid())
-//   campaignId String
-//   userId     String
-//   status     MessageStatus @default(PENDING)
-//   created_at DateTime      @default(now())
-//   updated_at DateTime      @updatedAt
-
-//   // Relations
-//   campaign Campaign @relation(fields: [campaignId], references: [id])
-//   user     User     @relation(fields: [userId], references: [id])
-// }
-
 enum OrderStatus {
   PENDING
   CONFIRMED
@@ -608,6 +415,7 @@ enum PaymentStatus {
   PENDING
   SUCCESS
   FAILED
+  REFUNDED
 }
 
 enum ConversationStatus {

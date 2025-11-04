@@ -1,4 +1,5 @@
 import { authenticateRequest, authorizeRole } from '@/lib/auth';
+import { validateRequest } from '@/lib/helpers/validation-request.helper';
 import prisma from '@/lib/prisma';
 import {
   ContactListResponseSchema,
@@ -18,13 +19,10 @@ export async function GET(req: NextRequest) {
     const businessProfileId = user.businessProfile?.[0]?.id;
     if (!businessProfileId) return failure('Business profile not configured.', 400);
 
-    const { searchParams } = new URL(req.url);
-    const parsed = ContactQuerySchema.safeParse(Object.fromEntries(searchParams));
-    if (!parsed.success) {
-      return failure(JSON.stringify(parsed.error.flatten()), 400);
-    }
+    const validation = await validateRequest(ContactQuerySchema, req);
+    if (!validation.success) return failure(validation.response, 401);
 
-    const { page, limit, search, source, status, sortBy, sortOrder, tag } = parsed.data;
+    const { page, limit, search, source, status, sortBy, sortOrder } = validation.data;
     const skip = (page - 1) * limit;
 
     // ✅ Build dynamic filters
@@ -40,13 +38,6 @@ export async function GET(req: NextRequest) {
     }
     if (status) where.status = status;
     if (source) where.source = source;
-    if (tag) {
-      where.tags = {
-        some: {
-          name: { contains: tag, mode: 'insensitive' },
-        },
-      };
-    }
 
     const [contacts, total] = await Promise.all([
       prisma.contact.findMany({
@@ -91,20 +82,21 @@ export async function POST(req: NextRequest) {
     const businessProfileId = user.businessProfile?.[0]?.id;
     if (!businessProfileId) return failure('Business profile not configured.', 400);
 
-    const body = await req.json();
-    const parsed = CreateContactSchema.safeParse(body);
-    if (!parsed.success) {
-      console.error('Zod validation error:', parsed.error.flatten());
-      return failure('Invalid input: ' + JSON.stringify(parsed.error.flatten()));
-    }
+    const validation = await validateRequest(CreateContactSchema, req);
+    if (!validation.success) return failure(validation.response, 401);
 
-    const { name, email, ...data } = parsed.data;
+    const { name, email, ...data } = validation.data;
 
     const existing = await prisma.contact.findUnique({
-      where: { phone_number: data.phone_number },
+      where: {
+        businessProfileId_phone_number: {
+          businessProfileId,
+          phone_number: data.phone_number,
+        },
+      },
     });
     if (existing) {
-      return failure('Contact already exists', 409);
+      return failure('Contact already exists for this Owner', 409);
     }
 
     const contact = await prisma.contact.create({
@@ -112,7 +104,8 @@ export async function POST(req: NextRequest) {
         name,
         phone_number: data.phone_number,
         email,
-        source: data.source,
+        whatsapp_opt_in: data.whatsapp_opt_in,
+        custom_fields: data.custom_fields,
         businessProfileId, // ensure this is provided by your frontend
       },
     });

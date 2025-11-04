@@ -32,7 +32,6 @@ export const ContactQuerySchema = z
       .enum(['MANUAL', 'IMPORT', 'API', 'WHATSAPP', 'CHATBOT'])
       .optional()
       .openapi({ example: 'MANUAL or IMPORT or API or WHATSAPP or CHATBOT' }),
-    tag: z.string().optional(), // Filter by tag name or ID
   })
   .openapi('ContactQuery');
 
@@ -41,7 +40,8 @@ export const CreateContactSchema = z
     name: z.string().min(2),
     phone_number: z.string(),
     email: z.string().optional(),
-    source: z.enum(Object.values(ContactSource)).default(ContactSource.MANUAL),
+    whatsapp_opt_in: z.boolean().default(false),
+    custom_fields: z.record(z.string(), z.any()).optional(),
   })
   .openapi('CreateContactRequest');
 
@@ -51,8 +51,6 @@ export const UpdateContactSchema = z
     phone_number: z.string().optional(),
     email: z.string().optional(),
     whatsapp_opt_in: z.boolean().optional(),
-    status: z.enum(ContactStatus).optional(),
-    source: z.enum(ContactSource).optional(),
     custom_fields: z.record(z.string(), z.any()).optional(), // For flexible metadata like { city: "Lagos" }
     tags: z
       .array(
@@ -77,7 +75,8 @@ export const ContactResponseSchema = z
     name: z.string().nullable(),
     phone_number: z.string(),
     email: z.string().nullable(),
-    status: z.string(),
+    status: z.enum(ContactStatus),
+    source: z.enum(ContactSource),
     tags: z.array(ContactTagSchema),
   })
   .openapi('ContactReponse');
@@ -93,6 +92,23 @@ export const ContactListResponseSchema = z
     contacts: z.array(ContactResponseSchema),
   })
   .openapi('ContactListResponse');
+
+export const ContactDetailsResponseSchema = z
+  .object({
+    id: z.uuid(),
+    businessProfileId: z.uuid(),
+    name: z.string().nullable(),
+    phone_number: z.string(),
+    email: z.string().nullable(),
+    whatsapp_opt_in: z.boolean().nullable(),
+    status: z.enum(ContactStatus),
+    source: z.enum(ContactSource),
+    custom_fields: z.record(z.string(), z.any()).optional(),
+    created_at: z.date(),
+    updated_at: z.date(),
+    tags: z.array(ContactTagSchema),
+  })
+  .openapi('ContactDetailsReponse');
 
 export const CreateContactTagSchema = z
   .object({
@@ -126,4 +142,5 @@ export const ContactTagResponse = z.object({
   name: z.string().openapi({ example: 'ATTACH' }),
   color: z.string(),
   contactId: z.uuid(),
+  createdAt: z.date(),
 });

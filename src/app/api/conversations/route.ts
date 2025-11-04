@@ -3,12 +3,12 @@ import prisma from '@/lib/prisma';
 import { pusherServer } from '@/lib/pusher.test';
 
 export async function POST(req: NextRequest) {
-  const { userIds, isGroup } = await req.json();
+  const { contactId, isGroup } = await req.json();
 
   // Validation with zod...
   const conversation = await prisma.conversation.create({
     data: {
-      userId: userIds,
+      contactId,
       status: 'OPEN',
       isGroup: isGroup,
     },
