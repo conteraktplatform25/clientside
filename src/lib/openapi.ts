@@ -56,6 +56,13 @@ import {
   OrderItemResponseSchema,
   UpdateOrderItemSchema,
 } from './schemas/business/server/order-item.schema';
+import {
+  BusinessSettingsResponseSchema,
+  CreateBusinessSettingsSchema,
+  UpdateBusinessSettingsSchema,
+  UpdateUserSettingsSchema,
+  UserSettingsResponseSchema,
+} from './schemas/business/settings.schema';
 
 // ✅ Initialize zod-openapi
 extendZodWithOpenApi(z);
@@ -390,7 +397,161 @@ registry.registerPath({
   },
 });
 
-//Category Module Registry
+/** User Setting Open API documentation */
+registry.registerPath({
+  method: 'get',
+  path: '/api/settings/user',
+  tags: ['User Settings'],
+  summary: 'Get authenticated user profile',
+  security: [{ bearerAuth: [] }],
+  responses: {
+    200: {
+      description: 'Authenticated User profile retrieved successfully',
+      content: {
+        'application/json': {
+          schema: z.object({
+            ok: z.boolean(),
+            message: z.string(),
+            profile: UserSettingsResponseSchema,
+          }),
+        },
+      },
+    },
+    400: { description: 'User profile not configured.' },
+    401: { description: 'Unauthorized' },
+    404: { description: 'User profile not found' },
+  },
+});
+
+registry.registerPath({
+  method: 'patch',
+  path: '/api/settings/user',
+  tags: ['User Settings'],
+  summary: 'Update authenticated user profile',
+  security: [{ bearerAuth: [] }],
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: UpdateUserSettingsSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: 'Authenticated User profile updated successfully',
+      content: {
+        'application/json': {
+          schema: z.object({
+            ok: z.boolean(),
+            message: z.string(),
+            profile: UserSettingsResponseSchema,
+          }),
+        },
+      },
+    },
+    400: { description: 'User profile not configured.' },
+    401: { description: 'Unauthorized' },
+    404: { description: 'User profile not found' },
+  },
+});
+
+/** Business Profile Setting Open API documentation */
+registry.registerPath({
+  method: 'get',
+  path: '/api/settings/business-profile',
+  tags: ['Business Owner Settings'],
+  summary: 'Get authenticated user business profile',
+  security: [{ bearerAuth: [] }],
+  responses: {
+    200: {
+      description: 'Authenticated User Business Profile retrieved successfully',
+      content: {
+        'application/json': {
+          schema: z.object({
+            ok: z.boolean(),
+            message: z.string(),
+            profile: BusinessSettingsResponseSchema,
+          }),
+        },
+      },
+    },
+    400: { description: 'Business profile not configured.' },
+    401: { description: 'Unauthorized' },
+    404: { description: 'Business profile not found' },
+  },
+});
+
+registry.registerPath({
+  method: 'patch',
+  path: '/api/settings/business-profile',
+  tags: ['Business Owner Settings'],
+  summary: 'Update authenticated business owner profile',
+  security: [{ bearerAuth: [] }],
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: UpdateBusinessSettingsSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: 'Authenticated Business Profile updated successfully',
+      content: {
+        'application/json': {
+          schema: z.object({
+            ok: z.boolean(),
+            message: z.string(),
+            profile: BusinessSettingsResponseSchema,
+          }),
+        },
+      },
+    },
+    400: { description: 'Business profile not configured.' },
+    401: { description: 'Unauthorized' },
+    404: { description: 'Business profile not found' },
+  },
+});
+
+registry.registerPath({
+  method: 'post',
+  path: '/api/settings/business-profile',
+  tags: ['Business Owner Settings'],
+  summary: 'New authenticated business owner profile',
+  security: [{ bearerAuth: [] }],
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: CreateBusinessSettingsSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: 'Authenticated Business Profile created successfully',
+      content: {
+        'application/json': {
+          schema: z.object({
+            ok: z.boolean(),
+            message: z.string(),
+            profile: BusinessSettingsResponseSchema,
+          }),
+        },
+      },
+    },
+    400: { description: 'Business profile not configured.' },
+    401: { description: 'Unauthorized' },
+    404: { description: 'Business profile not found' },
+  },
+});
+
+/** Category Module Registry */
 registry.registerPath({
   method: 'get',
   path: '/api/catalogue/categories',

@@ -1,4 +1,12 @@
 import { z } from 'zod';
+import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
+import {
+  ConstAnnualRevenue as revenues,
+  ConstBusinessCategories as categories,
+  ConstBusinessIndustries as industries,
+} from '@/lib/constants/auth.constant';
+
+extendZodWithOpenApi(z);
 
 export const businessProfileSchema = z.object({
   businessLogo: z.string().optional(),
@@ -8,5 +16,90 @@ export const businessProfileSchema = z.object({
   businessEmail: z.email('Please enter a valid email address'),
   businessWebsite: z.url('Please enter a valid website URL').optional().or(z.literal('')),
 });
+
+export const UpdateUserSettingsSchema = z
+  .object({
+    first_name: z.string().nullable().openapi({ example: 'abcdef' }),
+    last_name: z.string().nullable().openapi({ example: 'abcdef' }),
+    image: z.string().nullable(),
+    phone_country_code: z.string().min(1, 'Country code is required'),
+    phone_number: z.string().min(6, 'Phone number is required'),
+  })
+  .openapi('UpdateUserSettings');
+
+const RoleResponseSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+});
+
+export const UserSettingsResponseSchema = z
+  .object({
+    id: z.uuid(),
+    email: z.email(),
+    first_name: z.string().nullable(),
+    last_name: z.string().nullable(),
+    image: z.string().nullable(),
+    phone: z.string().nullable(),
+    email_verified_date: z.date().nullable(),
+    is_activated: z.boolean(),
+    is_deleted: z.boolean(),
+    role: RoleResponseSchema,
+  })
+  .openapi('UserSettingsResponse');
+
+export const CreateBusinessSettingsSchema = z
+  .object({
+    company_name: z.string(),
+    phone_country_code: z.string().min(1, 'Country code is required'),
+    phone_number: z.string().min(6, 'Phone number is required'),
+    company_location: z.string().optional(),
+    company_website: z.string().optional(),
+    business_industry: z
+      .string()
+      .refine((value) => industries.includes(value), {
+        message: 'Invalid Selection',
+      })
+      .optional(),
+    business_category: z
+      .string()
+      .refine((value) => categories.includes(value), {
+        message: 'Invalid Selection',
+      })
+      .optional(),
+    annual_revenue: z
+      .string()
+      .refine((value) => revenues.includes(value), {
+        message: 'Invalid Selection',
+      })
+      .optional(),
+  })
+  .openapi('CreateBusinessSettings');
+
+export const UpdateBusinessSettingsSchema = CreateBusinessSettingsSchema.partial().openapi('UpdateBusinessSettings');
+
+const UserBusinessSchema = z.object({
+  id: z.uuid(),
+  email: z.email(),
+  first_name: z.string().nullable(),
+  last_name: z.string().nullable(),
+  role: RoleResponseSchema,
+});
+
+export const BusinessSettingsResponseSchema = z
+  .object({
+    id: z.string(),
+    company_name: z.string(),
+    phone_number: z.string(),
+    business_number: z.string().nullable(),
+    company_location: z.string().nullable(),
+    company_website: z.string().nullable(),
+    business_industry: z.string().nullable(),
+    business_category: z.string().nullable(),
+    annual_revenue: z.string().nullable(),
+    created_at: z.coerce.date(),
+    updated_at: z.coerce.date(),
+    user: UserBusinessSchema,
+  })
+  .openapi('BusinessSettingsResponse');
 
 export type TBusinessProfileForm = z.infer<typeof businessProfileSchema>;
