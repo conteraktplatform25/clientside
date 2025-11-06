@@ -36,6 +36,6 @@ export async function POST(req: Request) {
 
   return NextResponse.json(
     { ok: true, data: JSON.stringify(new_access), message: 'Successful Refreshed Token' },
-    { status: 401 }
+    { status: 200 }
   );
 }
