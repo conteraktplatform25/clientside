@@ -10,7 +10,7 @@ const BusinessSettingsPage = () => {
   const tabs: ITabItem[] = [
     {
       value: 'business_profile',
-      label: 'Whatsapp Profile',
+      label: 'Business Profile',
       content: <BusinessProfileForm />,
     },
     {
@@ -32,8 +32,7 @@ const BusinessSettingsPage = () => {
 
   return (
     <div className='flex flex-col item-start gap-4 m-0'>
-      {/* <TopNotification /> */}
-      <div className='mt-2 px-12 flex flex-col gap-3'>
+      <div className='mt-4 px-12 flex flex-col gap-3'>
         <TabSettings tabs={tabs} />
       </div>
     </div>

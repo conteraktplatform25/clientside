@@ -8,15 +8,6 @@ import {
 
 extendZodWithOpenApi(z);
 
-export const businessProfileSchema = z.object({
-  businessLogo: z.string().optional(),
-  businessBio: z.string().min(1, 'Business bio is required').max(500, 'Bio must be less than 500 characters'),
-  category: z.string().min(1, 'Please select a category'),
-  businessAddress: z.string().min(1, 'Business address is required'),
-  businessEmail: z.email('Please enter a valid email address'),
-  businessWebsite: z.url('Please enter a valid website URL').optional().or(z.literal('')),
-});
-
 export const UpdateUserSettingsSchema = z
   .object({
     first_name: z.string().nullable().openapi({ example: 'abcdef' }),
@@ -52,26 +43,32 @@ export const CreateBusinessSettingsSchema = z
     company_name: z.string(),
     phone_country_code: z.string().min(1, 'Country code is required'),
     phone_number: z.string().min(6, 'Phone number is required'),
-    company_location: z.string().optional(),
-    company_website: z.string().optional(),
+    company_location: z.string().nullable().optional(),
+    company_website: z.string().nullable().optional(),
     business_industry: z
       .string()
       .refine((value) => industries.includes(value), {
         message: 'Invalid Selection',
       })
+      .nullable()
       .optional(),
     business_category: z
       .string()
       .refine((value) => categories.includes(value), {
         message: 'Invalid Selection',
       })
+      .nullable()
       .optional(),
     annual_revenue: z
       .string()
       .refine((value) => revenues.includes(value), {
         message: 'Invalid Selection',
       })
+      .nullable()
       .optional(),
+    business_email: z.string().nullable().optional(),
+    business_logo_url: z.string().nullable().optional(),
+    business_bio: z.string().nullable().optional(),
   })
   .openapi('CreateBusinessSettings');
 
@@ -96,10 +93,11 @@ export const BusinessSettingsResponseSchema = z
     business_industry: z.string().nullable(),
     business_category: z.string().nullable(),
     annual_revenue: z.string().nullable(),
+    business_email: z.string().nullable(),
+    business_logo_url: z.string().nullable(),
+    business_bio: z.string().nullable(),
     created_at: z.coerce.date(),
     updated_at: z.coerce.date(),
     user: UserBusinessSchema,
   })
   .openapi('BusinessSettingsResponse');
-
-export type TBusinessProfileForm = z.infer<typeof businessProfileSchema>;

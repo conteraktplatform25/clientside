@@ -18,7 +18,7 @@ export const ConstBusinessIndustries: string[] = [
   'Textiles & Apparel',
   'Tourism',
   'Transportation & Logistics',
-] as const;
+];
 
 export const ConstBusinessCategories: string[] = [
   'Agriculture',
@@ -33,7 +33,7 @@ export const ConstBusinessCategories: string[] = [
   'Education',
   'Healthcare',
   'Professional & Business Services',
-] as const;
+];
 export const ConstAnnualRevenue: string[] = [
   'Below ₦10,000,000',
   '₦10,000,000 to ₦20,000,000',
@@ -41,6 +41,6 @@ export const ConstAnnualRevenue: string[] = [
   '₦50,000,000 to ₦100,000,000',
   '₦100,000,000 to ₦500,000,000',
   'Above ₦500,000,000',
-] as const;
+];
 
 export const ConstCountryCodeOptions: string[] = ['+234', '+1', '+44', '+91'] as const;

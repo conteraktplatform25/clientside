@@ -10,6 +10,7 @@ interface InputFieldProps<T extends FieldValues> {
   placeholder?: string;
   className?: string;
   important?: boolean;
+  disabled?: boolean;
 }
 
 export default function InputField<T extends FieldValues>({
@@ -20,6 +21,7 @@ export default function InputField<T extends FieldValues>({
   placeholder,
   className,
   important,
+  disabled = false,
 }: InputFieldProps<T>) {
   return (
     <div className='w-full'>
@@ -39,6 +41,7 @@ export default function InputField<T extends FieldValues>({
               type={type}
               placeholder={placeholder}
               className={`border rounded py-2 px-4 w-full ${className}`}
+              disabled={disabled}
             />
             {fieldState.error && <p className='text-red-500 text-sm'>{fieldState.error.message}</p>}
           </>

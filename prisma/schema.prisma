@@ -106,6 +106,9 @@ model BusinessProfile {
   business_industry String?
   business_category String?
   annual_revenue    String?
+  business_email    String?
+  business_logo_url String?
+  business_bio      String?
   created_at        DateTime @default(now())
   updated_at        DateTime @updatedAt
 

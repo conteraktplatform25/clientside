@@ -20,7 +20,7 @@ const TabSettings: React.FC<ICustomTabPanelProps> = ({ tabs }) => {
       onValueChange={setActiveTab}
       className='relative w-full rounded-none shadow-none border-none'
     >
-      <TabsList className='bg-[#F3F4F6] max-w-2xl border shadow-2xl rounded-[10px] p-1 flex flex-wrap md:flex-nowrap w-full justify-start gap-2 overflow-x-auto'>
+      <TabsList className='bg-[#F3F4F6] w-full max-w-7xl border shadow-2xl rounded-[10px] p-1 flex flex-wrap md:flex-nowrap justify-start gap-2 overflow-x-auto'>
         {tabs.map(({ value, label }) => (
           <TabsTrigger
             key={value}

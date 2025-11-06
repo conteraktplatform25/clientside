@@ -34,39 +34,41 @@ export default function SelectField<T extends FieldValues>({
       <Controller
         name={name}
         control={control}
-        render={({ field, fieldState }) => {
-          return (
-            <div className='relative w-full'>
-              <Select value={field.value ?? ''} onValueChange={field.onChange}>
-                <SelectTrigger
-                  id={name as string}
-                  className={`text-left focus-visible:border-none rounded-sm focus-visible:ring-ring/10 bg-white pb-4 pt-6 hover:bg-gray-50 ${className}`}
-                >
-                  <SelectValue placeholder={placeholder || label} />
-                </SelectTrigger>
-                <SelectContent>
-                  {options.map((opt) => {
-                    if (isSelectOption(opt)) {
-                      return (
-                        <SelectItem key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </SelectItem>
-                      );
-                    } else {
-                      return (
-                        <SelectItem key={opt} value={opt}>
-                          {opt}
-                        </SelectItem>
-                      );
-                    }
-                  })}
-                </SelectContent>
-              </Select>
+        render={({ field, fieldState }) => (
+          <div key={field.value}>
+            <Select
+              value={field.value || undefined}
+              onValueChange={field.onChange}
+              defaultValue={field.value || undefined}
+            >
+              <SelectTrigger
+                id={name as string}
+                className={`text-left focus-visible:border-none rounded-sm focus-visible:ring-ring/10 bg-white hover:bg-gray-50 ${className}`}
+              >
+                <SelectValue placeholder={placeholder || label} />
+              </SelectTrigger>
+              <SelectContent>
+                {options.map((opt) => {
+                  if (isSelectOption(opt)) {
+                    return (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </SelectItem>
+                    );
+                  } else {
+                    return (
+                      <SelectItem key={opt} value={opt}>
+                        {opt}
+                      </SelectItem>
+                    );
+                  }
+                })}
+              </SelectContent>
+            </Select>
 
-              {fieldState.error && <p className='text-sm text-red-500 mt-1'>{fieldState.error.message}</p>}
-            </div>
-          );
-        }}
+            {fieldState.error && <p className='text-sm text-red-500 mt-1'>{fieldState.error.message}</p>}
+          </div>
+        )}
       />
     </div>
   );

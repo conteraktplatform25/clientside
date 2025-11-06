@@ -62,7 +62,7 @@ import {
   UpdateBusinessSettingsSchema,
   UpdateUserSettingsSchema,
   UserSettingsResponseSchema,
-} from './schemas/business/settings.schema';
+} from './schemas/business/server/settings.schema';
 
 // ✅ Initialize zod-openapi
 extendZodWithOpenApi(z);

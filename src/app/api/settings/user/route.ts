@@ -1,7 +1,7 @@
 import { authenticateRequest, authorizeRole } from '@/lib/auth';
 import { validateRequest } from '@/lib/helpers/validation-request.helper';
 import prisma from '@/lib/prisma';
-import { UpdateUserSettingsSchema, UserSettingsResponseSchema } from '@/lib/schemas/business/settings.schema';
+import { UpdateUserSettingsSchema, UserSettingsResponseSchema } from '@/lib/schemas/business/server/settings.schema';
 import { getErrorMessage } from '@/utils/errors';
 import { failure, success } from '@/utils/response';
 import { NextRequest } from 'next/server';
@@ -15,7 +15,6 @@ export async function GET(req: NextRequest) {
     if (!userId) return failure('User profile not configured.', 400);
 
     const response = UserSettingsResponseSchema.parse(user);
-    console.log(response);
 
     return success(response, 'Successful retrieval');
   } catch (err) {

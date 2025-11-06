@@ -5,7 +5,7 @@ import {
   BusinessSettingsResponseSchema,
   CreateBusinessSettingsSchema,
   UpdateBusinessSettingsSchema,
-} from '@/lib/schemas/business/settings.schema';
+} from '@/lib/schemas/business/server/settings.schema';
 import { getErrorMessage } from '@/utils/errors';
 import { failure, success } from '@/utils/response';
 import { NextRequest } from 'next/server';
