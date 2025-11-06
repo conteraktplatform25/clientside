@@ -6,6 +6,7 @@ import {
   CreateBusinessSettingsSchema,
   UpdateBusinessSettingsSchema,
 } from '@/lib/schemas/business/server/settings.schema';
+import { defaultBusinessHours } from '@/utils/defaults.util';
 import { getErrorMessage } from '@/utils/errors';
 import { failure, success } from '@/utils/response';
 import { NextRequest } from 'next/server';
@@ -50,7 +51,7 @@ export async function POST(req: NextRequest) {
     const validation = await validateRequest(CreateBusinessSettingsSchema, req);
     if (!validation.success) return failure(validation.response, 401);
 
-    const { company_name, phone_country_code, phone_number, ...data } = validation.data;
+    const { company_name, phone_country_code, phone_number, business_hour, ...data } = validation.data;
     const isExist = await prisma.businessProfile.findFirst({
       where: {
         company_name,
@@ -75,6 +76,7 @@ export async function POST(req: NextRequest) {
         userId,
         company_name,
         phone_number: phone_number_combined,
+        business_hour: business_hour ?? defaultBusinessHours(),
         ...data,
       },
       include: { user: true },

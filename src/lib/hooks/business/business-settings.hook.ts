@@ -1,9 +1,10 @@
-import { BusinessSettingsResponseSchema } from '@/lib/schemas/business/server/settings.schema';
+import { BusinessHoursSchema, BusinessSettingsResponseSchema } from '@/lib/schemas/business/server/settings.schema';
 import { fetchJSON } from '@/utils/response';
 import { useQuery } from '@tanstack/react-query';
 import z from 'zod';
 
 export type TBusinessSettingsReponse = z.infer<typeof BusinessSettingsResponseSchema>;
+export type TBusinessHourRecord = z.infer<typeof BusinessHoursSchema>;
 
 /* ===============================
    🟢 Get Business Profile

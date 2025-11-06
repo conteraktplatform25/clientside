@@ -109,16 +109,15 @@ model BusinessProfile {
   business_email    String?
   business_logo_url String?
   business_bio      String?
+  business_hour     Json?
   created_at        DateTime @default(now())
   updated_at        DateTime @updatedAt
 
   user       User       @relation(fields: [userId], references: [id])
   Categories Category[]
   Products   Product[]
-
-  Contact Contact[]
-
-  Order Order[]
+  Contact    Contact[]
+  Order      Order[]
 }
 
 model Account {

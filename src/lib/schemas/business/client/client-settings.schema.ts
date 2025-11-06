@@ -4,6 +4,7 @@ import {
   ConstBusinessCategories as categories,
   ConstBusinessIndustries as industries,
 } from '@/lib/constants/auth.constant';
+import { BusinessHoursSchema } from '../server/settings.schema';
 
 export const businessProfileSchema = z.object({
   companyName: z.string(),
@@ -19,6 +20,7 @@ export const businessProfileSchema = z.object({
   address: z.string().min(1, 'Business address is required'),
   email: z.email('Please enter a valid email address'),
   website: z.url('Please enter a valid website URL').optional().or(z.literal('')),
+  business_hour: BusinessHoursSchema,
 });
 
 export type TBusinessProfileForm = z.infer<typeof businessProfileSchema>;

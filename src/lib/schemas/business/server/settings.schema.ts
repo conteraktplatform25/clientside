@@ -38,6 +38,16 @@ export const UserSettingsResponseSchema = z
   })
   .openapi('UserSettingsResponse');
 
+export const BusinessHoursSchema = z.object({
+  monday: z.object({ open: z.string().nullable(), close: z.string().nullable() }),
+  tuesday: z.object({ open: z.string().nullable(), close: z.string().nullable() }),
+  wednesday: z.object({ open: z.string().nullable(), close: z.string().nullable() }),
+  thursday: z.object({ open: z.string().nullable(), close: z.string().nullable() }),
+  friday: z.object({ open: z.string().nullable(), close: z.string().nullable() }),
+  saturday: z.object({ open: z.string().nullable(), close: z.string().nullable() }),
+  sunday: z.object({ open: z.string().nullable(), close: z.string().nullable() }),
+});
+
 export const CreateBusinessSettingsSchema = z
   .object({
     company_name: z.string(),
@@ -69,6 +79,7 @@ export const CreateBusinessSettingsSchema = z
     business_email: z.string().nullable().optional(),
     business_logo_url: z.string().nullable().optional(),
     business_bio: z.string().nullable().optional(),
+    business_hour: BusinessHoursSchema.nullable().optional(),
   })
   .openapi('CreateBusinessSettings');
 
@@ -96,6 +107,7 @@ export const BusinessSettingsResponseSchema = z
     business_email: z.string().nullable(),
     business_logo_url: z.string().nullable(),
     business_bio: z.string().nullable(),
+    business_hour: BusinessHoursSchema.nullable().optional(),
     created_at: z.coerce.date(),
     updated_at: z.coerce.date(),
     user: UserBusinessSchema,

@@ -21,10 +21,14 @@ import UILoaderIndicator from '@/components/custom/UILoaderIndicator';
 import { businessProfileSchema, TBusinessProfileForm } from '@/lib/schemas/business/client/client-settings.schema';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
+import { defaultBusinessHours } from '@/utils/defaults.util';
+import { BusinessHourRow } from './BusinessHourRow';
 
 interface BusinessProfileFormProps {
   className?: string;
 }
+
+const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as const;
 
 const BusinessProfileForm = ({ className }: BusinessProfileFormProps) => {
   const { data, isLoading, isError } = useGetBusinessProfile();
@@ -42,6 +46,7 @@ const BusinessProfileForm = ({ className }: BusinessProfileFormProps) => {
       address: '',
       email: '',
       website: '',
+      business_hour: defaultBusinessHours(),
     },
   });
   const {
@@ -76,11 +81,25 @@ const BusinessProfileForm = ({ className }: BusinessProfileFormProps) => {
         address: data.company_location || '',
         email: data.user.email || '',
         website: data.company_website || '',
+        business_hour: data.business_hour ?? defaultBusinessHours(),
       });
     }
   }, [data, reset]);
 
   const businessLogo = watch('logo')!;
+
+  const applyToAll = () => {
+    days.forEach((day) => {
+      setValue(`business_hour.${day}.open` as const, '09:00');
+      setValue(`business_hour.${day}.close` as const, '17:00');
+    });
+  };
+  const clearAll = () => {
+    days.forEach((day) => {
+      setValue(`business_hour.${day}.open` as const, null);
+      setValue(`business_hour.${day}.close` as const, null);
+    });
+  };
 
   const handleFormSubmit = async (data: TBusinessProfileForm) => {
     try {
@@ -165,6 +184,7 @@ const BusinessProfileForm = ({ className }: BusinessProfileFormProps) => {
             </div>
           </div>
           <Separator orientation='horizontal' />
+
           {/* Contact Information */}
           <div className='space-y-4'>
             <div className='space-y-1'>
@@ -218,6 +238,7 @@ const BusinessProfileForm = ({ className }: BusinessProfileFormProps) => {
             </div>
           </div>
           <Separator orientation='horizontal' />
+
           {/* Business Bio */}
           <div className='space-y-4'>
             <div className='space-y-1'>
@@ -279,6 +300,30 @@ const BusinessProfileForm = ({ className }: BusinessProfileFormProps) => {
                   />
                 </div>
               </div>
+            </div>
+          </div>
+          <Separator orientation='horizontal' />
+
+          {/* Business Hours */}
+          <div className='space-y-4  max-w-lg'>
+            <div className='space-y-1'>
+              <Label className='text-[18px] leading-[155%] font-medium text-neutral-700'>Business Hours</Label>
+              <p className='text-sm leading-[155%] text-neutral-base'>
+                Specify your business opening and closing hours for each day.
+              </p>
+            </div>
+            <div className='flex gap-2'>
+              <Button type='button' variant='secondary' onClick={applyToAll} className='text-sm'>
+                Apply 9–5 to All
+              </Button>
+              <Button type='button' variant='outline' onClick={clearAll} className='text-sm'>
+                Clear All
+              </Button>
+            </div>
+            <div className='grid grid-cols-1 gap-4'>
+              {days.map((day) => (
+                <BusinessHourRow key={day} day={day} register={register} watch={watch} setValue={setValue} />
+              ))}
             </div>
           </div>
         </div>
