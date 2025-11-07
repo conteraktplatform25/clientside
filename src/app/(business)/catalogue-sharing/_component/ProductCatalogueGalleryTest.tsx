@@ -18,7 +18,7 @@ import Image from 'next/image';
 import UILoaderIndicator from '@/components/custom/UILoaderIndicator';
 import CategoryProfileDialog from './CategoryProfileDialog';
 import { useCategoryCatalogueStore, useProductCatalogueStore } from '@/lib/store/business/catalogue-sharing.store';
-import { useGetCategories, useGetProducts } from '@/lib/hooks/business/catalogue-sharing.hook';
+import { TCategoryResponse, useGetCategories, useGetProducts } from '@/lib/hooks/business/catalogue-sharing.hook';
 import ProductCardTest from './ProductCardTest';
 
 const PRODUCTS_PER_PAGE = 6;
@@ -29,10 +29,10 @@ const ProductCatalogueGalleryTest: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isCategoriesDialogOpen, setIsCategoriesDialogOpen] = useState(false);
 
-  const allCategories = useCategoryCatalogueStore((state) => state.allCategories);
-  const clearAddedCategories = useCategoryCatalogueStore((state) => state.clearAddedCategories);
-  const ddCategories = useCategoryCatalogueStore((state) => state.ddCategories);
-  const setDDCategories = useCategoryCatalogueStore((state) => state.setDDCategories);
+  const categories = useCategoryCatalogueStore((state) => state.addedCategories);
+  const dropDownCategory = useCategoryCatalogueStore((state) => state.dropDownCategories);
+  const setCategories = useCategoryCatalogueStore((state) => state.setAllCategories);
+  const setCategoryDropDown = useCategoryCatalogueStore((state) => state.setCategoriesDropDown);
 
   const setProductCatalogue = useProductCatalogueStore((state) => state.addedProductsToCatalogue);
   const allProducts = useProductCatalogueStore((state) => state.catalogueProducts);
@@ -51,10 +51,24 @@ const ProductCatalogueGalleryTest: React.FC = () => {
   const totalPages = pagination?.totalPages ?? 1;
 
   useEffect(() => {
-    if (categoriesData && categoriesData.categories.length > 0 && ddCategories.length === 0) {
-      setDDCategories(categoriesData.categories);
+    //verify if category has been loaded
+    let fetchCategories: TCategoryResponse[] = [];
+    if (categoriesData && categories.length == 0) {
+      fetchCategories = categoriesData.categories ?? [];
+      setCategories(fetchCategories);
+    } else {
+      fetchCategories = categories ?? [];
     }
-  }, [categoriesData, ddCategories, setDDCategories]);
+    if (fetchCategories.length > 0) {
+      const dropDownCategoryMapped = fetchCategories.map((cat) => ({
+        id: cat.id,
+        name: cat.name,
+      }));
+
+      // Store dropdown-friendly categories
+      setCategoryDropDown(dropDownCategoryMapped);
+    }
+  }, [categoriesData, categories, setCategories, setCategoryDropDown]);
 
   useEffect(() => {
     if (productsData && productsData.products.length > 0) {
@@ -71,22 +85,22 @@ const ProductCatalogueGalleryTest: React.FC = () => {
   }
 
   if (isErrorCategories || isErrorProducts) {
-    return <EmptyProductTest />;
+    return <EmptyProductTest categories={categories} />;
   }
 
-  const hasCategories = ddCategories.length > 0;
+  const hasCategories = dropDownCategory.length > 0;
   const hasProducts = allProducts.length > 0;
 
   const handleCloseCategoryDialog = () => {
     setIsCategoriesDialogOpen(false);
-    clearAddedCategories();
+    //clearAddedCategories();
   };
 
   const handleCreateCategory = () => {
     setIsCategoriesDialogOpen(true);
   };
 
-  if (!hasCategories || !hasProducts) return <EmptyProductTest />;
+  if (!hasCategories || !hasProducts) return <EmptyProductTest categories={categories} />;
 
   return (
     <div className='container w-full mx-auto xl:mx-48 px-6 py-2'>
@@ -97,7 +111,11 @@ const ProductCatalogueGalleryTest: React.FC = () => {
           <FaGreaterThan className='mt-1.5 border-[1.5px] w-[10px] h-2.5 text-sm text-neutral-base' />
           <h6 className='text-primary-base text-sm leading-[155%]'>Product catalogue</h6>
         </div>
-        <Button variant='link' className='font-medium text-sm text-primary-base' onClick={handleCreateCategory}>
+        <Button
+          variant='link'
+          className='font-medium text-sm text-primary-base hover:text-primary-700 border-primary-base bg-transparent hover:bg-gray-100'
+          onClick={handleCreateCategory}
+        >
           Create Categories
         </Button>
       </div>
@@ -125,7 +143,7 @@ const ProductCatalogueGalleryTest: React.FC = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value='all'>All categories</SelectItem>
-              {ddCategories.map((category) => (
+              {dropDownCategory.map((category) => (
                 <SelectItem key={category.id} value={category.id}>
                   {category.name}
                 </SelectItem>
@@ -175,7 +193,7 @@ const ProductCatalogueGalleryTest: React.FC = () => {
 
       {/* Category Modal */}
       <CategoryProfileDialog
-        listedCategories={allCategories}
+        listedCategories={categories}
         isOpen={isCategoriesDialogOpen}
         onClose={handleCloseCategoryDialog}
       />
@@ -183,29 +201,38 @@ const ProductCatalogueGalleryTest: React.FC = () => {
   );
 };
 
-const EmptyProductTest = () => {
-  const { clearAddedCategories, allCategories } = useCategoryCatalogueStore();
+const EmptyProductTest = ({ categories }: { categories: TCategoryResponse[] }) => {
+  //const { clearAddedCategories, addedCategories } = useCategoryCatalogueStore();
+  //const categories = useCategoryCatalogueStore((state) => state.addedCategories);
   const [isCategoriesDialogOpen, setIsCategoriesDialogOpen] = useState(false);
 
   const handleCloseCategoryDialog = () => {
     setIsCategoriesDialogOpen(false);
-    clearAddedCategories();
+    //clearAddedCategories();
   };
 
   return (
     <div className='flex flex-col items-center justify-center h-[80vh] text-center bg-white relative'>
       <div className='absolute top-6 right-6'>
-        {allCategories.length === 0 ? (
-          <Button variant='link' className='text-primary-base' onClick={() => setIsCategoriesDialogOpen(true)}>
+        {categories.length === 0 ? (
+          <Button
+            variant='outline'
+            className='text-primary-base hover:text-primary-700 border-primary-base bg-transparent hover:bg-gray-100'
+            onClick={() => setIsCategoriesDialogOpen(true)}
+          >
             Create Categories
           </Button>
         ) : (
           <div className='flex gap-8 items-start'>
-            <Button variant='ghost' className='text-primary-base' onClick={() => setIsCategoriesDialogOpen(true)}>
-              Create Categories
+            <Button
+              variant='outline'
+              className='text-primary-base hover:text-primary-700 border-primary-base bg-transparent hover:bg-gray-100'
+              onClick={() => setIsCategoriesDialogOpen(true)}
+            >
+              Add Categories
             </Button>
             <Link href='/catalogue-sharing/new-product'>
-              <Button className='bg-primary-base hover:bg-primary-700 text-white'>+ Create products</Button>
+              <Button className='bg-primary-base hover:bg-primary-700 text-white'>Create products</Button>
             </Link>
           </div>
         )}
@@ -221,7 +248,7 @@ const EmptyProductTest = () => {
       <p className='text-gray-500 text-base'>You don’t have any catalogue items yet.</p>
 
       <CategoryProfileDialog
-        listedCategories={allCategories}
+        listedCategories={categories}
         isOpen={isCategoriesDialogOpen}
         onClose={handleCloseCategoryDialog}
       />

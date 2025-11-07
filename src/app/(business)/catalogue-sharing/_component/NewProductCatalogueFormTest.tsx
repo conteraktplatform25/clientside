@@ -33,7 +33,7 @@ const NewProductCatalogueFormTest: React.FC = () => {
 
   const productCatalogues = useProductCatalogueStore((state) => state.catalogueProducts);
   const createProductMutation = useCreateProduct();
-  const ddCategories = useCategoryCatalogueStore((state) => state.ddCategories);
+  const dropDownCategories = useCategoryCatalogueStore((state) => state.dropDownCategories);
 
   const form = useForm<TCreateProductRequest>({
     resolver: zodResolver(CreateProductSchema) as Resolver<TCreateProductRequest>,
@@ -161,7 +161,7 @@ const NewProductCatalogueFormTest: React.FC = () => {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {ddCategories.map((category) => (
+                              {dropDownCategories.map((category) => (
                                 <SelectItem key={category.id} value={category.id}>
                                   {category.name}
                                 </SelectItem>

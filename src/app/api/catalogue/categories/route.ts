@@ -4,32 +4,43 @@ import { NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
 import slugify from 'slugify';
 import { authenticateRequest, authorizeRole } from '@/lib/auth';
-import { CreateCategorySchema } from '@/lib/schemas/business/server/catalogue.schema';
+import {
+  CategoryDetailsResponseSchema,
+  CategoryResponseListSchema,
+  CreateCategoryRequestSchema,
+} from '@/lib/schemas/business/server/catalogue.schema';
 import { getErrorMessage } from '@/utils/errors';
 import { failure, success } from '@/utils/response';
+import { validateRequest } from '@/lib/helpers/validation-request.helper';
 
 export async function GET(req: NextRequest) {
   try {
     const user = await authenticateRequest(req);
-    //console.log('Authorization Testing:', req);
     if (!user) return failure('Unauthorized', 404);
 
     if (user.businessProfile.length === 0 || !user.businessProfile[0].id)
       return failure('Whatsapp Profile has not been configured.', 404);
 
-    const businessProfileId = user.businessProfile[0].id;
+    const businessProfileId = user.businessProfile?.[0]?.id;
+    if (!businessProfileId) return failure('Business profile not configured.', 400);
 
     const categories = await prisma.category.findMany({
       where: { businessProfileId, parentCategoryId: null },
       select: {
         id: true,
         name: true,
+        description: true,
       },
     });
+    if (!categories) return failure('Business profile not found', 404);
 
-    return success({ categories }, 'Successful retrieval');
+    const response = CategoryResponseListSchema.parse(categories);
+
+    return success(response, 'Successful retrieval');
   } catch (err) {
-    return failure(getErrorMessage(err), 401);
+    const message = getErrorMessage(err);
+    console.error('GET /api/catalogue/categories error:', message);
+    return failure(message, 500);
   }
 }
 
@@ -45,14 +56,20 @@ export async function POST(req: NextRequest) {
 
     const businessProfileId = user.businessProfile[0].id;
 
-    const body = await req.json();
+    const validation = await validateRequest(CreateCategoryRequestSchema, req);
+    if (!validation.success) return failure(validation.response, 401);
 
-    const parsed = CreateCategorySchema.safeParse(body);
-    if (!parsed.success) return failure('Invalid input: ' + JSON.stringify(parsed.error.flatten()));
-
-    const { name, description, parentCategoryId } = parsed.data;
+    const { name, description } = validation.data;
 
     const slug = slugify(name);
+
+    const countCategory = await prisma.category.count({
+      where: {
+        businessProfileId,
+        name,
+      },
+    });
+    if (countCategory > 0) return failure('Category already exist.', 409);
 
     const category = await prisma.category.create({
       data: {
@@ -60,11 +77,14 @@ export async function POST(req: NextRequest) {
         name,
         slug,
         description,
-        parentCategoryId,
       },
     });
-    return success({ category }, 'Successful creation', 201);
+
+    const response = CategoryDetailsResponseSchema.parse(category);
+    return success({ response }, 'Successful creation', 201);
   } catch (err) {
-    return failure(getErrorMessage(err), 401);
+    const message = getErrorMessage(err);
+    console.error('POST /api/catalogue/categories error:', message);
+    return failure(message, 500);
   }
 }

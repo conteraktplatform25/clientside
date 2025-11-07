@@ -2,20 +2,22 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { $Enums, Prisma } from '@prisma/client';
 import { z } from 'zod';
 import {
-  CategoryDDSchema,
-  CategoryDetailsSchema,
+  CategoryDetailsResponseSchema,
   CategoryResponseSchema,
-  CreateCategorySchema,
+  CreateCategoryRequestSchema,
+  UpdateCategoryRequestSchema,
   CreateProductSchema,
+  CategoryResponseListSchema,
 } from '@/lib/schemas/business/server/catalogue.schema';
 import { fetchJSON } from '@/utils/response';
 import { useCategoryCatalogueStore, useProductCatalogueStore } from '@/lib/store/business/catalogue-sharing.store';
 import { getErrorMessage } from '@/utils/errors';
 
-export type TCreateCategoryRequest = z.infer<typeof CreateCategorySchema>;
-export type TCategoryDetailsValue = z.infer<typeof CategoryDetailsSchema>;
-export type TCreateCategoryResponse = z.infer<typeof CategoryResponseSchema>;
-export type TCategoryDDValue = z.infer<typeof CategoryDDSchema>;
+export type TCreateCategoryRequest = z.infer<typeof CreateCategoryRequestSchema>;
+export type TUpdateCategoryRequest = z.infer<typeof UpdateCategoryRequestSchema>;
+export type TCategoryResponse = z.infer<typeof CategoryResponseSchema>;
+export type TCategoryResponseList = z.infer<typeof CategoryResponseListSchema>;
+export type TCategoryDetailsResponse = z.infer<typeof CategoryDetailsResponseSchema>;
 
 export type TCreateProductRequest = z.infer<typeof CreateProductSchema>;
 
@@ -56,7 +58,7 @@ interface ProductResponse {
 export const useGetCategories = () =>
   useQuery({
     queryKey: ['categories'],
-    queryFn: () => fetchJSON<{ categories: TCategoryDDValue[] }>('/api/catalogue/categories'),
+    queryFn: () => fetchJSON<{ categories: TCategoryResponse[] }>('/api/catalogue/categories'),
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
     refetchOnMount: false,
@@ -72,7 +74,7 @@ export const useGetDetailCategories = () => {
     queryKey: ['detail_categories'],
     queryFn: () =>
       fetchJSON<{
-        categories: TCreateCategoryRequest[];
+        categories: TCategoryDetailsResponse[];
       }>('/api/catalogue/categories/details'),
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
@@ -89,19 +91,23 @@ export const useGetDetailCategories = () => {
 export const useCreateCategory = () => {
   const addCategory = useCategoryCatalogueStore((state) => state.addCategory);
   const setAllCategories = useCategoryCatalogueStore((state) => state.setAllCategories);
-  const allCategories = useCategoryCatalogueStore((state) => state.allCategories);
+  const allCategories = useCategoryCatalogueStore((state) => state.addedCategories);
 
   return useMutation({
     mutationFn: async (payload: TCreateCategoryRequest) =>
-      fetchJSON<{ category: TCreateCategoryRequest }>('/api/catalogue/categories', {
+      fetchJSON<{ category: TCategoryDetailsResponse }>('/api/catalogue/categories', {
         method: 'POST',
         body: JSON.stringify(payload),
       }),
     onSuccess: (response) => {
       // ✅ Immediately update local Zustand store without refetch
-      const newCategory = response.category;
-      addCategory(newCategory);
-      setAllCategories([newCategory, ...allCategories]);
+      const categoryResponse: TCategoryResponse = {
+        id: response.category.id,
+        name: response.category.name,
+        description: response.category.description || undefined,
+      };
+      addCategory(categoryResponse);
+      setAllCategories([categoryResponse, ...allCategories]);
     },
     onError: (error) => {
       console.error('Category creation failed:', getErrorMessage(error));

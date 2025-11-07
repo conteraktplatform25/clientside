@@ -2,9 +2,14 @@ import { NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
 import { authenticateRequest, authorizeRole } from '@/lib/auth';
 import slugify from 'slugify';
-import { UpdateCategorySchema } from '@/lib/schemas/business/server/catalogue.schema';
+import {
+  CategoryDetailsResponseSchema,
+  CategoryResponseSchema,
+  UpdateCategoryRequestSchema,
+} from '@/lib/schemas/business/server/catalogue.schema';
 import { getErrorMessage } from '@/utils/errors';
 import { failure, success } from '@/utils/response';
+import { validateRequest } from '@/lib/helpers/validation-request.helper';
 
 export async function GET(req: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
@@ -17,12 +22,14 @@ export async function GET(req: NextRequest, context: { params: Promise<{ id: str
       where: { id },
       include: { subCategories: true },
     });
-
     if (!category) return failure('Category not found', 404);
 
-    return success({ category }, 'Successful retrieval');
+    const response = CategoryDetailsResponseSchema.parse(category);
+    return success({ response }, 'Successful retrieval');
   } catch (err) {
-    return failure(getErrorMessage(err), 401);
+    const message = getErrorMessage(err);
+    console.error('GET /api/catalogue/categories/{id} error:', message);
+    return failure(message, 500);
   }
 }
 
@@ -35,34 +42,41 @@ export async function PATCH(req: NextRequest, context: { params: Promise<{ id: s
 
     if (!authorizeRole(user, ['Business', 'Admin'])) return failure('Forbidden: Insufficient permissions', 403);
 
-    const json = await req.json();
+    if (user.businessProfile.length === 0 || !user.businessProfile[0].id)
+      return failure('Whatsapp Profile has not been configured.', 404);
 
-    const parsed = UpdateCategorySchema.safeParse(json);
+    // const json = await req.json();
 
-    if (!parsed.success) return failure('Invalid input: ' + JSON.stringify(parsed.error.flatten()));
+    // const parsed = UpdateCategorySchema.safeParse(json);
+    const validation = await validateRequest(UpdateCategoryRequestSchema, req);
+    if (!validation.success) return failure(validation.response, 401);
 
-    const { name, description, parentCategoryId } = parsed.data;
-
-    // ✅ Use a typed object, not any
-    const data: Partial<{
-      name: string;
-      slug: string;
-      description?: string | null;
-      parentCategoryId?: string | null;
-    }> = { description, parentCategoryId };
-    if (name) {
-      data.name = name;
-      data.slug = slugify(name);
+    const data = validation.data;
+    const profile = await prisma.category.findUnique({
+      where: {
+        id,
+      },
+    });
+    if (!profile) {
+      return failure('Category does not currently exists. Contact Support for more information.', 409);
     }
 
     const updatedCategory = await prisma.category.update({
       where: { id },
-      data,
+      data: {
+        name: data.name || profile.name,
+        description: data.description || profile.description,
+        slug: data.name ? slugify(data.name) : profile.slug,
+        updated_at: new Date(),
+      },
     });
 
-    return success({ updatedCategory }, 'Successful updated Category');
+    const response = CategoryResponseSchema.parse(updatedCategory);
+    return success({ response }, 'Successful updated Category');
   } catch (err) {
-    return failure(getErrorMessage(err), 401);
+    const message = getErrorMessage(err);
+    console.error('PATCH /api/catalogue/categories/{id} error:', message);
+    return failure(message, 500);
   }
 }
 
@@ -78,6 +92,8 @@ export async function DELETE(req: NextRequest, context: { params: Promise<{ id: 
     await prisma.category.delete({ where: { id } });
     return success(null, 'Category deleted');
   } catch (err) {
-    return failure(getErrorMessage(err), 500);
+    const message = getErrorMessage(err);
+    console.error('DELETE /api/catalogue/categories/{id} error:', message);
+    return failure(message, 500);
   }
 }

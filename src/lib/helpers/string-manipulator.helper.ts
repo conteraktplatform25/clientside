@@ -11,3 +11,23 @@ export const getInitials = (firstName: string, lastName: string): string => {
   const lastInitial = lastName?.trim().charAt(0).toUpperCase() || '';
   return `${firstInitial}${lastInitial}`;
 };
+
+export const parsePhoneNumber = (input: string) => {
+  // Use regex to match optional country code and the phone number
+  const regex = /^\(?(\+\d+)\)?(\d+)$/;
+
+  const match = input.trim().match(regex);
+
+  if (match) {
+    return {
+      countryCode: match[1],
+      phoneNumber: match[2],
+    };
+  } else {
+    // No country code, just phone number
+    return {
+      countryCode: null,
+      phoneNumber: input,
+    };
+  }
+};

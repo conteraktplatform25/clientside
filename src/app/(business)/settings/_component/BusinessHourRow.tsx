@@ -49,7 +49,7 @@ export const BusinessHourRow: React.FC<BusinessHourRowProps> = ({ day, register,
           type='button'
           onClick={toggleClosed}
           variant='ghost'
-          className='ml-2 text-xs leading-[155%] text-white hover:text-white bg-neutral-base hover:bg-neutral-700'
+          className={`ml-2 text-xs leading-[155%] ${isClosed ? 'bg-lime-500 hover:bg-lime-700' : 'bg-neutral-base hover:bg-neutral-700'} text-white hover:text-white`}
         >
           {isClosed ? 'Set Open' : 'Mark Closed'}
         </Button>

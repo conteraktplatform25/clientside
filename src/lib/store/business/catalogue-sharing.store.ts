@@ -1,37 +1,33 @@
 import { create } from 'zustand';
 import {
-  TCategoryDDValue,
-  TCreateCategoryRequest,
+  TCategoryResponse,
+  TCategoryResponseList,
+  //TCreateCategoryRequest,
   TCreateProductRequest,
 } from '@/lib/hooks/business/catalogue-sharing.hook';
+import { TCategoryDropDown } from '@/lib/schemas/business/client/client-catalogue.schema';
 
 interface CategoryCatalogueState {
-  addedCategories: TCreateCategoryRequest[];
-  allCategories: TCreateCategoryRequest[];
-  ddCategories: TCategoryDDValue[];
-  addCategory: (category: TCreateCategoryRequest) => void;
-  commitAddedCategories: () => void;
-  clearAddedCategories: () => void;
-  setAllCategories: (categories: TCreateCategoryRequest[]) => void;
-  setDDCategories: (categories: TCategoryDDValue[]) => void;
+  addedCategories: TCategoryResponseList;
+  // allCategories: TCreateCategoryRequest[];
+  dropDownCategories: TCategoryDropDown[];
+  addCategory: (category: TCategoryResponse) => void;
+  // commitAddedCategories: () => void;
+  // clearAddedCategories: () => void;
+  setAllCategories: (categories: TCategoryResponseList) => void;
+  setCategoriesDropDown: (categories: TCategoryResponse[]) => void;
 }
 
 export const useCategoryCatalogueStore = create<CategoryCatalogueState>((set) => ({
   addedCategories: [],
-  allCategories: [],
-  ddCategories: [],
+  //allCategories: [],
+  dropDownCategories: [],
   addCategory: (category) =>
     set((state) => ({
       addedCategories: [category, ...state.addedCategories],
     })),
-  commitAddedCategories: () =>
-    set((state) => ({
-      allCategories: [...state.addedCategories, ...state.allCategories],
-      addedCategories: [],
-    })),
-  clearAddedCategories: () => set({ addedCategories: [] }),
-  setAllCategories: (categories) => set({ allCategories: categories }),
-  setDDCategories: (categories) => set({ ddCategories: categories }),
+  setAllCategories: (categories) => set({ addedCategories: categories }),
+  setCategoriesDropDown: (categories) => set({ dropDownCategories: categories }),
 }));
 
 interface ProductCatalogueState {

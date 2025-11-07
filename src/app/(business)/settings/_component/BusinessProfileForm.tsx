@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Label } from '@/components/ui/label';
@@ -10,19 +10,25 @@ import {
   ConstAnnualRevenue as revenues,
 } from '@/lib/constants/auth.constant';
 import { ImageUploader } from '@/components/custom/ImageUploderField';
-//import { businessProfileSchema, TBusinessProfileForm } from '@/lib/store/business/settings.store';
-//import { businessProfileSchema, TBusinessProfileForm } from '@/lib/schemas/business/settings.schema';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import SelectField from '@/components/custom/SelectField';
 import InputField from '@/components/custom/InputField';
-import { useGetBusinessProfile } from '@/lib/hooks/business/business-settings.hook';
+import {
+  useCreateBusinessProfile,
+  useGetBusinessProfile,
+  useUpdateBusinessProfile,
+} from '@/lib/hooks/business/business-settings.hook';
 import UILoaderIndicator from '@/components/custom/UILoaderIndicator';
 import { businessProfileSchema, TBusinessProfileForm } from '@/lib/schemas/business/client/client-settings.schema';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import { defaultBusinessHours } from '@/utils/defaults.util';
 import { BusinessHourRow } from './BusinessHourRow';
+import {
+  mapCreateBusinessFormToApiPayload,
+  mapUpdateBusinessFormToApiPayload,
+} from '@/utils/mappings/settings.mapping';
 
 interface BusinessProfileFormProps {
   className?: string;
@@ -31,7 +37,10 @@ interface BusinessProfileFormProps {
 const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as const;
 
 const BusinessProfileForm = ({ className }: BusinessProfileFormProps) => {
+  const [isBusinessExist, setIsBusinessExist] = useState<boolean>(false);
   const { data, isLoading, isError } = useGetBusinessProfile();
+  const { mutateAsync: updateBusinessProfile, isPending: updateIsPending } = useUpdateBusinessProfile();
+  const { mutateAsync: createBusinessProfile, isPending: createIsPending } = useCreateBusinessProfile();
 
   const businessProfileForm = useForm<TBusinessProfileForm>({
     resolver: zodResolver(businessProfileSchema),
@@ -53,7 +62,7 @@ const BusinessProfileForm = ({ className }: BusinessProfileFormProps) => {
     register,
     control,
     handleSubmit,
-    formState: { isSubmitting, errors },
+    formState: { errors },
     setValue,
     watch,
     clearErrors,
@@ -62,14 +71,12 @@ const BusinessProfileForm = ({ className }: BusinessProfileFormProps) => {
 
   useEffect(() => {
     if (data) {
+      setIsBusinessExist(true);
       const matchedCategory =
         categories.find((cat) => cat.toLowerCase() === data.business_category?.toLowerCase()) || '';
       const matchedIndustry =
         industries.find((ind) => ind.toLowerCase() === data.business_industry?.toLowerCase()) || '';
       const matchedRevenue = revenues.find((rev) => rev.toLowerCase() === data.annual_revenue?.toLowerCase()) || '';
-      console.log('Backend category:', data.business_category);
-      console.log('Matched Category:', matchedCategory);
-      console.log('All categories:', categories);
       reset({
         companyName: data.company_name || '',
         phoneNumber: data.phone_number || '',
@@ -83,8 +90,10 @@ const BusinessProfileForm = ({ className }: BusinessProfileFormProps) => {
         website: data.company_website || '',
         business_hour: data.business_hour ?? defaultBusinessHours(),
       });
+    } else {
+      setIsBusinessExist(false);
     }
-  }, [data, reset]);
+  }, [data, setIsBusinessExist, reset]);
 
   const businessLogo = watch('logo')!;
 
@@ -103,8 +112,13 @@ const BusinessProfileForm = ({ className }: BusinessProfileFormProps) => {
 
   const handleFormSubmit = async (data: TBusinessProfileForm) => {
     try {
-      console.log('Form data:', data);
-      //onSubmit?.(data);
+      if (isBusinessExist) {
+        const payload = mapUpdateBusinessFormToApiPayload(data);
+        await updateBusinessProfile(payload);
+      } else {
+        const payload = mapCreateBusinessFormToApiPayload(data);
+        await createBusinessProfile(payload);
+      }
     } catch (error) {
       console.error('Form submission error:', error);
     }
@@ -327,23 +341,43 @@ const BusinessProfileForm = ({ className }: BusinessProfileFormProps) => {
             </div>
           </div>
         </div>
-        <Button
-          type='submit'
-          className={`bg-primary-base hover:bg-primary-700 py-5 px-4 rounded-[8px] text-sm leading-5 cursor-pointer inline-flex items-center space-x-2 ${
-            isSubmitting ? 'opacity-70 cursor-not-allowed' : ''
-          }`}
-        >
-          {isSubmitting ? (
-            <>
-              <Loader2 className='w-5 h-5 animate-spin' />
-              <span>Processing...</span>
-            </>
-          ) : (
-            <>
-              <span>Save Business Profile</span>
-            </>
-          )}
-        </Button>
+        {isBusinessExist ? (
+          <Button
+            type='submit'
+            className={`bg-primary-base hover:bg-primary-700 py-5 px-4 rounded-[8px] text-sm leading-5 cursor-pointer inline-flex items-center space-x-2 ${
+              updateIsPending ? 'opacity-70 cursor-not-allowed' : ''
+            }`}
+          >
+            {updateIsPending ? (
+              <>
+                <Loader2 className='w-5 h-5 animate-spin' />
+                <span className='text-sm leading-[150%]'>Updating business profile...</span>
+              </>
+            ) : (
+              <>
+                <span className='text-base leading-[150%]'>Update Business Profile</span>
+              </>
+            )}
+          </Button>
+        ) : (
+          <Button
+            type='submit'
+            className={`bg-success-base hover:bg-success-700 py-5 px-4 rounded-[8px] text-sm leading-5 cursor-pointer inline-flex items-center space-x-2 ${
+              createIsPending ? 'opacity-70 cursor-not-allowed' : ''
+            }`}
+          >
+            {createIsPending ? (
+              <>
+                <Loader2 className='w-5 h-5 animate-spin' />
+                <span className='text-sm leading-[150%]'>Creating business profile...</span>
+              </>
+            ) : (
+              <>
+                <span className='text-sm leading-[150%]'>Create Business Profile</span>
+              </>
+            )}
+          </Button>
+        )}
       </form>
     </div>
   );

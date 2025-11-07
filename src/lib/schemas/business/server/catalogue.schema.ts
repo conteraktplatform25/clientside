@@ -5,7 +5,7 @@ import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 
 extendZodWithOpenApi(z);
 
-export const CreateCategorySchema = z
+export const CreateCategoryRequestSchema = z
   .object({
     name: z.string().min(2, 'Category Name is required').openapi({
       example: 'Electronics',
@@ -13,14 +13,29 @@ export const CreateCategorySchema = z
     description: z.string().optional().openapi({
       example: 'All kinds of electronic gadgets and appliances.',
     }),
-    parentCategoryId: z.uuid().nullable().optional().openapi({
-      example: null,
-    }),
   })
   .openapi('CreateCategoryRequest');
 
-// Category response schema
+export const UpdateCategoryRequestSchema = z
+  .object({
+    name: z.string().min(2).optional().openapi({ example: 'Electronics' }),
+    description: z.string().optional().openapi({ example: 'Devices and gadgets' }),
+  })
+  .openapi('UpdateCategoryRequest');
+
 export const CategoryResponseSchema = z
+  .object({
+    id: z.uuid().openapi({ example: 'b8d43f9e-cc8b-4b84-a20d-8e85acb8a654' }),
+    name: z.string().min(2, 'Category Name is required').openapi({
+      example: 'Electronics',
+    }),
+    description: z.string().optional().openapi({
+      example: 'All kinds of electronic gadgets and appliances.',
+    }),
+  })
+  .openapi('CategoryResponse');
+
+export const CategoryDetailsResponseSchema = z
   .object({
     id: z.uuid().openapi({ example: 'b8d43f9e-cc8b-4b84-a20d-8e85acb8a654' }),
     name: z.string().openapi({ example: 'Electronics' }),
@@ -49,35 +64,9 @@ export const CategoryResponseSchema = z
         ],
       }),
   })
-  .openapi('CategoryResponse2');
+  .openapi('CategoryDetailsResponse');
 
-export const CategoryDDSchema = z
-  .object({
-    id: z.uuid().openapi({ example: 'b8d43f9e-cc8b-4b84-a20d-8e85acb8a654' }),
-    name: z.string().openapi({ example: 'Electronics' }),
-  })
-  .openapi('CategoryResponse');
-
-export const CategoryDetailsSchema = z
-  .object({
-    id: z.uuid().openapi({ example: 'b8d43f9e-cc8b-4b84-a20d-8e85acb8a654' }),
-    name: z.string().min(2, 'Category Name is required').openapi({
-      example: 'Electronics',
-    }),
-    description: z.string().optional().openapi({
-      example: 'All kinds of electronic gadgets and appliances.',
-    }),
-    parentCategoryId: z.uuid().nullable().optional().openapi({
-      example: null,
-    }),
-  })
-  .openapi('CreateCategoryRequest');
-
-export const UpdateCategorySchema = z.object({
-  name: z.string().min(2).optional().openapi({ example: 'Electronics' }),
-  description: z.string().optional().openapi({ example: 'Devices and gadgets' }),
-  parentCategoryId: z.uuid().optional().openapi({ example: 'b8d43f9e-cc8b-4b84-a20d-8e85acb8a654' }),
-});
+export const CategoryResponseListSchema = z.array(CategoryResponseSchema);
 
 export const CreateProductSchema = z.object({
   name: z.string().min(2),

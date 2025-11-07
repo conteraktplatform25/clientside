@@ -23,9 +23,9 @@ import {
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 
 import {
-  CreateCategorySchema,
+  CreateCategoryRequestSchema,
   CategoryResponseSchema,
-  UpdateCategorySchema,
+  UpdateCategoryRequestSchema,
   ProductResponseSchema,
   CreateProductSchema,
   UpdateProductSchema,
@@ -484,6 +484,32 @@ registry.registerPath({
 });
 
 registry.registerPath({
+  method: 'get',
+  path: '/api/settings/business-profile/count',
+  tags: ['Business Owner Settings'],
+  summary: 'Get authenticated user business profile Counts',
+  security: [{ bearerAuth: [] }],
+  responses: {
+    200: {
+      description: 'Authenticated User Business Profile retrieved successfully',
+      content: {
+        'application/json': {
+          schema: z.object({
+            ok: z.boolean(),
+            message: z.string(),
+            profile: z.number(),
+          }),
+        },
+      },
+    },
+    400: { description: 'Business profile not configured.' },
+    401: { description: 'Unauthorized' },
+    403: { description: 'Forbidden: Insufficient permissions' },
+    404: { description: 'Business profile not found' },
+  },
+});
+
+registry.registerPath({
   method: 'patch',
   path: '/api/settings/business-profile',
   tags: ['Business Owner Settings'],
@@ -586,7 +612,7 @@ registry.registerPath({
     body: {
       content: {
         'application/json': {
-          schema: CreateCategorySchema,
+          schema: CreateCategoryRequestSchema,
         },
       },
     },
@@ -659,7 +685,7 @@ registry.registerPath({
     body: {
       content: {
         'application/json': {
-          schema: UpdateCategorySchema.openapi('UpdateCategoryRequest'),
+          schema: UpdateCategoryRequestSchema.openapi('UpdateCategoryRequest'),
         },
       },
     },

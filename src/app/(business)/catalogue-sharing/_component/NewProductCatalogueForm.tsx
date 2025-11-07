@@ -20,7 +20,7 @@ import { Label } from '@/components/ui/label';
 import Image from 'next/image';
 
 const NewProductCatalogueForm: React.FC = () => {
-  const ddCategories = useCategoryCatalogueStore((state) => state.ddCategories);
+  const ddCategories = useCategoryCatalogueStore((state) => state.dropDownCategories);
 
   const form = useForm<TProductCatalogueFormValues>({
     resolver: zodResolver(productCatalogueFormSchema) as Resolver<TProductCatalogueFormValues>,

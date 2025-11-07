@@ -5,9 +5,15 @@ import BusinessProfileForm from './_component/BusinessProfileForm';
 import ManageUserProfile from './_component/ManageUserProfile';
 import ManageTags from './_component/ManageTags';
 import RolesAndPermissions from './_component/RolesAndPermissions';
+import UserProfileForm from './_component/UserProfileForm';
 
 const BusinessSettingsPage = () => {
   const tabs: ITabItem[] = [
+    {
+      value: 'user_profile',
+      label: 'User Profile',
+      content: <UserProfileForm />,
+    },
     {
       value: 'business_profile',
       label: 'Business Profile',

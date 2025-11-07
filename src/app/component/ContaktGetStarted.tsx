@@ -32,21 +32,6 @@ const ContaktGetStarted = () => {
     fetchOnboarding();
   }, [setOnboardingStatus, setProgress, setAllCategories]);
 
-  // const handleCheckboxChange = (taskId: string, checked: boolean) => {
-  //   setCompletedTasks((prev) => ({
-  //     ...prev,
-  //     [taskId]: checked,
-  //   }));
-  // };
-
-  // useEffect(() => {
-  //   const completedCount = Object.values(completedTasks).filter(Boolean).length;
-  //   const newProgress = (completedCount / tasks.length) * 100;
-  //   setProgress(newProgress);
-  //   // Save state to local storage
-  //   localStorage.setItem('getStartedChecklist', JSON.stringify(completedTasks));
-  // }, [completedTasks]);
-
   if (loading) return <UILoaderIndicator label='Fetching your setup progress...' />;
 
   return (

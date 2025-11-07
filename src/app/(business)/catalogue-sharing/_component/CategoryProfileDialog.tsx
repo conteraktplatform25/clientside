@@ -3,7 +3,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { Separator } from '@/components/ui/separator';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { CreateCategorySchema } from '@/lib/schemas/business/server/catalogue.schema';
+import { CreateCategoryRequestSchema } from '@/lib/schemas/business/server/catalogue.schema';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import InputField from '@/components/custom/InputField';
@@ -22,11 +22,12 @@ interface CategoryProfileDialogProps {
 }
 
 const CategoryProfileDialog: React.FC<CategoryProfileDialogProps> = ({ isOpen, onClose }) => {
-  const { allCategories } = useCategoryCatalogueStore();
+  //const { allCategories } = useCategoryCatalogueStore();
+  const categories = useCategoryCatalogueStore((state) => state.addedCategories);
   const createCategoryMutation = useCreateCategory();
 
   const form = useForm<TCreateCategoryRequest>({
-    resolver: zodResolver(CreateCategorySchema),
+    resolver: zodResolver(CreateCategoryRequestSchema),
     defaultValues: { name: '', description: '' },
   });
 
@@ -98,13 +99,13 @@ const CategoryProfileDialog: React.FC<CategoryProfileDialogProps> = ({ isOpen, o
               <div className='w-full bg-white border-2 border-[#EEEFF1] rounded-[12px] p-4 shadow-sm'>
                 <h2 className='text-base font-semibold leading-[150%]'>Added Categories</h2>
                 <p className='text-sm text-gray-600'>
-                  {allCategories.length} categor{allCategories.length !== 1 ? 'ies' : 'y'} already added
+                  {categories.length} categor{categories.length !== 1 ? 'ies' : 'y'} already added
                 </p>
 
                 <ScrollArea className='h-84'>
                   <div className='space-y-1'>
-                    {allCategories.length > 0 ? (
-                      allCategories.map((cat) => (
+                    {categories.length > 0 ? (
+                      categories.map((cat) => (
                         <Card key={cat.name} className='border-none shadow-none p-0'>
                           <CardContent className='px-4 py-2'>
                             <h3 className='font-medium text-base leading-[150%]'>{cat.name}</h3>
@@ -118,14 +119,14 @@ const CategoryProfileDialog: React.FC<CategoryProfileDialogProps> = ({ isOpen, o
                   </div>
                 </ScrollArea>
 
-                {allCategories.length > 0 && (
+                {categories.length > 0 && (
                   <CardFooter className='mt-4'>
                     <Button
-                      variant={'default'}
+                      variant={'ghost'}
                       onClick={handleClose}
-                      className='w-full flex items-center justify-center bg-gray-600 hover:bg-gray-700'
+                      className='w-full flex items-center justify-center text-primary-base hover:text-primary-700 border-primary-base hover:bg-gray-100'
                     >
-                      <ArrowLeft className='ml-2 h-4 w-4' /> Back to Product List
+                      <ArrowLeft className='ml-2 h-4 w-4' /> Back to View Catalogue
                     </Button>
                   </CardFooter>
                 )}
