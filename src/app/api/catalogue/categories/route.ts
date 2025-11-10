@@ -6,7 +6,7 @@ import slugify from 'slugify';
 import { authenticateRequest, authorizeRole } from '@/lib/auth';
 import {
   CategoryDetailsResponseSchema,
-  CategoryResponseListSchema,
+  //CategoryResponseListSchema,
   CreateCategoryRequestSchema,
 } from '@/lib/schemas/business/server/catalogue.schema';
 import { getErrorMessage } from '@/utils/errors';
@@ -34,9 +34,9 @@ export async function GET(req: NextRequest) {
     });
     if (!categories) return failure('Business profile not found', 404);
 
-    const response = CategoryResponseListSchema.parse(categories);
+    //const response = CategoryResponseListSchema.parse(categories);
 
-    return success(response, 'Successful retrieval');
+    return success(categories, 'Successful retrieval');
   } catch (err) {
     const message = getErrorMessage(err);
     console.error('GET /api/catalogue/categories error:', message);
@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
 
     const { name, description } = validation.data;
 
-    const slug = slugify(name);
+    const slug = slugify(name.toLowerCase());
 
     const countCategory = await prisma.category.count({
       where: {

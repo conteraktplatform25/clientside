@@ -1,4 +1,4 @@
-import { ISelectOption } from '@/type/client/default.type';
+import { IGettingStartedOption } from '@/type/client/default.type';
 
 export const ConstGetStarted: string[] = [
   'Connect your number',
@@ -8,7 +8,7 @@ export const ConstGetStarted: string[] = [
   'Add contacts',
 ];
 
-export const ConstUserTask: ISelectOption[] = [
+export const ConstUserTask: IGettingStartedOption[] = [
   {
     value: 'phoneNumber',
     label: 'Connect your number',
@@ -30,7 +30,7 @@ export const ConstUserTask: ISelectOption[] = [
     href: '/messaging/quick-replies',
   },
   {
-    value: 'contactInformtion',
+    value: 'contactInformation',
     label: 'Add contacts',
     href: '/profile/contact-info',
   },

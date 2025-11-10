@@ -2,7 +2,6 @@ import { create } from 'zustand';
 import {
   TCategoryResponse,
   TCategoryResponseList,
-  //TCreateCategoryRequest,
   TCreateProductRequest,
 } from '@/lib/hooks/business/catalogue-sharing.hook';
 import { TCategoryDropDown } from '@/lib/schemas/business/client/client-catalogue.schema';
@@ -13,14 +12,14 @@ interface CategoryCatalogueState {
   dropDownCategories: TCategoryDropDown[];
   addCategory: (category: TCategoryResponse) => void;
   // commitAddedCategories: () => void;
-  // clearAddedCategories: () => void;
+  clearAddedCategories: () => void;
+  clearDropDownCategories: () => void;
   setAllCategories: (categories: TCategoryResponseList) => void;
-  setCategoriesDropDown: (categories: TCategoryResponse[]) => void;
+  setCategoriesDropDown: (categories: TCategoryDropDown[]) => void;
 }
 
 export const useCategoryCatalogueStore = create<CategoryCatalogueState>((set) => ({
   addedCategories: [],
-  //allCategories: [],
   dropDownCategories: [],
   addCategory: (category) =>
     set((state) => ({
@@ -28,6 +27,8 @@ export const useCategoryCatalogueStore = create<CategoryCatalogueState>((set) =>
     })),
   setAllCategories: (categories) => set({ addedCategories: categories }),
   setCategoriesDropDown: (categories) => set({ dropDownCategories: categories }),
+  clearAddedCategories: () => set({ addedCategories: [] }),
+  clearDropDownCategories: () => set({ dropDownCategories: [] }),
 }));
 
 interface ProductCatalogueState {

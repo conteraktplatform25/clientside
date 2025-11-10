@@ -1,38 +1,15 @@
 'use client';
-import React, { useEffect, useState } from 'react';
-import { ConstUserTask as tasks } from '@/lib/constants/getstarted.constant';
+import React from 'react';
+import { ConstUserTask } from '@/lib/constants/getstarted.constant';
 import { Progress } from '@/components/ui/progress';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import UILoaderIndicator from '@/components/custom/UILoaderIndicator';
 import Link from 'next/link';
-import { useCategoryCatalogueStore } from '@/lib/store/business/catalogue-sharing.store';
+import { useGettingStartedStore } from '@/lib/store/business/index.store';
 
 const ContaktGetStarted = () => {
-  const [onboardingStatus, setOnboardingStatus] = useState<Record<string, boolean>>({});
-  const [progress, setProgress] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const setAllCategories = useCategoryCatalogueStore((state) => state.setAllCategories);
-
-  useEffect(() => {
-    async function fetchOnboarding() {
-      try {
-        const res = await fetch('/api/user/onboarding-status');
-        const data = await res.json();
-        console.log(data.profile);
-        setOnboardingStatus(data.profile.onboardingStatus);
-        setProgress(data.profile.progress);
-        setAllCategories(data.profile.dependentField.productCategoryList);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchOnboarding();
-  }, [setOnboardingStatus, setProgress, setAllCategories]);
-
-  if (loading) return <UILoaderIndicator label='Fetching your setup progress...' />;
+  const onboardingStatus = useGettingStartedStore((state) => state.onboardingStatus);
+  const progress = useGettingStartedStore((state) => state.progressBar);
 
   return (
     <div className='max-w-2xl mx-auto xl:mx-48 flex flex-col gap-2'>
@@ -44,7 +21,7 @@ const ContaktGetStarted = () => {
         <Progress value={progress} className='bg-gray-200 [&>div]:bg-success-base w-full h-2' />
       </div>
       <div className='space-y-6'>
-        {tasks.map((task) => {
+        {ConstUserTask.map((task) => {
           const isCompleted = onboardingStatus[task.value] || false;
 
           return (

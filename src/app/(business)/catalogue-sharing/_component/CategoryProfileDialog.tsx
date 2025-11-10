@@ -1,3 +1,4 @@
+'use client';
 import React from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
@@ -14,6 +15,8 @@ import { useCategoryCatalogueStore } from '@/lib/store/business/catalogue-sharin
 import { TCreateCategoryRequest, useCreateCategory } from '@/lib/hooks/business/catalogue-sharing.hook';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import UILoaderIndicator from '@/components/custom/UILoaderIndicator';
+//import { useSyncCategories } from '@/lib/hooks/business/bridge/catalogue.bridge';
+import { getErrorMessage } from '@/utils/errors';
 
 interface CategoryProfileDialogProps {
   listedCategories: TCreateCategoryRequest[];
@@ -22,8 +25,8 @@ interface CategoryProfileDialogProps {
 }
 
 const CategoryProfileDialog: React.FC<CategoryProfileDialogProps> = ({ isOpen, onClose }) => {
-  //const { allCategories } = useCategoryCatalogueStore();
-  const categories = useCategoryCatalogueStore((state) => state.addedCategories);
+  //useSyncCategories();
+  const { addedCategories } = useCategoryCatalogueStore();
   const createCategoryMutation = useCreateCategory();
 
   const form = useForm<TCreateCategoryRequest>({
@@ -34,11 +37,15 @@ const CategoryProfileDialog: React.FC<CategoryProfileDialogProps> = ({ isOpen, o
   const handleSaveCategory = async (data: TCreateCategoryRequest) => {
     if (!data.name) {
       toast.error('Category Name is required');
+      return;
     }
-    toast.info('Syncing categories to server...');
-    await createCategoryMutation.mutateAsync(data);
-    toast.success('Category added locally!');
-    form.reset();
+    toast.info('Saving category...');
+    try {
+      await createCategoryMutation.mutateAsync(data);
+      form.reset();
+    } catch (err) {
+      toast.error(getErrorMessage(err));
+    }
   };
 
   const handleClose = async () => {
@@ -83,7 +90,6 @@ const CategoryProfileDialog: React.FC<CategoryProfileDialogProps> = ({ isOpen, o
                   placeholder='Category description...'
                   label='Category Description'
                 />
-
                 <Button
                   type='submit'
                   disabled={form.formState.isSubmitting}
@@ -99,27 +105,32 @@ const CategoryProfileDialog: React.FC<CategoryProfileDialogProps> = ({ isOpen, o
               <div className='w-full bg-white border-2 border-[#EEEFF1] rounded-[12px] p-4 shadow-sm'>
                 <h2 className='text-base font-semibold leading-[150%]'>Added Categories</h2>
                 <p className='text-sm text-gray-600'>
-                  {categories.length} categor{categories.length !== 1 ? 'ies' : 'y'} already added
+                  {addedCategories.length} categor{addedCategories.length !== 1 ? 'ies' : 'y'} already added
                 </p>
 
                 <ScrollArea className='h-84'>
                   <div className='space-y-1'>
-                    {categories.length > 0 ? (
-                      categories.map((cat) => (
-                        <Card key={cat.name} className='border-none shadow-none p-0'>
-                          <CardContent className='px-4 py-2'>
-                            <h3 className='font-medium text-base leading-[150%]'>{cat.name}</h3>
-                            <p className='text-sm line-clamp-2 leading-[155%]'>{cat.description}</p>
-                          </CardContent>
-                        </Card>
-                      ))
+                    {addedCategories.length > 0 ? (
+                      addedCategories.map((category, _idx) => {
+                        const key = category.id ?? `temp-${_idx}`;
+                        return (
+                          <Card key={key} className='border-none shadow-none p-0'>
+                            <CardContent className='px-4 py-2'>
+                              <h3 className='font-medium text-base leading-[150%]'>{category.name}</h3>
+                              <p className='text-sm line-clamp-2 leading-[155%]'>
+                                {category.description || 'No description'}
+                              </p>
+                            </CardContent>
+                          </Card>
+                        );
+                      })
                     ) : (
                       <p className='text-sm text-center py-4 text-gray-500'>No product category added yet.</p>
                     )}
                   </div>
                 </ScrollArea>
 
-                {categories.length > 0 && (
+                {addedCategories.length > 0 && (
                   <CardFooter className='mt-4'>
                     <Button
                       variant={'ghost'}

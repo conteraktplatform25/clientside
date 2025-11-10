@@ -18,7 +18,7 @@ import Image from 'next/image';
 import UILoaderIndicator from '@/components/custom/UILoaderIndicator';
 import CategoryProfileDialog from './CategoryProfileDialog';
 import { useCategoryCatalogueStore, useProductCatalogueStore } from '@/lib/store/business/catalogue-sharing.store';
-import { TCategoryResponse, useGetCategories, useGetProducts } from '@/lib/hooks/business/catalogue-sharing.hook';
+import { TCategoryResponse, useGetProducts } from '@/lib/hooks/business/catalogue-sharing.hook';
 import ProductCardTest from './ProductCardTest';
 
 const PRODUCTS_PER_PAGE = 6;
@@ -31,14 +31,12 @@ const ProductCatalogueGalleryTest: React.FC = () => {
 
   const categories = useCategoryCatalogueStore((state) => state.addedCategories);
   const dropDownCategory = useCategoryCatalogueStore((state) => state.dropDownCategories);
-  const setCategories = useCategoryCatalogueStore((state) => state.setAllCategories);
   const setCategoryDropDown = useCategoryCatalogueStore((state) => state.setCategoriesDropDown);
 
   const setProductCatalogue = useProductCatalogueStore((state) => state.addedProductsToCatalogue);
   const allProducts = useProductCatalogueStore((state) => state.catalogueProducts);
 
   // ✅ React Query data fetching
-  const { data: categoriesData, isLoading: isLoadingCategories, isError: isErrorCategories } = useGetCategories();
   const {
     data: productsData,
     isLoading: isLoadingProducts,
@@ -53,22 +51,16 @@ const ProductCatalogueGalleryTest: React.FC = () => {
   useEffect(() => {
     //verify if category has been loaded
     let fetchCategories: TCategoryResponse[] = [];
-    if (categoriesData && categories.length == 0) {
-      fetchCategories = categoriesData.categories ?? [];
-      setCategories(fetchCategories);
-    } else {
+    if (categories.length > 0) {
       fetchCategories = categories ?? [];
-    }
-    if (fetchCategories.length > 0) {
       const dropDownCategoryMapped = fetchCategories.map((cat) => ({
-        id: cat.id,
-        name: cat.name,
+        value: cat.id,
+        label: cat.name,
       }));
 
-      // Store dropdown-friendly categories
       setCategoryDropDown(dropDownCategoryMapped);
     }
-  }, [categoriesData, categories, setCategories, setCategoryDropDown]);
+  }, [categories, setCategoryDropDown]);
 
   useEffect(() => {
     if (productsData && productsData.products.length > 0) {
@@ -80,15 +72,15 @@ const ProductCatalogueGalleryTest: React.FC = () => {
     setCurrentPage(1);
   }, [selectedCategory, searchQuery]);
 
-  if (isLoadingCategories || isLoadingProducts) {
+  if (isLoadingProducts) {
     return <UILoaderIndicator label='Fetching your catalogue...' />;
   }
 
-  if (isErrorCategories || isErrorProducts) {
+  if (isErrorProducts) {
     return <EmptyProductTest categories={categories} />;
   }
 
-  const hasCategories = dropDownCategory.length > 0;
+  const hasCategories = categories.length > 0;
   const hasProducts = allProducts.length > 0;
 
   const handleCloseCategoryDialog = () => {
@@ -144,8 +136,8 @@ const ProductCatalogueGalleryTest: React.FC = () => {
             <SelectContent>
               <SelectItem value='all'>All categories</SelectItem>
               {dropDownCategory.map((category) => (
-                <SelectItem key={category.id} value={category.id}>
-                  {category.name}
+                <SelectItem key={category.value} value={category.value}>
+                  {category.label}
                 </SelectItem>
               ))}
             </SelectContent>

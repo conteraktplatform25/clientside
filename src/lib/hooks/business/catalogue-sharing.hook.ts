@@ -8,10 +8,12 @@ import {
   UpdateCategoryRequestSchema,
   CreateProductSchema,
   CategoryResponseListSchema,
+  //CategoryResponseListSchema,
 } from '@/lib/schemas/business/server/catalogue.schema';
 import { fetchJSON } from '@/utils/response';
 import { useCategoryCatalogueStore, useProductCatalogueStore } from '@/lib/store/business/catalogue-sharing.store';
 import { getErrorMessage } from '@/utils/errors';
+import { toast } from 'sonner';
 
 export type TCreateCategoryRequest = z.infer<typeof CreateCategoryRequestSchema>;
 export type TUpdateCategoryRequest = z.infer<typeof UpdateCategoryRequestSchema>;
@@ -89,25 +91,32 @@ export const useGetDetailCategories = () => {
    🟢 Create Category (Local + API)
    =============================== */
 export const useCreateCategory = () => {
-  const addCategory = useCategoryCatalogueStore((state) => state.addCategory);
-  const setAllCategories = useCategoryCatalogueStore((state) => state.setAllCategories);
-  const allCategories = useCategoryCatalogueStore((state) => state.addedCategories);
+  const { addedCategories, setAllCategories, setCategoriesDropDown, clearAddedCategories, clearDropDownCategories } =
+    useCategoryCatalogueStore();
 
   return useMutation({
     mutationFn: async (payload: TCreateCategoryRequest) =>
-      fetchJSON<{ category: TCategoryDetailsResponse }>('/api/catalogue/categories', {
+      fetchJSON<TCategoryResponseList>('/api/catalogue/categories/desktop', {
         method: 'POST',
         body: JSON.stringify(payload),
       }),
     onSuccess: (response) => {
       // ✅ Immediately update local Zustand store without refetch
-      const categoryResponse: TCategoryResponse = {
-        id: response.category.id,
-        name: response.category.name,
-        description: response.category.description || undefined,
-      };
-      addCategory(categoryResponse);
-      setAllCategories([categoryResponse, ...allCategories]);
+      // Debug: Log the actual response
+      // console.log('API Response:', response);
+      clearAddedCategories();
+      setAllCategories(response);
+
+      clearDropDownCategories();
+      const ddCategoryMapped = addedCategories.map((cat) => ({
+        value: cat.id,
+        label: cat.name,
+      }));
+      setCategoriesDropDown(ddCategoryMapped);
+
+      toast.success(`Category "${response[response.length - 1].name}" created successfully`);
+
+      console.log('Category hook: ', response);
     },
     onError: (error) => {
       console.error('Category creation failed:', getErrorMessage(error));

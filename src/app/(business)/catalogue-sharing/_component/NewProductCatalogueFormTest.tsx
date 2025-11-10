@@ -22,8 +22,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { useRouter } from 'next/navigation';
 import UILoaderIndicator from '@/components/custom/UILoaderIndicator';
 
-//const categories = ['Clothing', 'Electronics', 'Home Goods', 'Books', 'Food'];
-
 const NewProductCatalogueFormTest: React.FC = () => {
   const router = useRouter();
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
@@ -162,8 +160,8 @@ const NewProductCatalogueFormTest: React.FC = () => {
                             </FormControl>
                             <SelectContent>
                               {dropDownCategories.map((category) => (
-                                <SelectItem key={category.id} value={category.id}>
-                                  {category.name}
+                                <SelectItem key={category.value} value={category.value}>
+                                  {category.label}
                                 </SelectItem>
                               ))}
                             </SelectContent>

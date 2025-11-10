@@ -179,8 +179,8 @@ const NewProductCatalogueForm: React.FC = () => {
                   </FormControl>
                   <SelectContent>
                     {ddCategories.map((category) => (
-                      <SelectItem key={category.id} value={category.id}>
-                        {category.name}
+                      <SelectItem key={category.value} value={category.value}>
+                        {category.label}
                       </SelectItem>
                     ))}
                   </SelectContent>

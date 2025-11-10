@@ -42,6 +42,20 @@ export interface ISelectOption {
   href?: string;
 }
 
+export type TOnboardingProfiles = {
+  businessProfile: boolean;
+  contactInformation: boolean;
+  phoneNumber: boolean;
+  productCatalogue: boolean;
+  quickReplies: boolean;
+};
+
+export interface IGettingStartedOption {
+  value: keyof TOnboardingProfiles;
+  label: string;
+  href: string;
+}
+
 export interface IDialogOpen {
   isOpen: boolean;
   onOpenChange: (status: boolean) => void;

@@ -42,27 +42,8 @@ export const CategoryDetailsResponseSchema = z
     slug: z.string().openapi({ example: 'electronics' }),
     description: z.string().nullable().openapi({ example: 'Devices and gadgets' }),
     businessProfileId: z.uuid().openapi({ example: 'c55af6ea-5932-4e15-b7e1-d6d6373eb5f7' }),
-    created_at: z.string().datetime().openapi({ example: '2025-10-21T10:00:00Z' }),
-    updated_at: z.string().datetime().openapi({ example: '2025-10-21T11:00:00Z' }),
-    subCategories: z
-      .array(
-        z.object({
-          id: z.uuid(),
-          name: z.string(),
-          slug: z.string(),
-          description: z.string().nullable(),
-        })
-      )
-      .openapi({
-        example: [
-          {
-            id: 'a8f93e5d-cdb4-4e3f-8245-d2ab19db5b9b',
-            name: 'Smartphones',
-            slug: 'smartphones',
-            description: 'All mobile phones',
-          },
-        ],
-      }),
+    created_at: z.coerce.date().openapi({ example: '2025-10-21T10:00:00Z' }),
+    updated_at: z.coerce.date().openapi({ example: '2025-10-21T11:00:00Z' }),
   })
   .openapi('CategoryDetailsResponse');
 
