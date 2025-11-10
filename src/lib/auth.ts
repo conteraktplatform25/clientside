@@ -61,7 +61,9 @@ export async function authenticateRequest(req: NextRequest): Promise<Authenticat
       });
       return user as AuthenticatedUser | null;
     } catch (err) {
-      console.error('JWT error:', err);
+      //const message = getErrorMessage(err);
+      // console.error('PATCH /api/settings/business-profile error:', message);
+      console.log(err);
       return null;
     }
   }

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useCategoryCatalogueStore, useProductCatalogueStore } from '@/lib/store/business/catalogue-sharing.store';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,19 +8,25 @@ import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { X, Upload, ChevronRight, ArrowLeft } from 'lucide-react';
-import { toast } from 'sonner';
 import { Resolver, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import InputField from '@/components/custom/InputField';
 import { Label } from '@/components/ui/label';
 import Image from 'next/image';
-import { TCreateProductRequest, useCreateProduct } from '@/lib/hooks/business/catalogue-sharing.hook';
+import {
+  TCreateProductRequest,
+  useCreateProduct,
+  useGetDesktopProducts,
+} from '@/lib/hooks/business/catalogue-sharing.hook';
 import { CreateProductSchema } from '@/lib/schemas/business/server/catalogue.schema';
 import Link from 'next/link';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent } from '@/components/ui/card';
 import { useRouter } from 'next/navigation';
 import UILoaderIndicator from '@/components/custom/UILoaderIndicator';
+import { CurrencyType } from '@prisma/client';
+import { getCurrencySymbol } from '@/lib/helpers/string-manipulator.helper';
+import PriceInputField from '@/components/custom/PriceInputField';
 
 const NewProductCatalogueFormTest: React.FC = () => {
   const router = useRouter();
@@ -29,9 +35,22 @@ const NewProductCatalogueFormTest: React.FC = () => {
 
   console.log(files);
 
-  const productCatalogues = useProductCatalogueStore((state) => state.catalogueProducts);
+  //const productCatalogues = useProductCatalogueStore((state) => state.catalogueProducts);
+  const productCatalogues = useProductCatalogueStore((state) => state.desktopProducts);
+  const setDesktopProduct = useProductCatalogueStore((state) => state.setDesktopProducts);
+
   const createProductMutation = useCreateProduct();
   const dropDownCategories = useCategoryCatalogueStore((state) => state.dropDownCategories);
+
+  // const { data: productsData, isLoading: isLoadingProducts, isError: isErrorProducts } = useGetDesktopProducts();
+  const { data: productsData, isLoading: isLoadingProducts } = useGetDesktopProducts();
+
+  useEffect(() => {
+    console.log(productsData);
+    if (productsData && productsData.products.length > 0) {
+      setDesktopProduct(productsData.products);
+    }
+  }, [productsData, setDesktopProduct]);
 
   const form = useForm<TCreateProductRequest>({
     resolver: zodResolver(CreateProductSchema) as Resolver<TCreateProductRequest>,
@@ -42,7 +61,7 @@ const NewProductCatalogueFormTest: React.FC = () => {
       price: 0,
       stock: 0,
       media: [],
-      currency: 'NAIRA',
+      currency: CurrencyType.NAIRA,
     },
   });
 
@@ -98,11 +117,17 @@ const NewProductCatalogueFormTest: React.FC = () => {
     // Then call your /api/products POST route
     // await fetch("/api/products", { method: "POST", body: JSON.stringify(data) });
     data.media = undefined;
-    toast.info('Syncing products to server...');
     await createProductMutation.mutateAsync(data);
-    toast.success('Product succssfully added to the server!');
     reset();
   };
+
+  if (isLoadingProducts) {
+    return (
+      <div className='min-h-screen w-full mx-auto'>
+        <UILoaderIndicator label='Fetching your previously store product catalogue ...' />;
+      </div>
+    );
+  }
 
   return (
     <div className='min-h-screen bg-gray-50 p-6'>
@@ -117,7 +142,7 @@ const NewProductCatalogueFormTest: React.FC = () => {
         </nav>
         {createProductMutation.isPending ? (
           <div className='flex justify-center items-center h-[800px]'>
-            <UILoaderIndicator label='Saving categories to server...' />
+            <UILoaderIndicator label='Saving product item to server...' />
           </div>
         ) : (
           <div className='flex flex-col lg:flex-row gap-6'>
@@ -144,32 +169,6 @@ const NewProductCatalogueFormTest: React.FC = () => {
                         label='Product SKU'
                       />
                     </div>
-                    <FormField
-                      control={form.control}
-                      name='categoryId'
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>
-                            Category <span className='text-red-500'>*</span>
-                          </FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger className='w-[300px]'>
-                                <SelectValue placeholder='Select category' />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {dropDownCategories.map((category) => (
-                                <SelectItem key={category.value} value={category.value}>
-                                  {category.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
                     <FormField
                       control={form.control}
                       name='description'
@@ -210,27 +209,7 @@ const NewProductCatalogueFormTest: React.FC = () => {
                           </FormItem>
                         )}
                       />
-                      <FormField
-                        control={form.control}
-                        name='price'
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>
-                              Price <span className='text-red-500'>*</span>
-                            </FormLabel>
-                            <FormControl>
-                              <Input
-                                type='number'
-                                placeholder='0.00'
-                                step={'0.01'}
-                                {...field}
-                                onChange={(e) => field.onChange(parseFloat(e.target.value))}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                      <PriceInputField<TCreateProductRequest> name='price' control={control} label='Price' important />
                       <FormField
                         control={control}
                         name='stock'
@@ -251,7 +230,32 @@ const NewProductCatalogueFormTest: React.FC = () => {
                         )}
                       />
                     </div>
-
+                    <FormField
+                      control={form.control}
+                      name='categoryId'
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>
+                            Category <span className='text-red-500'>*</span>
+                          </FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger className='w-[300px]'>
+                                <SelectValue placeholder='Select category' />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {dropDownCategories.map((category) => (
+                                <SelectItem key={category.value} value={category.value}>
+                                  {category.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                     {/* Media Section */}
                     <FormItem>
                       <FormLabel>Product images</FormLabel>
@@ -316,21 +320,23 @@ const NewProductCatalogueFormTest: React.FC = () => {
                 <p className='text-sm leading-[155%] mb-4'>
                   {productCatalogues.length} product{productCatalogues.length !== 1 ? 's' : ''} in the server catalogue
                 </p>
-                <ScrollArea className='h-48 max-h-84'>
-                  <div className='space-y-2 mb-4'>
+                <ScrollArea className='h-84'>
+                  <div className='space-y-4'>
                     {productCatalogues.length > 0 ? (
                       productCatalogues.map((product) => (
-                        <Card key={product.name} className='border-none shadow-none'>
-                          <CardContent className='p-4  border border-[#EEEFF1] rounded-[12px]'>
-                            <div className='flex justify-between items-start mb-1'>
+                        <Card key={product.name} className='border-none shadow-none p-0'>
+                          <CardContent className='px-4 py-2  border border-[#EEEFF1] rounded-[12px]'>
+                            <div className='flex flex-col items-start mb-1'>
                               <h3 className='font-medium text-sm leading-[155%]'>{product.name}</h3>
                               <span className='mt-1 font-medium text-sm'>
-                                {product.currency} {product.price.toLocaleString()}
+                                {getCurrencySymbol(product.currency)} {product.price.toLocaleString()}
                               </span>
                             </div>
-                            <div className='text-xs mb-1 max-w-fit border rounded-[8px] p-3 bg-[#F3F4F6]'>
-                              {product.description}
-                            </div>
+                            {product.category && (
+                              <div className='text-xs mb-1 max-w-fit border rounded-[8px] p-3 bg-[#F3F4F6]'>
+                                {product.category.name}
+                              </div>
+                            )}
                             <p className='text-sm line-clamp-2 px-2'>{product.description}</p>
                           </CardContent>
                         </Card>

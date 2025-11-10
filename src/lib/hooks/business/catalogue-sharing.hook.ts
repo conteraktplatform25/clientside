@@ -8,6 +8,7 @@ import {
   UpdateCategoryRequestSchema,
   CreateProductSchema,
   CategoryResponseListSchema,
+  ProductDesktopResponseListSchema,
   //CategoryResponseListSchema,
 } from '@/lib/schemas/business/server/catalogue.schema';
 import { fetchJSON } from '@/utils/response';
@@ -22,6 +23,7 @@ export type TCategoryResponseList = z.infer<typeof CategoryResponseListSchema>;
 export type TCategoryDetailsResponse = z.infer<typeof CategoryDetailsResponseSchema>;
 
 export type TCreateProductRequest = z.infer<typeof CreateProductSchema>;
+export type TProductDestopResponse = z.infer<typeof ProductDesktopResponseListSchema>;
 
 /* -----------------------------
    🧱 Types
@@ -124,9 +126,28 @@ export const useCreateCategory = () => {
   });
 };
 
-/* -----------------------------
+/* ===========================================================================
    🟠 Products
+============================================================================== */
+
+/* -----------------------------
+   🟠 Get all the Product base
+   on the Desktop Model set
 ----------------------------- */
+export const useGetDesktopProducts = () =>
+  useQuery({
+    queryKey: ['desktop_products'],
+    queryFn: () =>
+      fetchJSON<{
+        products: TProductDestopResponse;
+      }>('/api/catalogue/products/desktop'),
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    refetchOnMount: false,
+    staleTime: Infinity,
+    gcTime: Infinity,
+  });
+
 export const useGetProducts = (categoryId?: string, search?: string, page: number = 1, limit: number = 6) =>
   useQuery<ProductResponse>({
     queryKey: ['products', { categoryId, search, page, limit }],
@@ -150,23 +171,24 @@ export const useGetProducts = (categoryId?: string, search?: string, page: numbe
   });
 
 export const useCreateProduct = () => {
-  const catalogueProducts = useProductCatalogueStore((state) => state.catalogueProducts);
-  const addedProductsToCatalogue = useProductCatalogueStore((state) => state.addedProductsToCatalogue);
+  const clearDesktopProducts = useProductCatalogueStore((state) => state.clearDesktopProducts);
+  const setDesktopProducts = useProductCatalogueStore((state) => state.setDesktopProducts);
 
   return useMutation({
     // 🟢 Send POST request to your backend
     mutationFn: async (payload: TCreateProductRequest) =>
-      fetchJSON<{ product: TCreateProductRequest }>('/api/catalogue/products', {
+      fetchJSON<{ products: TProductDestopResponse }>('/api/catalogue/products/desktop', {
         method: 'POST',
         body: JSON.stringify(payload),
       }),
 
     // 🟢 On successful creation
     onSuccess: (response) => {
-      const newProduct = response.product;
-
+      const newProductList = response.products;
       // ✅ Update Zustand store immediately
-      addedProductsToCatalogue([newProduct, ...catalogueProducts]);
+      clearDesktopProducts();
+      setDesktopProducts(newProductList);
+      toast.success(`Product "${newProductList[0].name}" created successfully`);
     },
 
     // 🟠 Handle errors gracefully

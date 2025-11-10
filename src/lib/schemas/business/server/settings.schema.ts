@@ -51,7 +51,7 @@ export const BusinessHoursSchema = z.object({
 export const CreateBusinessSettingsSchema = z
   .object({
     company_name: z.string(),
-    phone_country_code: z.string().min(1, 'Country code is required').nullable().optional(),
+    // phone_country_code: z.string().min(1, 'Country code is required').nullable().optional(),
     phone_number: z.string().min(6, 'Phone number is required'),
     company_location: z.string().nullable().optional(),
     company_website: z.string().nullable().optional(),

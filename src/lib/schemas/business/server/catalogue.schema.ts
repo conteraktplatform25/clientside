@@ -50,13 +50,13 @@ export const CategoryDetailsResponseSchema = z
 export const CategoryResponseListSchema = z.array(CategoryResponseSchema);
 
 export const CreateProductSchema = z.object({
-  name: z.string().min(2),
   categoryId: z.uuid(),
-  price: z.number().positive(),
+  name: z.string().min(2),
   description: z.string().optional(),
-  sku: z.string().optional(),
-  stock: z.number().min(0).default(0),
   currency: z.enum(Object.values(CurrencyType)).default(CurrencyType.NAIRA),
+  price: z.number().positive(),
+  stock: z.number().min(0).default(0),
+  sku: z.string().optional(),
   media: z
     .array(
       z.object({
@@ -110,14 +110,57 @@ export const ProductResponseSchema = z
   .object({
     id: z.uuid().openapi({ example: 'b8d43f9e-cc8b-4b84-a20d-8e85acb8a654' }),
     name: z.string(),
-    slug: z.string(),
+    //slug: z.string(),
     description: z.string().optional(),
-    price: z.number(),
+    price: z.coerce.number().positive(),
     sku: z.string().optional(),
-    stock: z.number(),
+    stock: z.coerce.number().positive(),
     currency: z.string(),
     category: z
       .object({
+        id: z.uuid(),
+        name: z.string(),
+      })
+      .optional(),
+    media: z
+      .array(
+        z.object({
+          id: z.uuid(),
+          url: z.url(),
+        })
+      )
+      .optional(),
+    // variants: z
+    //   .array(
+    //     z.object({
+    //       id: z.uuid(),
+    //       name: z.string(),
+    //       price: z.number(),
+    //     })
+    //   )
+    //   .optional(),
+  })
+  .openapi('ProductResponse');
+export const ProductResponseListSchema = z.array(ProductResponseSchema).openapi('ProductResponseList');
+
+export const ProductDetailResponseSchema = z
+  .object({
+    id: z.uuid().openapi({ example: 'b8d43f9e-cc8b-4b84-a20d-8e85acb8a654' }),
+    name: z.string(),
+    slug: z.string(),
+    description: z.string().optional(),
+    price: z.coerce.number().positive(),
+    sku: z.string().optional(),
+    stock: z.coerce.number().positive(),
+    currency: z.string(),
+    status: z.string(),
+    created_at: z.coerce.date(),
+    updated_at: z.coerce.date(),
+    //status: z.enum(Object.values(ProductStatus)).default(ProductStatus.DRAFT),
+    //z.enum(Object.values(CurrencyType)).default(CurrencyType.NAIRA),
+    category: z
+      .object({
+        id: z.uuid(),
         name: z.string(),
       })
       .optional(),
@@ -139,7 +182,22 @@ export const ProductResponseSchema = z
       )
       .optional(),
   })
-  .openapi('ProductResponse');
+  .openapi('ProductDetailResponse');
+
+export const ProductDesktopResponseSchema = z.object({
+  id: z.uuid().openapi({ example: 'b8d43f9e-cc8b-4b84-a20d-8e85acb8a654' }),
+  name: z.string(),
+  description: z.string().optional(),
+  price: z.coerce.number().positive(),
+  currency: z.enum(Object.values(CurrencyType)), // ✅ use enum type here
+  category: z
+    .object({
+      id: z.uuid(),
+      name: z.string(),
+    })
+    .optional(),
+});
+export const ProductDesktopResponseListSchema = z.array(ProductDesktopResponseSchema);
 
 export const ProductMediaResponseSchema = z
   .object({

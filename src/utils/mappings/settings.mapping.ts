@@ -3,7 +3,7 @@ import { TBusinessProfileForm } from '@/lib/schemas/business/client/client-setti
 
 export const mapUpdateBusinessFormToApiPayload = (data: TBusinessProfileForm): TUpdateBusinessSettings => ({
   company_name: data.companyName,
-  phone_number: data.phoneNumber,
+  phone_number: data.phoneCountryCodeNumber ? `(${data.phoneCountryCodeNumber})${data.phoneNumber}` : data.phoneNumber,
   company_location: data.address || null,
   company_website: data.website || null,
   business_industry: data.industry || null,
@@ -17,7 +17,7 @@ export const mapUpdateBusinessFormToApiPayload = (data: TBusinessProfileForm): T
 
 export const mapCreateBusinessFormToApiPayload = (data: TBusinessProfileForm): TCreateBusinessSettings => ({
   company_name: data.companyName,
-  phone_number: data.phoneNumber,
+  phone_number: data.phoneCountryCodeNumber ? `(${data.phoneCountryCodeNumber})${data.phoneNumber}` : data.phoneNumber,
   company_location: data.address || null,
   company_website: data.website || null,
   business_industry: data.industry || null,

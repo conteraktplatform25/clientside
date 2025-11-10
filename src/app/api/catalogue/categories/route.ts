@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
 
     const { name, description } = validation.data;
 
-    const slug = slugify(name.toLowerCase());
+    const slug = slugify(name, { lower: true, strict: true });
 
     const countCategory = await prisma.category.count({
       where: {

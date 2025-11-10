@@ -1,3 +1,5 @@
+import { CurrencyType } from '@prisma/client';
+
 export const truncateText = (text: string, maxLength: number): string => {
   return text.length > maxLength ? text.slice(0, maxLength) + '...' : text;
 };
@@ -30,4 +32,15 @@ export const parsePhoneNumber = (input: string) => {
       phoneNumber: input,
     };
   }
+};
+
+export const getCurrencySymbol = (currency: CurrencyType): string => {
+  const map: Record<CurrencyType, string> = {
+    NAIRA: '₦',
+    DOLLAR: '$',
+    POUND: '£',
+    EURO: '€',
+    CNY: '¥',
+  };
+  return map[currency] ?? '₦';
 };

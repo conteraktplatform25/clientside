@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
     const validation = await validateRequest(CreateBusinessSettingsSchema, req);
     if (!validation.success) return failure(validation.response, 401);
 
-    const { company_name, phone_country_code, phone_number, business_hour, ...data } = validation.data;
+    const { company_name, phone_number, business_hour, ...data } = validation.data;
     const countBusinessProfile = await prisma.businessProfile.count({
       where: {
         company_name,
@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
     if (countBusinessProfile > 0) return failure('Business profile already exist.', 409);
 
     //Verify if phone number was updated also
-    const phone_number_combined = phone_country_code ? `(${phone_country_code})${phone_number}` : phone_number;
+    const phone_number_combined = phone_number;
     if (user.phone !== phone_number_combined) {
       await prisma.user.update({
         where: { id: userId },
@@ -107,6 +107,7 @@ export async function PATCH(req: NextRequest) {
 
     const validation = await validateRequest(UpdateBusinessSettingsSchema, req);
     if (!validation.success) return failure(validation.response, 400);
+    console.log('Validationg Request Log', validation.data);
 
     const data = validation.data;
 
@@ -120,9 +121,7 @@ export async function PATCH(req: NextRequest) {
     }
 
     //Verify if phone number was updated also
-    const phone_number_combined = data.phone_country_code
-      ? `(${data.phone_country_code})${data.phone_number}`
-      : data.phone_number;
+    const phone_number_combined = data.phone_number;
     if (profile.phone_number !== phone_number_combined) {
       await prisma.user.update({
         where: { id: userId },
@@ -160,8 +159,9 @@ export async function PATCH(req: NextRequest) {
     const response = BusinessSettingsResponseSchema.parse(updatedBusinessProfile);
     return success({ response }, 'Business Profile updated successfully', 200);
   } catch (err) {
+    console.error('Error in POST /api/user:', err);
     const message = getErrorMessage(err);
-    console.error('PATCH /api/settings/business-profile error:', message);
+    //console.error('PATCH /api/settings/business-profile error:', message);
     return failure(message, 500);
   }
 }

@@ -33,6 +33,7 @@ import {
   CreateMediaSchema,
   ProductVariantsResponseSchema,
   CreateVariantSchema,
+  ProductResponseListSchema,
 } from '@/lib/schemas/business/server/catalogue.schema';
 import {
   ContactDetailsResponseSchema,
@@ -814,41 +815,6 @@ registry.registerPath({
 
 /** Product Catalogue Implementation */
 registry.registerPath({
-  method: 'post',
-  path: '/api/catalogue/products',
-  tags: ['Products'],
-  summary: 'Create a new product under the authenticated business profile',
-  security: [{ bearerAuth: [] }],
-  request: {
-    body: {
-      content: {
-        'application/json': {
-          schema: CreateProductSchema,
-        },
-      },
-    },
-  },
-  responses: {
-    201: {
-      description: 'Product successfully created',
-      content: {
-        'application/json': {
-          schema: z.object({
-            ok: z.boolean(),
-            message: z.string(),
-            product: ProductResponseSchema,
-          }),
-        },
-      },
-    },
-    400: { description: 'Invalid input or missing fields' },
-    401: { description: 'Unauthorized' },
-    403: { description: 'Forbidden: Insufficient permissions' },
-    404: { description: 'Business profile not configured' },
-  },
-});
-
-registry.registerPath({
   method: 'get',
   path: '/api/catalogue/products',
   tags: ['Products'],
@@ -881,7 +847,8 @@ registry.registerPath({
                 total: z.number(),
                 totalPages: z.number(),
               }),
-              products: z.array(ProductResponseSchema),
+              //products: z.array(ProductResponseSchema),
+              products: ProductResponseListSchema,
             }),
           }),
         },
@@ -889,6 +856,41 @@ registry.registerPath({
     },
     400: { description: 'Invalid query parameters' },
     401: { description: 'Unauthorized' },
+    404: { description: 'Business profile not configured' },
+  },
+});
+
+registry.registerPath({
+  method: 'post',
+  path: '/api/catalogue/products',
+  tags: ['Products'],
+  summary: 'Create a new product under the authenticated business profile',
+  security: [{ bearerAuth: [] }],
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: CreateProductSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    201: {
+      description: 'Product successfully created',
+      content: {
+        'application/json': {
+          schema: z.object({
+            ok: z.boolean(),
+            message: z.string(),
+            product: ProductResponseSchema,
+          }),
+        },
+      },
+    },
+    400: { description: 'Invalid input or missing fields' },
+    401: { description: 'Unauthorized' },
+    403: { description: 'Forbidden: Insufficient permissions' },
     404: { description: 'Business profile not configured' },
   },
 });

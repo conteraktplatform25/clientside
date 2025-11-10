@@ -1,12 +1,7 @@
 import { authenticateRequest, authorizeRole } from '@/lib/auth';
 import { validateRequest } from '@/lib/helpers/validation-request.helper';
 import prisma from '@/lib/prisma';
-import {
-  CreateProductSchema,
-  ProductDetailResponseSchema,
-  ProductQuerySchema,
-  ProductResponseListSchema,
-} from '@/lib/schemas/business/server/catalogue.schema';
+import { CreateProductSchema, ProductDesktopResponseListSchema } from '@/lib/schemas/business/server/catalogue.schema';
 import { getErrorMessage } from '@/utils/errors';
 import { failure, success } from '@/utils/response';
 import { Prisma } from '@prisma/client';
@@ -24,83 +19,34 @@ export async function GET(req: NextRequest) {
 
     const businessProfileId = user.businessProfile[0].id;
 
-    const { searchParams } = new URL(req.url);
-    const parsed = ProductQuerySchema.safeParse(Object.fromEntries(searchParams));
-
-    if (!parsed.success) {
-      return failure(JSON.stringify(parsed.error.flatten()), 400);
-    }
-
-    const { page, limit, search, categoryId, minPrice, maxPrice, sortBy, sortOrder } = parsed.data;
-    const skip = (page - 1) * limit;
-
-    // ✅ Build dynamic filters
-    const where: Prisma.ProductWhereInput = {
-      businessProfileId,
-      deleted: false,
-    };
-
-    if (search) {
-      where.OR = [
-        { name: { contains: search, mode: 'insensitive' } },
-        { description: { contains: search, mode: 'insensitive' } },
-      ];
-    }
-
-    if (categoryId) {
-      where.categoryId = categoryId;
-    }
-
-    if (minPrice !== undefined || maxPrice !== undefined) {
-      where.price = {};
-      if (minPrice !== undefined) where.price.gte = minPrice;
-      if (maxPrice !== undefined) where.price.lte = maxPrice;
-    }
-
     // ✅ Fetch data
-    const [productData, total] = await Promise.all([
-      prisma.product.findMany({
-        where,
-        select: {
-          id: true,
-          name: true,
-          description: true,
-          price: true,
-          sku: true,
-          stock: true,
-          currency: true,
-          category: {
-            select: {
-              id: true,
-              name: true,
-            },
+    const productData = await prisma.product.findMany({
+      where: { businessProfileId, deleted: false },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        price: true,
+        currency: true,
+        category: {
+          select: {
+            id: true,
+            name: true,
           },
-          media: true,
         },
-        // include: {
-        //   category: { select: { name: true } },
-        //   media: true,
-        //   variants: true,
-        // },
-        skip,
-        take: limit,
-        orderBy: { [sortBy]: sortOrder },
-      }),
-      prisma.product.count({ where }),
-    ]);
-    const totalPages = Math.ceil(total / limit);
-    const products = ProductResponseListSchema.parse(productData);
-
+      },
+    });
+    if (!productData) return failure('Business profile not found', 404);
+    const products = ProductDesktopResponseListSchema.parse(productData);
     return success(
       {
-        pagination: { page, limit, total, totalPages },
         products,
       },
       'Successful retrieval'
     );
   } catch (err) {
     const message = getErrorMessage(err);
-    console.error('GET /api/catalogue/products error:', message);
+    console.error('GET /api/catalogue/products/desktop error:', message);
     return failure(message, 500);
   }
 }
@@ -142,7 +88,7 @@ export async function POST(req: NextRequest) {
     });
     if (!category) return failure('Invalid category: not found or not in your business.', 400);
 
-    const product = await prisma.product.create({
+    await prisma.product.create({
       data: {
         name,
         slug: slugify(name, { lower: true, strict: true }),
@@ -161,14 +107,32 @@ export async function POST(req: NextRequest) {
             : undefined,
         ...data,
       },
-      include: {
-        media: true,
-        category: { select: { id: true, name: true } },
-      },
     });
     // ProductDetailResponseSchema
-    const response = ProductDetailResponseSchema.parse(product);
-    return success({ response }, 'Product created successfully', 201);
+
+    const sortBy = 'created_at';
+    const sortOrder = 'desc';
+
+    const productData = await prisma.product.findMany({
+      where: { businessProfileId, deleted: false },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        price: true,
+        currency: true,
+        category: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+      orderBy: { [sortBy]: sortOrder },
+    });
+    if (!productData) return failure('Business profile not found', 404);
+    const products = ProductDesktopResponseListSchema.parse(productData);
+    return success({ products }, 'Product created successfully', 201);
   } catch (err) {
     const message = getErrorMessage(err);
     console.error('POST /api/catalogue/products error:', message);

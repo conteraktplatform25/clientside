@@ -12,6 +12,7 @@ interface SelectFieldProps<T extends FieldValues> {
   placeholder?: string;
   className?: string;
   important?: boolean;
+  disabled?: boolean;
 }
 
 export default function SelectField<T extends FieldValues>({
@@ -22,6 +23,7 @@ export default function SelectField<T extends FieldValues>({
   placeholder,
   className,
   important,
+  disabled = false,
 }: SelectFieldProps<T>) {
   return (
     <div className='relative mb-1 w-full'>
@@ -44,6 +46,7 @@ export default function SelectField<T extends FieldValues>({
               <SelectTrigger
                 id={name as string}
                 className={`text-left focus-visible:border-none rounded-sm focus-visible:ring-ring/10 bg-white hover:bg-gray-50 ${className}`}
+                disabled={disabled}
               >
                 <SelectValue placeholder={placeholder || label} />
               </SelectTrigger>

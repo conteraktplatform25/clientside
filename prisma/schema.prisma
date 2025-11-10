@@ -235,7 +235,13 @@ model Product {
   variants        ProductVariant[]
   OrderItem       OrderItem[]
 
+  @@unique([businessProfileId, name])
   @@unique([businessProfileId, sku])
+  @@index([businessProfileId])
+  @@index([categoryId])
+  @@index([status])
+  @@index([deleted])
+  @@index([name])
 }
 
 model ProductMedia {

@@ -17,6 +17,7 @@ export const userProfileSchema = z.object({
 export const businessProfileSchema = z.object({
   companyName: z.string(),
   phoneNumber: z.string(),
+  phoneCountryCodeNumber: z.string(),
   logo: z.string().nullable().optional(),
   bio: z.string().nullable().optional(),
   category: z

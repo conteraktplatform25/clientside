@@ -8,6 +8,7 @@ import {
   ConstBusinessIndustries as industries,
   ConstBusinessCategories as categories,
   ConstAnnualRevenue as revenues,
+  ConstCountryCodeOptions,
 } from '@/lib/constants/auth.constant';
 import { ImageUploader } from '@/components/custom/ImageUploderField';
 import { cn } from '@/lib/utils';
@@ -29,6 +30,8 @@ import {
   mapCreateBusinessFormToApiPayload,
   mapUpdateBusinessFormToApiPayload,
 } from '@/utils/mappings/settings.mapping';
+import { Card } from '@/components/ui/card';
+import { parsePhoneNumber } from '@/lib/helpers/string-manipulator.helper';
 
 interface BusinessProfileFormProps {
   className?: string;
@@ -38,6 +41,11 @@ const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'
 
 const BusinessProfileForm = ({ className }: BusinessProfileFormProps) => {
   const [isBusinessExist, setIsBusinessExist] = useState<boolean>(false);
+  const [phoneNumberVal, setPhoneNumberVal] = useState('');
+  const [parsedPhone, setParsedPhoneNumber] = useState<{
+    countryCode: string | null;
+    phoneNumber: string;
+  }>({ countryCode: null, phoneNumber: '' });
   const { data, isLoading, isError } = useGetBusinessProfile();
   const { mutateAsync: updateBusinessProfile, isPending: updateIsPending } = useUpdateBusinessProfile();
   const { mutateAsync: createBusinessProfile, isPending: createIsPending } = useCreateBusinessProfile();
@@ -47,6 +55,7 @@ const BusinessProfileForm = ({ className }: BusinessProfileFormProps) => {
     defaultValues: {
       companyName: '',
       phoneNumber: '',
+      phoneCountryCodeNumber: '',
       logo: '',
       bio: '',
       category: '',
@@ -72,6 +81,11 @@ const BusinessProfileForm = ({ className }: BusinessProfileFormProps) => {
   useEffect(() => {
     if (data) {
       setIsBusinessExist(true);
+      const phoneValue = data.phone_number ?? '';
+      const phone_details = parsePhoneNumber(phoneValue);
+      setPhoneNumberVal(phoneValue);
+      setParsedPhoneNumber(phone_details);
+
       const matchedCategory =
         categories.find((cat) => cat.toLowerCase() === data.business_category?.toLowerCase()) || '';
       const matchedIndustry =
@@ -79,7 +93,8 @@ const BusinessProfileForm = ({ className }: BusinessProfileFormProps) => {
       const matchedRevenue = revenues.find((rev) => rev.toLowerCase() === data.annual_revenue?.toLowerCase()) || '';
       reset({
         companyName: data.company_name || '',
-        phoneNumber: data.phone_number || '',
+        phoneNumber: phoneNumberVal || '',
+        phoneCountryCodeNumber: parsedPhone.countryCode || '+234',
         logo: '',
         bio: data.business_bio || '',
         category: matchedCategory,
@@ -93,7 +108,7 @@ const BusinessProfileForm = ({ className }: BusinessProfileFormProps) => {
     } else {
       setIsBusinessExist(false);
     }
-  }, [data, setIsBusinessExist, reset]);
+  }, [data, parsedPhone, phoneNumberVal, setIsBusinessExist, reset]);
 
   const businessLogo = watch('logo')!;
 
@@ -186,14 +201,37 @@ const BusinessProfileForm = ({ className }: BusinessProfileFormProps) => {
                 <Label htmlFor='phoneNumber' className='mb-1 text-base font-medium text-gray-700'>
                   Business Phone Number
                 </Label>
-                <InputField<TBusinessProfileForm>
+                <Card className='w-full max-w-xs p-0 shadow-none rounded-sm'>
+                  <div className='grid grid-cols-3'>
+                    <div className='col-span-1'>
+                      <SelectField<TBusinessProfileForm>
+                        control={control}
+                        name={'phoneCountryCodeNumber'}
+                        label=''
+                        options={ConstCountryCodeOptions}
+                        className='border-none shadow-none rounded-none focus-visible:ring-0 w-[90px]'
+                        disabled
+                      />
+                    </div>
+                    <div className='col-span-2 flex flex-item gap-0.5'>
+                      <InputField<TBusinessProfileForm>
+                        name={'phoneNumber'}
+                        control={control}
+                        type='text'
+                        placeholder='Enter Phone Number'
+                        className='border-none shadow-none rounded-none focus-visible:border-none focus-visible:ring-0'
+                      />
+                    </div>
+                  </div>
+                </Card>
+                {/* <InputField<TBusinessProfileForm>
                   name='phoneNumber'
                   control={control}
                   type='text'
                   placeholder='Enter Business Phone Number'
                   className={`focus-visible:ring-0 ${cn(errors.phoneNumber && 'border-red-500 focus:border-red-500')}`}
                 />
-                {errors.phoneNumber && <p className='text-sm text-red-600'>{errors.phoneNumber.message}</p>}
+                {errors.phoneNumber && <p className='text-sm text-red-600'>{errors.phoneNumber.message}</p>} */}
               </div>
             </div>
           </div>

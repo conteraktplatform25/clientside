@@ -3,15 +3,14 @@ import {
   TCategoryResponse,
   TCategoryResponseList,
   TCreateProductRequest,
+  TProductDestopResponse,
 } from '@/lib/hooks/business/catalogue-sharing.hook';
 import { TCategoryDropDown } from '@/lib/schemas/business/client/client-catalogue.schema';
 
 interface CategoryCatalogueState {
   addedCategories: TCategoryResponseList;
-  // allCategories: TCreateCategoryRequest[];
   dropDownCategories: TCategoryDropDown[];
   addCategory: (category: TCategoryResponse) => void;
-  // commitAddedCategories: () => void;
   clearAddedCategories: () => void;
   clearDropDownCategories: () => void;
   setAllCategories: (categories: TCategoryResponseList) => void;
@@ -32,13 +31,17 @@ export const useCategoryCatalogueStore = create<CategoryCatalogueState>((set) =>
 }));
 
 interface ProductCatalogueState {
+  desktopProducts: TProductDestopResponse;
   catalogueProducts: TCreateProductRequest[]; // New state for the main catalogue
-  //addProduct: (product: IProductCatalogueProp) => void;
+  clearDesktopProducts: () => void;
   addedProductsToCatalogue: (products: TCreateProductRequest[]) => void; // New action to move products
-  //clearAddedProducts: () => void;
+  setDesktopProducts: (products: TProductDestopResponse) => void;
 }
 
 export const useProductCatalogueStore = create<ProductCatalogueState>((set) => ({
+  desktopProducts: [],
   catalogueProducts: [], // Initialize with dummy data
+  clearDesktopProducts: () => set({ desktopProducts: [] }),
   addedProductsToCatalogue: (products) => set({ catalogueProducts: products }),
+  setDesktopProducts: (products) => set({ desktopProducts: products }),
 }));
