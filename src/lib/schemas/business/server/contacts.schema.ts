@@ -1,37 +1,27 @@
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 import { ContactSource, ContactStatus } from '@prisma/client';
 import { z } from 'zod';
+import { PaginationResponsechema } from '../pagination.schema';
 
 extendZodWithOpenApi(z);
 
 export const ContactQuerySchema = z
   .object({
     page: z
-      .string()
-      .transform(Number)
+      .union([z.string(), z.number()])
+      .transform((v) => Number(v))
       .refine((n) => n > 0, 'Page must be positive')
-      .default(1)
-      .openapi({ example: 1 }),
+      .default(1),
+
     limit: z
-      .string()
-      .transform(Number)
-      .refine((n) => n > 0 && n <= 100, 'Limit must be between 1 and 100')
-      .default(10)
-      .openapi({ example: 10 }),
+      .union([z.string(), z.number()])
+      .transform((v) => Number(v))
+      .default(10),
     search: z.string().optional(),
-    sortBy: z
-      .enum(['created_at', 'name'])
-      .default('created_at')
-      .openapi({ example: 'created_at or name', default: 'name' }),
-    sortOrder: z.enum(['asc', 'desc']).default('desc').openapi({ example: 'asc or desc', default: 'desc' }),
-    status: z
-      .enum(['ACTIVE', 'BLOCKED', 'UNSUBSCRIBED'])
-      .optional()
-      .openapi({ example: 'ACTIVE or BLOCKED or UNSUBSCRIBED' }),
-    source: z
-      .enum(['MANUAL', 'IMPORT', 'API', 'WHATSAPP', 'CHATBOT'])
-      .optional()
-      .openapi({ example: 'MANUAL or IMPORT or API or WHATSAPP or CHATBOT' }),
+    sortBy: z.enum(['created_at', 'name']).default('created_at'),
+    sortOrder: z.enum(['asc', 'desc']).default('desc'),
+    status: z.enum(['ACTIVE', 'BLOCKED', 'UNSUBSCRIBED']).default('ACTIVE'),
+    source: z.enum(['MANUAL', 'IMPORT', 'API', 'WHATSAPP', 'CHATBOT']).default('MANUAL'),
   })
   .openapi('ContactQuery');
 
@@ -39,9 +29,9 @@ export const CreateContactSchema = z
   .object({
     name: z.string().min(2),
     phone_number: z.string(),
-    email: z.string().optional(),
-    whatsapp_opt_in: z.boolean().default(false),
-    custom_fields: z.record(z.string(), z.any()).optional(),
+    email: z.string().nullable().optional(),
+    whatsapp_opt_in: z.boolean().default(true),
+    custom_fields: z.record(z.string(), z.any()).optional().default({}),
   })
   .openapi('CreateContactRequest');
 
@@ -83,12 +73,7 @@ export const ContactResponseSchema = z
 
 export const ContactListResponseSchema = z
   .object({
-    pagination: z.object({
-      page: z.number(),
-      limit: z.number(),
-      total: z.number(),
-      totalPages: z.number(),
-    }),
+    pagination: PaginationResponsechema,
     contacts: z.array(ContactResponseSchema),
   })
   .openapi('ContactListResponse');

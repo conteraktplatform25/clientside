@@ -17,7 +17,6 @@ export async function GET(req: NextRequest) {
   try {
     const user = await authenticateRequest(req);
     if (!user) return failure('Unauthorized', 404);
-    console.log(user);
 
     if (user.businessProfile.length === 0 || !user.businessProfile[0].id)
       return failure('Whatsapp Profile has not been configured.', 404);

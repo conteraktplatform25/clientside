@@ -38,6 +38,7 @@ import {
 import {
   ContactDetailsResponseSchema,
   ContactListResponseSchema,
+  ContactQuerySchema,
   ContactResponseSchema,
   ContactTagResponse,
   CreateContactSchema,
@@ -48,8 +49,8 @@ import {
 import {
   CreateOrderSchema,
   OrderDetailsResponseSchema,
-  OrderListResponseSchema,
-  OrderQuerySchema,
+  // OrderListResponseSchema,
+  // OrderQuerySchema,
   UpdateOrderSchema,
 } from './schemas/business/server/order.schema';
 import {
@@ -1153,6 +1154,9 @@ registry.registerPath({
   tags: ['Contacts'],
   summary: 'Get all Contacts for the authenticated business',
   security: [{ bearerAuth: [] }],
+  request: {
+    query: ContactQuerySchema,
+  },
   responses: {
     200: {
       description: 'List of categories retrieved successfully',
@@ -1161,7 +1165,7 @@ registry.registerPath({
           schema: z.object({
             ok: z.boolean(),
             message: z.string(),
-            profile: z.array(ContactListResponseSchema),
+            profile: ContactListResponseSchema,
           }),
         },
       },
@@ -1355,38 +1359,38 @@ registry.registerPath({
   },
 });
 
-/** Client Order Open API Generation */
-registry.registerPath({
-  method: 'get',
-  path: '/api/orders',
-  tags: ['Product Order'],
-  summary: 'Get all client order for the authenticated business',
-  security: [{ bearerAuth: [] }],
-  request: {
-    query: OrderQuerySchema,
-  },
-  responses: {
-    200: {
-      description: 'List of orders retrieved successfully',
-      content: {
-        'application/json': {
-          schema: z.object({
-            ok: z.boolean(),
-            message: z.string(),
-            profile: OrderListResponseSchema,
-          }),
-        },
-      },
-    },
-    401: { description: 'Unauthorized' },
-    404: { description: 'Business profile not found' },
-  },
-});
+// /** Client Order Open API Generation */
+// registry.registerPath({
+//   method: 'get',
+//   path: '/api/orders',
+//   tags: ['Product Order'],
+//   summary: 'Get all client order for the authenticated business',
+//   security: [{ bearerAuth: [] }],
+//   request: {
+//     query: OrderQuerySchema,
+//   },
+//   responses: {
+//     200: {
+//       description: 'List of orders retrieved successfully',
+//       content: {
+//         'application/json': {
+//           schema: z.object({
+//             ok: z.boolean(),
+//             message: z.string(),
+//             profile: OrderListResponseSchema,
+//           }),
+//         },
+//       },
+//     },
+//     401: { description: 'Unauthorized' },
+//     404: { description: 'Business profile not found' },
+//   },
+// });
 
 registry.registerPath({
   method: 'post',
   path: '/api/orders',
-  tags: ['Product Order'],
+  tags: ['Product Orders'],
   summary: 'Create a new client order profile under the authenticated business profile',
   security: [{ bearerAuth: [] }],
   request: {
@@ -1421,7 +1425,7 @@ registry.registerPath({
 registry.registerPath({
   method: 'get',
   path: '/api/orders/{id}',
-  tags: ['Product Order'],
+  tags: ['Product Orders'],
   summary: 'Retrieve a single client order by ID',
   security: [{ bearerAuth: [] }],
   request: {
@@ -1453,7 +1457,7 @@ registry.registerPath({
 registry.registerPath({
   method: 'patch',
   path: '/api/contacts/{id}',
-  tags: ['Product Order'],
+  tags: ['Product Orders'],
   summary: 'Update a client order by the order ID',
   description: 'Allows authorized users (Business/Admin) to modify the contact of an existing business owner Contact.',
   security: [{ bearerAuth: [] }],
@@ -1493,7 +1497,7 @@ registry.registerPath({
 registry.registerPath({
   method: 'delete',
   path: '/api/contacts/{id}',
-  tags: ['Product Order'],
+  tags: ['Product Orders'],
   summary: 'Delete a client order by ID',
   description: 'Delete a client order. Only users with Business or Admin roles are authorized.',
   security: [{ bearerAuth: [] }],

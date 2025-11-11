@@ -62,7 +62,7 @@ export default function ClientDashboardLayout({ children, defaultOpen, session }
     //return
     return (
       <div className='flex flex-col items-center justify-center h-screen bg-gray-50 text-gray-700'>
-        <UILoaderIndicator label='Fetching your dashboard profile...' />;
+        <UILoaderIndicator label='Fetching your dashboard profile...' />
       </div>
     );
   }

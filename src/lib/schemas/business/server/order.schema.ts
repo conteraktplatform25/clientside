@@ -1,6 +1,7 @@
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 import { z } from 'zod';
-import { PaginationSchema } from '../pagination.schema';
+//import { PaginationSchema } from '../pagination.schema';
+import { PaginationResponsechema } from '../pagination.schema';
 import { CurrencyType, OrderStatus, PaymentStatus } from '@prisma/client';
 
 extendZodWithOpenApi(z);
@@ -96,7 +97,7 @@ export const OrderResponseSchema = z.object({
 
 export const OrderListResponseSchema = z
   .object({
-    pagination: PaginationSchema,
+    pagination: PaginationResponsechema,
     orders: z.array(OrderResponseSchema),
   })
   .openapi('OrderListResponse');

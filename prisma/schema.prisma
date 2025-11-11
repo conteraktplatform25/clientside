@@ -275,7 +275,7 @@ model Contact {
   name              String?
   phone_number      String
   email             String?
-  whatsapp_opt_in   Boolean       @default(false)
+  whatsapp_opt_in   Boolean       @default(true)
   status            ContactStatus @default(ACTIVE) // e.g., ACTIVE, BLOCKED, UNSUBSCRIBED
   source            ContactSource @default(MANUAL) // e.g., imported, chatbot, API, form
   custom_fields     Json? // e.g., { "city": "Lagos", "gender": "Male" }

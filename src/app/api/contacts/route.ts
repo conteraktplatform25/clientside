@@ -19,10 +19,14 @@ export async function GET(req: NextRequest) {
     const businessProfileId = user.businessProfile?.[0]?.id;
     if (!businessProfileId) return failure('Business profile not configured.', 400);
 
-    const validation = await validateRequest(ContactQuerySchema, req);
-    if (!validation.success) return failure(validation.response, 401);
+    const { searchParams } = new URL(req.url);
+    const parsed = ContactQuerySchema.safeParse(Object.fromEntries(searchParams));
 
-    const { page, limit, search, source, status, sortBy, sortOrder } = validation.data;
+    if (!parsed.success) {
+      return failure(JSON.stringify(parsed.error.flatten()), 400);
+    }
+
+    const { page, limit, search, source, status, sortBy, sortOrder } = parsed.data;
     const skip = (page - 1) * limit;
 
     // ✅ Build dynamic filters
@@ -51,23 +55,32 @@ export async function GET(req: NextRequest) {
           phone_number: true,
           email: true,
           status: true,
+          source: true,
           tags: { select: { id: true, name: true, color: true } },
         },
       }),
       prisma.contact.count({ where }),
     ]);
-    const totalPages = Math.ceil(total / limit);
+    const totalPages = Math.max(1, Math.ceil(total / limit));
+
+    const validSources = ['MANUAL', 'IMPORT', 'API', 'WHATSAPP', 'CHATBOT'];
+    const sanitizedContacts = contacts.map((c) => ({
+      ...c,
+      source: validSources.includes(c.source) ? c.source : 'MANUAL',
+    }));
 
     const responseData = {
       pagination: { page, limit, total, totalPages },
-      contacts,
+      contacts: sanitizedContacts,
     };
 
     const contact_profile = ContactListResponseSchema.parse(responseData);
 
     return success(contact_profile, 'Successful retrieval');
   } catch (err) {
-    return failure(getErrorMessage(err), 401);
+    const message = getErrorMessage(err);
+    console.error('GET /api/contacts error:', message);
+    return failure(message, 500);
   }
 }
 
@@ -84,6 +97,7 @@ export async function POST(req: NextRequest) {
 
     const validation = await validateRequest(CreateContactSchema, req);
     if (!validation.success) return failure(validation.response, 401);
+    console.log('Getting Started New.');
 
     const { name, email, ...data } = validation.data;
 
@@ -111,6 +125,8 @@ export async function POST(req: NextRequest) {
     });
     return success({ contact }, 'Product created successfully', 201);
   } catch (err) {
-    return failure(getErrorMessage(err), 401);
+    const message = getErrorMessage(err);
+    console.error('POST /api/contacts error:', message);
+    return failure(message, 500);
   }
 }

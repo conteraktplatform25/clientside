@@ -15,6 +15,8 @@ export async function validateRequest<T extends z.ZodTypeAny>(
     const data = schema.parse(body);
     return { success: true, data };
   } catch (error) {
+    const message = getErrorMessage(error);
+    console.error('POST /api/contacts error:', message);
     if (error instanceof z.ZodError) {
       const issues = error.issues.map((i) => ({
         path: i.path.join('.'),
