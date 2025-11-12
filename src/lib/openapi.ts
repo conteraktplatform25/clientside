@@ -36,6 +36,7 @@ import {
   ProductResponseListSchema,
 } from '@/lib/schemas/business/server/catalogue.schema';
 import {
+  ContactDesktopListResponseSchema,
   ContactDetailsResponseSchema,
   ContactListResponseSchema,
   ContactQuerySchema,
@@ -1166,6 +1167,33 @@ registry.registerPath({
             ok: z.boolean(),
             message: z.string(),
             profile: ContactListResponseSchema,
+          }),
+        },
+      },
+    },
+    401: { description: 'Unauthorized' },
+    404: { description: 'Business profile not found' },
+  },
+});
+
+registry.registerPath({
+  method: 'get',
+  path: '/api/contacts/desktop',
+  tags: ['Contacts'],
+  summary: 'Get all Contacts for Web application for the authenticated business',
+  security: [{ bearerAuth: [] }],
+  request: {
+    query: ContactQuerySchema,
+  },
+  responses: {
+    200: {
+      description: 'List of categories retrieved successfully',
+      content: {
+        'application/json': {
+          schema: z.object({
+            ok: z.boolean(),
+            message: z.string(),
+            profile: ContactDesktopListResponseSchema,
           }),
         },
       },

@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
       return failure(JSON.stringify(parsed.error.flatten()), 400);
     }
 
-    const { page, limit, search, source, status, sortBy, sortOrder } = parsed.data;
+    const { page, limit, search, sortBy, sortOrder } = parsed.data;
     const skip = (page - 1) * limit;
 
     // ✅ Build dynamic filters
@@ -40,8 +40,8 @@ export async function GET(req: NextRequest) {
         { email: { contains: search, mode: 'insensitive' } },
       ];
     }
-    if (status) where.status = status;
-    if (source) where.source = source;
+    // if (status) where.status = status;
+    // if (source) where.source = source;
 
     const [contacts, total] = await Promise.all([
       prisma.contact.findMany({

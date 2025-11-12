@@ -20,8 +20,6 @@ export const ContactQuerySchema = z
     search: z.string().optional(),
     sortBy: z.enum(['created_at', 'name']).default('created_at'),
     sortOrder: z.enum(['asc', 'desc']).default('desc'),
-    status: z.enum(['ACTIVE', 'BLOCKED', 'UNSUBSCRIBED']).default('ACTIVE'),
-    source: z.enum(['MANUAL', 'IMPORT', 'API', 'WHATSAPP', 'CHATBOT']).default('MANUAL'),
   })
   .openapi('ContactQuery');
 
@@ -94,6 +92,33 @@ export const ContactDetailsResponseSchema = z
     tags: z.array(ContactTagSchema),
   })
   .openapi('ContactDetailsReponse');
+
+export const ContactTagDesktopSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  color: z.string().nullable().optional(),
+  createdAt: z.coerce.date(),
+});
+
+export const ContactDesktopResponseSchema = z
+  .object({
+    id: z.string(),
+    name: z.string(),
+    phone_number: z.string(),
+    email: z.string().nullable(),
+    totalAmountSpent: z.number(),
+    lastOrderNumber: z.string().nullable().optional(),
+    lastTag: ContactTagDesktopSchema.nullable(),
+    totalTags: z.number().int().default(0),
+  })
+  .openapi('ContactDesktopReponse');
+
+export const ContactDesktopListResponseSchema = z
+  .object({
+    pagination: PaginationResponsechema,
+    contacts: z.array(ContactDesktopResponseSchema),
+  })
+  .openapi('ContactDesktopListResponse');
 
 export const CreateContactTagSchema = z
   .object({
