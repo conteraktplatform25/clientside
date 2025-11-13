@@ -43,6 +43,7 @@ export async function GET(req: NextRequest) {
           name: true,
           phone_number: true,
           email: true,
+          created_at: true,
           tags: {
             select: { id: true, name: true, color: true, createdAt: true },
             orderBy: { createdAt: 'desc' },
@@ -66,16 +67,20 @@ export async function GET(req: NextRequest) {
       const lastOrderNumber = contact.Order[0]?.order_number || null;
       const totalTags = contact.tags.length;
       const lastTag = contact.tags[0]?.name || null;
+      const tagColor = contact.tags[0]?.color || null;
+      const dateCreated = contact.created_at || new Date();
 
       return {
         id: contact.id,
         name: contact.name,
         phone_number: contact.phone_number,
         email: contact.email,
+        dateCreated,
         totalAmountSpent,
         lastOrderNumber,
         totalTags,
         lastTag,
+        tagColor,
       };
     });
 

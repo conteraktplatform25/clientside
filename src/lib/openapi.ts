@@ -1,5 +1,4 @@
 import { OpenAPIRegistry } from '@asteasolutions/zod-to-openapi';
-//import { resetPasswordFormSchema } from './schemas/auth/resetpassword.schema';
 import { z } from 'zod';
 import {
   CreateProfileRequestSchema,
@@ -1293,7 +1292,7 @@ registry.registerPath({
   },
   responses: {
     200: {
-      description: 'Product successfully updated',
+      description: 'Contact successfully updated',
       content: {
         'application/json': {
           schema: z.object({
@@ -1391,7 +1390,7 @@ registry.registerPath({
 // registry.registerPath({
 //   method: 'get',
 //   path: '/api/orders',
-//   tags: ['Product Order'],
+//   tags: ['Product Orders'],
 //   summary: 'Get all client order for the authenticated business',
 //   security: [{ bearerAuth: [] }],
 //   request: {
@@ -1484,7 +1483,7 @@ registry.registerPath({
 
 registry.registerPath({
   method: 'patch',
-  path: '/api/contacts/{id}',
+  path: '/api/orders/{id}',
   tags: ['Product Orders'],
   summary: 'Update a client order by the order ID',
   description: 'Allows authorized users (Business/Admin) to modify the contact of an existing business owner Contact.',
@@ -1524,7 +1523,7 @@ registry.registerPath({
 
 registry.registerPath({
   method: 'delete',
-  path: '/api/contacts/{id}',
+  path: '/api/orders/{id}',
   tags: ['Product Orders'],
   summary: 'Delete a client order by ID',
   description: 'Delete a client order. Only users with Business or Admin roles are authorized.',

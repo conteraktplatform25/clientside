@@ -89,8 +89,8 @@ const OrderManagementPage: React.FC = () => {
   };
 
   return (
-    <div className='container mx-auto p-4'>
-      <div className='flex items-start justify-between gap-2 mb-6'>
+    <div className='w-full p-4'>
+      <div className='flex items-start justify-between gap-2 mb-6 w-full'>
         <h1 className='text-xl leading-[150%] text-neutral-700 font-semibold'>Order management</h1>
         {/* Filters */}
         <div className='flex flex-col md:flex-row justify-end gap-8'>
@@ -102,7 +102,7 @@ const OrderManagementPage: React.FC = () => {
         </div>
       </div>
       {/* Summary Cards */}
-      <div className='grid grid-cols-1 md:grid-cols-2 gap-4 mb-6'>
+      <div className='flex flex-col md:flex-row items-start md:justify-between gap-8 mb-6 w-full'>
         <OrderSummaryCard title='Total orders' value={totalOrders} icon='orders' />
         <OrderSummaryCard title='Total revenue' value={`₦${totalRevenue.toLocaleString('en-NG')}`} icon='revenue' />
       </div>

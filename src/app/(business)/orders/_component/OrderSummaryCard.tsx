@@ -15,7 +15,7 @@ const OrderSummaryCard: React.FC<OrderSummaryCardProps> = ({ title, value, icon 
   const iconColor = icon === 'orders' ? 'text-blue-600' : 'text-purple-600';
 
   return (
-    <Card className='w-full'>
+    <Card className='w-full max-w-xl'>
       <CardContent>
         <div className='flex flex-col gap-1'>
           <div className='inline-flex space-x-2'>

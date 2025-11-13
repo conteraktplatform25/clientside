@@ -110,6 +110,8 @@ export const ContactDesktopResponseSchema = z
     lastOrderNumber: z.string().nullable().optional(),
     lastTag: ContactTagDesktopSchema.nullable(),
     totalTags: z.number().int().default(0),
+    tagColor: z.string().nullable().optional(),
+    dateCreated: z.coerce.date(),
   })
   .openapi('ContactDesktopReponse');
 
