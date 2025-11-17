@@ -43,7 +43,7 @@ export async function GET(req: NextRequest) {
     // if (status) where.status = status;
     // if (source) where.source = source;
 
-    const [contacts, total] = await Promise.all([
+    const [contactPaginated, total] = await Promise.all([
       prisma.contact.findMany({
         where,
         skip,
@@ -56,7 +56,7 @@ export async function GET(req: NextRequest) {
           email: true,
           status: true,
           source: true,
-          tags: { select: { id: true, name: true, color: true } },
+          contactTag: { select: { id: true, tag: { select: { name: true, color: true } } } },
         },
       }),
       prisma.contact.count({ where }),
@@ -64,7 +64,7 @@ export async function GET(req: NextRequest) {
     const totalPages = Math.max(1, Math.ceil(total / limit));
 
     const validSources = ['MANUAL', 'IMPORT', 'API', 'WHATSAPP', 'CHATBOT'];
-    const sanitizedContacts = contacts.map((c) => ({
+    const sanitizedContacts = contactPaginated.map((c) => ({
       ...c,
       source: validSources.includes(c.source) ? c.source : 'MANUAL',
     }));
@@ -74,9 +74,9 @@ export async function GET(req: NextRequest) {
       contacts: sanitizedContacts,
     };
 
-    const contact_profile = ContactListResponseSchema.parse(responseData);
+    const contacts = ContactListResponseSchema.parse(responseData);
 
-    return success(contact_profile, 'Successful retrieval');
+    return success(contacts, 'Successful retrieval');
   } catch (err) {
     const message = getErrorMessage(err);
     console.error('GET /api/contacts error:', message);
@@ -97,7 +97,6 @@ export async function POST(req: NextRequest) {
 
     const validation = await validateRequest(CreateContactSchema, req);
     if (!validation.success) return failure(validation.response, 401);
-    console.log('Getting Started New.');
 
     const { name, email, ...data } = validation.data;
 

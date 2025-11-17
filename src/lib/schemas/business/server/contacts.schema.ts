@@ -5,6 +5,50 @@ import { PaginationResponsechema } from '../pagination.schema';
 
 extendZodWithOpenApi(z);
 
+/**=================================================================
+ * Tag Implementation Schema
+ */
+export const CreateTagSchema = z
+  .object({
+    name: z.string().min(1, 'Tag name is required'),
+    color: z
+      .string()
+      .regex(/^#([0-9A-F]{3}){1,2}$/i, 'Invalid color hex code')
+      .optional()
+      .openapi({ example: '#FFFFFF' }),
+  })
+  .openapi('CreateTagRequest');
+
+export const UpdateTagSchema = CreateTagSchema.partial().openapi('UpdateTagRequest');
+
+export const TagResponseSchema = z
+  .object({
+    id: z.string(),
+    name: z.string().min(2),
+    color: z.string().nullable().optional(),
+    created_at: z.coerce.date(),
+  })
+  .openapi('TagReponse');
+
+export const TagListResponseSchema = z.array(TagResponseSchema).openapi('TagListResponse');
+
+export const TagDetailedResponseSchema = z
+  .object({
+    id: z.string(),
+    name: z.string().min(2),
+    color: z.string().nullable().optional(),
+    created_at: z.coerce.date(),
+    updated_at: z.coerce.date(),
+  })
+  .openapi('TagDetailedReponse');
+
+/**=================================================================
+ =====================================================================
+ */
+
+/**=================================================================
+ * Contact Implementation Schema
+ */
 export const ContactQuerySchema = z
   .object({
     page: z
@@ -29,7 +73,16 @@ export const CreateContactSchema = z
     phone_number: z.string(),
     email: z.string().nullable().optional(),
     whatsapp_opt_in: z.boolean().default(true),
-    custom_fields: z.record(z.string(), z.any()).optional().default({}),
+    custom_fields: z
+      .record(
+        z.string(),
+        z.object({
+          type: z.enum(['text', 'number', 'date', 'boolean']),
+          value: z.any(),
+        })
+      )
+      .optional(),
+    source: z.string().nullable().optional(),
   })
   .openapi('CreateContactRequest');
 
@@ -51,10 +104,14 @@ export const UpdateContactSchema = z
   })
   .openapi('UpdateContactRequest');
 
+export const TagSupportResponseSchema = z.object({
+  name: z.string().min(2),
+  color: z.string().nullable().optional(),
+});
+
 export const ContactTagSchema = z.object({
   id: z.string(),
-  name: z.string(),
-  color: z.string().nullable().optional(),
+  tag: TagSupportResponseSchema,
 });
 
 export const ContactResponseSchema = z
@@ -65,7 +122,7 @@ export const ContactResponseSchema = z
     email: z.string().nullable(),
     status: z.enum(ContactStatus),
     source: z.enum(ContactSource),
-    tags: z.array(ContactTagSchema),
+    contactTag: z.array(ContactTagSchema),
   })
   .openapi('ContactReponse');
 
@@ -87,18 +144,11 @@ export const ContactDetailsResponseSchema = z
     status: z.enum(ContactStatus),
     source: z.enum(ContactSource),
     custom_fields: z.record(z.string(), z.any()).optional(),
-    created_at: z.date(),
-    updated_at: z.date(),
-    tags: z.array(ContactTagSchema),
+    created_at: z.coerce.date(),
+    updated_at: z.coerce.date(),
+    contactTag: z.array(ContactTagSchema),
   })
   .openapi('ContactDetailsReponse');
-
-export const ContactTagDesktopSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  color: z.string().nullable().optional(),
-  createdAt: z.coerce.date(),
-});
 
 export const ContactDesktopResponseSchema = z
   .object({
@@ -108,7 +158,7 @@ export const ContactDesktopResponseSchema = z
     email: z.string().nullable(),
     totalAmountSpent: z.number(),
     lastOrderNumber: z.string().nullable().optional(),
-    lastTag: ContactTagDesktopSchema.nullable(),
+    lastTag: z.string().nullable().optional(),
     totalTags: z.number().int().default(0),
     tagColor: z.string().nullable().optional(),
     dateCreated: z.coerce.date(),
@@ -122,37 +172,67 @@ export const ContactDesktopListResponseSchema = z
   })
   .openapi('ContactDesktopListResponse');
 
+/**=================================================================
+ =====================================================================
+ */
+
+/**=================================================================
+ * ContactTag Implementation Schema
+ */
 export const CreateContactTagSchema = z
   .object({
-    name: z.string().min(1, 'Tag name is required').openapi({ example: 'ATTACH' }),
-    color: z
-      .string()
-      .regex(/^#([0-9A-F]{3}){1,2}$/i, 'Invalid color hex code')
-      .optional()
-      .openapi({ example: '#FFFFFF' }),
-    contactId: z.uuid('Invalid contact ID'),
+    tagIds: z.array(z.uuid()), // Array of UUIDs
   })
   .openapi('CreateContactTagRequest');
 
-export const UpdateContactTagSchema = z
+export const ContactSupportResponseSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  phone_number: z.string(),
+  email: z.string().nullable().optional(),
+  created_at: z.coerce.date(),
+});
+
+export const ContactTagResponseScheme = z
   .object({
-    name: z.string().min(1, 'Tag name is required').openapi({ example: 'ATTACH' }),
-    color: z
-      .string()
-      .regex(/^#([0-9A-F]{3}){1,2}$/i, 'Invalid color hex code')
-      .optional()
-      .openapi({ example: '#FFFFFF' }),
+    id: z.string(),
+    tag: TagResponseSchema,
+    contact: ContactSupportResponseSchema,
   })
-  .openapi('UpdateContactTagRequest');
+  .openapi('ContactTagResponse');
+export const ContactTagListResponseSchema = z.array(ContactTagResponseScheme).openapi('ContactTagListResponse');
 
-export const BulkContactTagSchema = z.object({
-  tags: z.array(CreateContactTagSchema).min(1, 'At least one tag is required'),
-});
+// export const CreateContactTagSchema = z
+//   .object({
+//     name: z.string().min(1, 'Tag name is required').openapi({ example: 'ATTACH' }),
+//     color: z
+//       .string()
+//       .regex(/^#([0-9A-F]{3}){1,2}$/i, 'Invalid color hex code')
+//       .optional()
+//       .openapi({ example: '#FFFFFF' }),
+//     contactId: z.uuid('Invalid contact ID'),
+//   })
+//   .openapi('CreateContactTagRequest');
 
-export const ContactTagResponse = z.object({
-  id: z.uuid(),
-  name: z.string().openapi({ example: 'ATTACH' }),
-  color: z.string(),
-  contactId: z.uuid(),
-  createdAt: z.date(),
-});
+// export const UpdateContactTagSchema = z
+//   .object({
+//     name: z.string().min(1, 'Tag name is required').openapi({ example: 'ATTACH' }),
+//     color: z
+//       .string()
+//       .regex(/^#([0-9A-F]{3}){1,2}$/i, 'Invalid color hex code')
+//       .optional()
+//       .openapi({ example: '#FFFFFF' }),
+//   })
+//   .openapi('UpdateContactTagRequest');
+
+// export const BulkContactTagSchema = z.object({
+//   tags: z.array(CreateContactTagSchema).min(1, 'At least one tag is required'),
+// });
+
+// export const ContactTagResponse = z.object({
+//   id: z.uuid(),
+//   name: z.string().openapi({ example: 'ATTACH' }),
+//   color: z.string(),
+//   contactId: z.uuid(),
+//   createdAt: z.date(),
+// });

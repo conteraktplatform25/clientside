@@ -44,10 +44,16 @@ export async function GET(req: NextRequest) {
           phone_number: true,
           email: true,
           created_at: true,
-          tags: {
-            select: { id: true, name: true, color: true, createdAt: true },
+          contactTag: {
+            select: {
+              tag: { select: { id: true, name: true, color: true, created_at: true } },
+            },
             orderBy: { createdAt: 'desc' },
           },
+          // tags: {
+          //   select: { id: true, name: true, color: true, createdAt: true },
+          //   orderBy: { createdAt: 'desc' },
+          // },
           Order: {
             select: { order_number: true, total_amount: true, created_at: true },
             orderBy: { created_at: 'desc' },
@@ -65,9 +71,9 @@ export async function GET(req: NextRequest) {
       const totalAmountSpent =
         contact.Order.length > 0 ? contact.Order.reduce((sum, o) => sum + Number(o.total_amount), 0) : 0;
       const lastOrderNumber = contact.Order[0]?.order_number || null;
-      const totalTags = contact.tags.length;
-      const lastTag = contact.tags[0]?.name || null;
-      const tagColor = contact.tags[0]?.color || null;
+      const totalTags = contact.contactTag.length;
+      const lastTag = contact.contactTag[0]?.tag.name || null;
+      const tagColor = contact.contactTag[0]?.tag.color || null;
       const dateCreated = contact.created_at || new Date();
 
       return {

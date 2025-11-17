@@ -1,6 +1,6 @@
 import { authenticateRequest, authorizeRole } from '@/lib/auth';
 import prisma from '@/lib/prisma';
-import { UpdateContactSchema } from '@/lib/schemas/business/server/contacts.schema';
+import { ContactResponseSchema, UpdateContactSchema } from '@/lib/schemas/business/server/contacts.schema';
 import { getErrorMessage } from '@/utils/errors';
 import { failure, success } from '@/utils/response';
 import { NextRequest } from 'next/server';
@@ -12,16 +12,31 @@ export async function GET(req: NextRequest, context: { params: Promise<{ id: str
     const user = await authenticateRequest(req);
     if (!user) return failure('Unauthorized', 404);
 
-    const contact = await prisma.contact.findUnique({
+    const responseData = await prisma.contact.findUnique({
       where: { id },
-      include: { tags: true },
+      select: {
+        id: true,
+        name: true,
+        phone_number: true,
+        email: true,
+        whatsapp_opt_in: true,
+        status: true,
+        source: true,
+        custom_fields: true,
+        created_at: true,
+        updated_at: true,
+        contactTag: { select: { id: true, tag: { select: { name: true, color: true } } } },
+      },
     });
-    if (!contact) return failure('Contact not found', 404);
+    if (!responseData) return failure('Contact not found', 404);
+
+    const contact = ContactResponseSchema.parse(responseData);
 
     return success({ contact }, 'Successful retrieval');
   } catch (err) {
+    const message = getErrorMessage(err);
     console.error('GET /contacts/[id] error:', err);
-    return failure(getErrorMessage(err), 401);
+    return failure(message, 500);
   }
 }
 
@@ -52,7 +67,8 @@ export async function PATCH(req: NextRequest, context: { params: Promise<{ id: s
     // 3️⃣ Verify product ownership
     const existingContact = await prisma.contact.findFirst({
       where: { id, businessProfileId },
-      include: { tags: true },
+      select: { id: true },
+      //include: { tags: true },
     });
     if (!existingContact) return failure('Contact profile not found.', 404);
 
@@ -70,19 +86,21 @@ export async function PATCH(req: NextRequest, context: { params: Promise<{ id: s
     });
 
     // Update tags (optional)
-    if (data.tags && Array.isArray(data.tags)) {
-      await prisma.contactTag.deleteMany({ where: { contactId: id } });
-      await prisma.contactTag.createMany({
-        data: data.tags.map((t) => ({
-          name: t.name,
-          color: t.color,
-          contactId: id,
-        })),
-      });
-    }
+    // if (data.tags && Array.isArray(data.tags)) {
+    //   await prisma.contactTag.deleteMany({ where: { contactId: id } });
+    //   await prisma.contactTag.createMany({
+    //     data: data.tags.map((t) => ({
+    //       name: t.name,
+    //       color: t.color,
+    //       contactId: id,
+    //     })),
+    //   });
+    // }
 
     return success({ updatedContact }, 'Contact Profile updated successfully', 200);
   } catch (err) {
-    return failure(getErrorMessage(err), 401);
+    const message = getErrorMessage(err);
+    console.error('PATCH /contacts/[id] error:', err);
+    return failure(message, 401);
   }
 }

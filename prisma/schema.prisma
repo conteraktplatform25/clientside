@@ -118,6 +118,8 @@ model BusinessProfile {
   Products   Product[]
   Contact    Contact[]
   Order      Order[]
+
+  tags Tag[]
 }
 
 model Account {
@@ -269,6 +271,22 @@ model ProductVariant {
   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
 
+model Tag {
+  id                String   @id @default(uuid())
+  businessProfileId String
+  name              String   @unique
+  color             String?
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+
+  businessProfile BusinessProfile @relation(fields: [businessProfileId], references: [id])
+  contacts        ContactTag[]
+
+  @@unique([businessProfileId, name])
+  @@index([businessProfileId])
+  @@index([name])
+}
+
 model Contact {
   id                String        @id @default(uuid())
   businessProfileId String
@@ -284,7 +302,7 @@ model Contact {
 
   // Relations
   businessProfile BusinessProfile @relation(fields: [businessProfileId], references: [id])
-  tags            ContactTag[]
+  contactTag      ContactTag[]
   conversations   Conversation[] // Link to chat history if needed
   Order           Order[]
   UserActivity    UserActivity[]
@@ -297,16 +315,30 @@ model Contact {
 
 model ContactTag {
   id        String   @id @default(uuid())
-  name      String
-  color     String? // Optional: UI color
+  contactId String
+  tagId     String
   createdAt DateTime @default(now())
 
-  // Relation
-  contactId String
-  contact   Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  contact Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  tag     Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
 
+  @@unique([contactId, tagId])
   @@index([contactId])
+  @@index([tagId])
 }
+
+// model ContactTag {
+//   id        String   @id @default(uuid())
+//   name      String
+//   color     String? // Optional: UI color
+//   createdAt DateTime @default(now())
+
+//   // Relation
+//   contactId String
+//   contact   Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+//   @@index([contactId])
+// }
 
 model Order {
   id                String        @id @default(uuid())

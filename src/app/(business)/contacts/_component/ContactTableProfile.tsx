@@ -47,7 +47,7 @@ const ContactTableProfile = () => {
       phone_number: contact.phone_number,
       total_spent: `₦${contact.totalAmountSpent.toLocaleString()}`,
       last_orderId: contact.lastOrderNumber ?? 'NA',
-      tags: contact.lastTag ? contact.lastTag.name : 'NA',
+      tags: contact.lastTag || 'NA',
       tag_number: contact.totalTags > 0 ? `+${contact.totalTags}` : 'NA',
       tag_color: contact.tagColor ?? '#0d142f',
       created_on: contact.dateCreated,

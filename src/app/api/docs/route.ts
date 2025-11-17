@@ -23,6 +23,7 @@ export async function GET() {
         { name: 'Business Owner Settings', description: 'Endpoints related to the authenticated business owner' },
         { name: 'Product Categories', description: 'Endpoints related to product categories' },
         { name: 'Products', description: 'Endpoints related to products implementation' },
+        { name: 'Tags', description: 'Endpoints related to business owner tag' },
         { name: 'Contacts', description: 'Endpoints related to client contact implementation' },
         { name: 'Contact Tags', description: 'Endpoints related to client contact tag implementation' },
         { name: 'Product Orders', description: 'Endpoints related to client product order implementation' },
