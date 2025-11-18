@@ -107,7 +107,7 @@ export const BusinessSettingsResponseSchema = z
     business_email: z.string().nullable(),
     business_logo_url: z.string().nullable(),
     business_bio: z.string().nullable(),
-    business_hour: BusinessHoursSchema,
+    business_hour: BusinessHoursSchema.optional().nullable(),
     created_at: z.coerce.date(),
     updated_at: z.coerce.date(),
     user: UserBusinessSchema,

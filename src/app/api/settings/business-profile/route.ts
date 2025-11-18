@@ -16,7 +16,8 @@ export async function GET(req: NextRequest) {
     const user = await authenticateRequest(req);
     if (!user) return failure('Unauthorized', 404);
 
-    const businessProfileId = user.businessProfile?.[0]?.id;
+    //const businessProfileId = user.businessProfile?.[0]?.id;
+    const businessProfileId = '520159e9-2ee7-4af3-b1eb-cefc18984b28';
     if (!businessProfileId) return failure('Business profile not configured.', 400);
 
     const businessProfile = await prisma.businessProfile.findUnique({

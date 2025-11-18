@@ -4,7 +4,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import OrderSummaryCard from './_component/OrderSummaryCard';
 import { IOrderProps, OrderStatus } from '@/type/client/business/order.type';
 import { OrdersTable } from './_component/table/OrdersTable';
-import StatusFilter from './_component/StatusFilter';
+//import StatusFilter from './_component/StatusFilter';
 import DateFilter from '@/components/custom/DateFilter';
 import PaginationControls from '@/components/custom/PaginationControls';
 import { ConstMockOrder as mocks } from '@/lib/constants/orders.constant';
@@ -26,8 +26,9 @@ const OrderManagementPage: React.FC = () => {
   const [selectedOrderDetails, setSelectedOrderDetails] = useState<IOrderProps | null>(null);
 
   useEffect(() => {
+    setSelectedStatusFilter('All orders');
     setTitle('Orders');
-  }, [setTitle]);
+  }, [setTitle, setSelectedStatusFilter]);
 
   const filteredOrders = useMemo(() => {
     let tempOrders = orders;
@@ -96,7 +97,7 @@ const OrderManagementPage: React.FC = () => {
         <div className='flex flex-col md:flex-row justify-end gap-8'>
           <div className='inline-flex space-x-2'>
             <Label className='font-medium text-base leading-[150%] text-neutral-800'>Status:</Label>
-            <StatusFilter selectedStatus={selectedStatusFilter} onStatusChange={setSelectedStatusFilter} />
+            {/* <StatusFilter selectedStatus={selectedStatusFilter} onStatusChange={setSelectedStatusFilter} /> */}
           </div>
           <DateFilter selectedDate={selectedDate} onDateChange={setSelectedDate} />
         </div>
