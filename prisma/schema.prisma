@@ -88,7 +88,7 @@ model User {
   session           Session[]
   notifications     ApplicationNotification[] @relation("ReceivedNotifications") // Added relation name
   sentNotifications ApplicationNotification[] @relation("SentNotifications") // Added for sender
-  activities        UserActivity[] // User's own actions
+  //activities        UserActivity[] // User's own actions
   preference        NotificationPreference[]
   // conversation      Conversation[]
   conversations     ConversationUser[]
@@ -120,6 +120,8 @@ model BusinessProfile {
   Order      Order[]
 
   tags Tag[]
+
+  userActivities UserActivity[]
 }
 
 model Account {
@@ -327,19 +329,6 @@ model ContactTag {
   @@index([tagId])
 }
 
-// model ContactTag {
-//   id        String   @id @default(uuid())
-//   name      String
-//   color     String? // Optional: UI color
-//   createdAt DateTime @default(now())
-
-//   // Relation
-//   contactId String
-//   contact   Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
-
-//   @@index([contactId])
-// }
-
 model Order {
   id                String        @id @default(uuid())
   businessProfileId String
@@ -381,22 +370,24 @@ model OrderItem {
 }
 
 model UserActivity {
-  id          String   @id @default(uuid())
-  userId      String // The user who performed the action
-  contactId   String?
-  orderId     String?
-  type        String // e.g., 'order_placed', 'product_reviewed', 'cart_added'
-  description String // Human-readable log, e.g., "Added iPhone to cart"
-  metadata    Json? // e.g., { productId: "xyz", quantity: 1 }
-  createdAt   DateTime @default(now())
+  id                String   @id @default(uuid())
+  businessProfileId String
+  name              String? // The user who performed the action
+  contactId         String?
+  orderId           String?
+  type              String // e.g., 'order_placed', 'product_reviewed', 'cart_added'
+  description       String // Human-readable log, e.g., "Added iPhone to cart"
+  metadata          Json? // e.g., { productId: "xyz", quantity: 1 }
+  created_at        DateTime @default(now())
 
   // Relation
-  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  contact Contact? @relation(fields: [contactId], references: [id])
-  order   Order?   @relation(fields: [orderId], references: [id], name: "OrderActivities")
+  //user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  businessProfile BusinessProfile @relation(fields: [businessProfileId], references: [id])
+  contact         Contact?        @relation(fields: [contactId], references: [id])
+  order           Order?          @relation(fields: [orderId], references: [id], name: "OrderActivities")
   //@@index([type, createdAt(sort: Desc)]) // For timelines
 
-  @@index([userId])
+  @@index([businessProfileId])
   @@index([contactId])
   @@index([orderId])
 }

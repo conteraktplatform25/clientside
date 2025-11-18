@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma';
 import { getErrorMessage } from '@/utils/errors';
 import { comparePassword, generateTokens } from '@/actions/mobile-auth';
 import { UserObject } from 'next-auth';
+import { failure } from '@/utils/response';
 
 export async function POST(req: Request) {
   try {
@@ -14,16 +15,18 @@ export async function POST(req: Request) {
     });
 
     if (!user || !user.password) {
-      return NextResponse.json({ ok: false, message: 'Invalid credentials' }, { status: 400 });
+      return failure('Invalid credentials.', 400);
+      //return NextResponse.json({ ok: false, message: 'Invalid credentials' }, { status: 400 });
     }
 
     const isValid = await comparePassword(password, user.password);
     if (!isValid) {
-      return NextResponse.json({ ok: false, message: 'Invalid credentials' }, { status: 400 });
+      return failure('Invalid credentials.', 400);
+      //return NextResponse.json({ ok: false, message: 'Invalid credentials' }, { status: 400 });
     }
 
     if (!user.is_activated) {
-      return NextResponse.json({ ok: false, message: 'User not verified/activated' }, { status: 403 });
+      return failure('User not verified.', 403);
     }
 
     //get Userprofile details
@@ -54,7 +57,8 @@ export async function POST(req: Request) {
       payload,
     });
   } catch (err: unknown) {
-    console.error(err);
-    return NextResponse.json({ ok: false, message: getErrorMessage(err) }, { status: 400 });
+    const message = getErrorMessage(err);
+    console.error('POST /api/login error:', err);
+    return failure(message, 500);
   }
 }

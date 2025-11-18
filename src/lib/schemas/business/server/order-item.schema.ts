@@ -8,9 +8,9 @@ extendZodWithOpenApi(z);
  */
 export const CreateOrderItemSchema = z
   .object({
-    productId: z.string(),
+    productId: z.string().optional().nullable(),
     name: z.string(),
-    quantity: z.number().min(1),
+    quantity: z.number().int().positive().default(1),
     price: z.union([z.number(), z.string().transform(Number)]),
   })
   .openapi('CreateOrderItemRequest');

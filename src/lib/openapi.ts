@@ -54,8 +54,11 @@ import {
   //UpdateContactTagSchema,
 } from './schemas/business/server/contacts.schema';
 import {
-  CreateOrderSchema,
+  CreateOrderRequestSchema,
+  //CreateOrderSchema,
   OrderDetailsResponseSchema,
+  OrderListResponseSchema,
+  OrderQuerySchema,
   // OrderListResponseSchema,
   // OrderQuerySchema,
   UpdateOrderSchema,
@@ -586,7 +589,9 @@ registry.registerPath({
   },
 });
 
-/** Category Module Registry */
+/*************  *************************************************
+ * Category Registry Module Open API Generation *******************
+ * ***************************************************************/
 registry.registerPath({
   method: 'get',
   path: '/api/catalogue/categories',
@@ -601,7 +606,7 @@ registry.registerPath({
           schema: z.object({
             ok: z.boolean(),
             message: z.string(),
-            categories: z.array(CategoryResponseSchema),
+            profile: z.array(CategoryResponseSchema),
           }),
         },
       },
@@ -1214,7 +1219,9 @@ registry.registerPath({
   },
 });
 
-/** Contact Open API Generation */
+/*************  *************************************************
+ * Contact Open API Generation *******************
+ * ***************************************************************/
 registry.registerPath({
   method: 'get',
   path: '/api/contacts',
@@ -1376,7 +1383,9 @@ registry.registerPath({
   },
 });
 
-/** Contact Tag Open API Generation */
+/*************  *************************************************
+ * Contact Tag Open API Generation *******************
+ * ***************************************************************/
 registry.registerPath({
   method: 'post',
   path: '/api/contacts/{id}/tags',
@@ -1481,6 +1490,36 @@ registry.registerPath({
 //   },
 // });
 
+/*************  *************************************************
+ * Orders Open API Generation *******************
+ * ***************************************************************/
+registry.registerPath({
+  method: 'get',
+  path: '/api/orders',
+  tags: ['Product Orders'],
+  summary: 'Get all Orders for the authenticated business',
+  security: [{ bearerAuth: [] }],
+  request: {
+    query: OrderQuerySchema,
+  },
+  responses: {
+    200: {
+      description: 'List of categories retrieved successfully',
+      content: {
+        'application/json': {
+          schema: z.object({
+            ok: z.boolean(),
+            message: z.string(),
+            profile: OrderListResponseSchema,
+          }),
+        },
+      },
+    },
+    401: { description: 'Unauthorized' },
+    404: { description: 'Business profile not found' },
+  },
+});
+
 registry.registerPath({
   method: 'post',
   path: '/api/orders',
@@ -1491,7 +1530,7 @@ registry.registerPath({
     body: {
       content: {
         'application/json': {
-          schema: CreateOrderSchema,
+          schema: CreateOrderRequestSchema,
         },
       },
     },
@@ -1504,7 +1543,7 @@ registry.registerPath({
           schema: z.object({
             ok: z.boolean(),
             message: z.string(),
-            profile: OrderDetailsResponseSchema,
+            profile: OrderListResponseSchema,
           }),
         },
       },

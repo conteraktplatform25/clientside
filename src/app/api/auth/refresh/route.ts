@@ -1,22 +1,24 @@
 import { create_access_token, decodeRefreshToken, verifyRefreshToken } from '@/actions/mobile-auth';
 import { getErrorMessage } from '@/utils/errors';
+import { failure, success } from '@/utils/response';
 import { BackendJWT, UserObject } from 'next-auth';
-import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
   const { refresh_token } = await req.json();
-  if (!refresh_token) return NextResponse.json({ ok: false, message: 'Missing refresh token' }, { status: 400 });
+  if (!refresh_token) return failure('Missing refresh token');
 
   try {
     // will throw if invalid
     verifyRefreshToken(refresh_token);
   } catch (err) {
-    return NextResponse.json({ ok: false, error: getErrorMessage(err) }, { status: 401 });
+    const message = getErrorMessage(err);
+    console.error('POST /api/refresh error:', err);
+    return failure(message, 500);
   }
   // produce a new access token
   const decodedUser = decodeRefreshToken(refresh_token);
   if (!decodedUser) {
-    return NextResponse.json({ ok: false, message: 'Invalid token.' }, { status: 401 });
+    return failure('Invalid token.', 401);
   }
 
   const profile: UserObject = {
@@ -34,8 +36,5 @@ export async function POST(req: Request) {
     refresh: refresh_token, // keep same refresh for demo
   };
 
-  return NextResponse.json(
-    { ok: true, data: JSON.stringify(new_access), message: 'Successful Refreshed Token' },
-    { status: 200 }
-  );
+  return success(new_access, 'Successful Refreshed Token');
 }

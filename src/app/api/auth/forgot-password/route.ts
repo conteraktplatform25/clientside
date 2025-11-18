@@ -1,10 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
 import { Resend } from 'resend';
 import { getErrorMessage } from '@/utils/errors';
 import { renderTemplate } from '@/lib/helpers/render-template.helper';
 import { generateOTP } from '@/lib/helpers/generate-otp.helper';
 import bcrypt from 'bcryptjs';
+import { failure, success } from '@/utils/response';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -14,7 +15,7 @@ export async function POST(req: NextRequest) {
 
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
-      return NextResponse.json({ ok: false, message: 'If an account exists, an email will be sent.' }, { status: 400 });
+      return failure('If an account exists, an email will be sent.', 404);
     }
 
     // const token = uuidv4();
@@ -61,14 +62,12 @@ export async function POST(req: NextRequest) {
         subject: subject,
         html: content,
       });
-      return NextResponse.json({ ok: true, message: 'If an account exists, an email will be sent.' }, { status: 200 });
+      return success(true, 'If an account exists, an email will be sent.');
     }
-
-    return NextResponse.json(
-      { ok: true, message: 'Email was not successfully sent. Contact Contakt Support.' },
-      { status: 200 }
-    );
-  } catch (error) {
-    return NextResponse.json({ ok: false, message: getErrorMessage(error) }, { status: 400 });
+    return success(true, 'Email was not successfully sent. Contact Contakt Support.');
+  } catch (err) {
+    const message = getErrorMessage(err);
+    console.error('POST /api/forgot-password error:', err);
+    return failure(message, 500);
   }
 }
