@@ -16,8 +16,7 @@ export async function GET(req: NextRequest) {
     const user = await authenticateRequest(req);
     if (!user) return failure('Unauthorized', 404);
 
-    //const businessProfileId = user.businessProfile?.[0]?.id;
-    const businessProfileId = '520159e9-2ee7-4af3-b1eb-cefc18984b28';
+    const businessProfileId = user.businessProfile?.[0]?.id;
     if (!businessProfileId) return failure('Business profile not configured.', 400);
 
     const businessProfile = await prisma.businessProfile.findUnique({
@@ -103,7 +102,8 @@ export async function PATCH(req: NextRequest) {
     if (!isAuthorized) return failure('Forbidden: Insufficient permissions', 403);
 
     const userId = user.id;
-    const businessProfileId = user.businessProfile?.[0]?.id;
+    //const businessProfileId = user.businessProfile?.[0]?.id;
+    const businessProfileId = '520159e9-2ee7-4af3-b1eb-cefc18984b28';
     if (!userId || !businessProfileId) return failure('User or Business profile not configured.', 400);
 
     const validation = await validateRequest(UpdateBusinessSettingsSchema, req);
@@ -160,7 +160,7 @@ export async function PATCH(req: NextRequest) {
     const response = BusinessSettingsResponseSchema.parse(updatedBusinessProfile);
     return success({ response }, 'Business Profile updated successfully', 200);
   } catch (err) {
-    console.error('Error in POST /api/user:', err);
+    console.error('Error in PATCH /api/business-profile', err);
     const message = getErrorMessage(err);
     //console.error('PATCH /api/settings/business-profile error:', message);
     return failure(message, 500);

@@ -7,7 +7,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { OrderStatus } from '@/type/client/business/order.type';
+import { OrderStatus } from '@prisma/client';
+//import { OrderStatus } from '@/type/client/business/order.type';
 
 interface StatusBadgeProps {
   status: OrderStatus;
@@ -19,19 +20,23 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({ status, onStatusChange }) => 
   let icon: React.ReactNode;
 
   switch (status) {
-    case 'Delivered':
+    case 'DELIVERED':
       badgeClass = 'bg-green-100 text-green-700 hover:bg-green-200';
       icon = <CheckCircle2 className='h-3 w-3 mr-1' />;
       break;
-    case 'Pending':
-      badgeClass = 'bg-gray-100 text-gray-700 hover:bg-gray-200';
+    case 'PENDING':
+      badgeClass = 'bg-yellow-100 text-gray-700 hover:bg-yellow-200';
       icon = <Clock className='h-3 w-3 mr-1' />;
       break;
-    case 'Ongoing':
-      badgeClass = 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200';
+    case 'CONFIRMED':
+      badgeClass = 'bg-blue-100 text-yellow-700 hover:bg-blue-200';
       icon = <Hourglass className='h-3 w-3 mr-1' />;
       break;
-    case 'Cancelled':
+    case 'SHIPPED':
+      badgeClass = 'bg-cyan-100 text-red-700 hover:bg-cyan-200';
+      icon = <XCircle className='h-3 w-3 mr-1' />;
+      break;
+    case 'CANCELLED':
       badgeClass = 'bg-red-100 text-red-700 hover:bg-red-200';
       icon = <XCircle className='h-3 w-3 mr-1' />;
       break;
@@ -40,7 +45,7 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({ status, onStatusChange }) => 
       icon = <Clock className='h-3 w-3 mr-1' />;
   }
 
-  const statuses: OrderStatus[] = ['Delivered', 'Pending', 'Ongoing', 'Cancelled'];
+  const statuses: OrderStatus[] = ['DELIVERED', 'PENDING', 'CONFIRMED', 'SHIPPED', 'CANCELLED'];
 
   return (
     <DropdownMenu>

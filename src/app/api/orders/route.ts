@@ -10,7 +10,7 @@ import {
 } from '@/lib/schemas/business/server/order.schema';
 import { getErrorMessage } from '@/utils/errors';
 import { failure, success } from '@/utils/response';
-import { CurrencyType, OrderStatus, PaymentStatus, Prisma } from '@prisma/client';
+import { OrderStatus, PaymentStatus, Prisma } from '@prisma/client';
 import { NextRequest } from 'next/server';
 
 export async function GET(req: NextRequest) {
@@ -23,8 +23,6 @@ export async function GET(req: NextRequest) {
 
     const validation = await validateRequest(OrderQuerySchema, req);
     if (!validation.success) return failure(validation.response, 401);
-
-    console.log('Order Business Profile: ');
 
     const { page, limit, search, status, sortBy, sortOrder, startDate, endDate } = validation.data;
     const skip = (page - 1) * limit;
@@ -59,10 +57,9 @@ export async function GET(req: NextRequest) {
           id: true,
           order_number: true,
           total_amount: true,
-          currency: true,
           status: true,
           payment_status: true,
-          notes: true,
+          created_at: true,
           contact: { select: { id: true, name: true, phone_number: true } },
         },
       }),
@@ -78,17 +75,14 @@ export async function GET(req: NextRequest) {
       pagination: { page, limit, total, totalPages },
       orders: orders.map((o) => ({
         id: o.id,
-        contact: {
-          id: o.contact.id,
-          name: o.contact.name,
-          phone_number: o.contact.phone_number,
-        },
+        contactId: o.contact.id,
+        contact_name: o.contact.name,
+        contact_phone_number: o.contact.phone_number,
         order_number: o.order_number,
         total_amount: Number(o.total_amount),
-        currency: o.currency as CurrencyType,
         status: o.status as OrderStatus,
         payment_status: o.payment_status as PaymentStatus,
-        notes: o.notes || null,
+        created_at: o.created_at,
       })),
       summary: {
         totalOrders: summary._count.id || 0,

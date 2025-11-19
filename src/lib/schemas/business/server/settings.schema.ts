@@ -1,10 +1,5 @@
 import { z } from 'zod';
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
-import {
-  ConstAnnualRevenue as revenues,
-  ConstBusinessCategories as categories,
-  ConstBusinessIndustries as industries,
-} from '@/lib/constants/auth.constant';
 
 extendZodWithOpenApi(z);
 
@@ -55,27 +50,9 @@ export const CreateBusinessSettingsSchema = z
     phone_number: z.string().min(6, 'Phone number is required'),
     company_location: z.string().nullable().optional(),
     company_website: z.string().nullable().optional(),
-    business_industry: z
-      .string()
-      .refine((value) => industries.includes(value), {
-        message: 'Invalid Selection',
-      })
-      .nullable()
-      .optional(),
-    business_category: z
-      .string()
-      .refine((value) => categories.includes(value), {
-        message: 'Invalid Selection',
-      })
-      .nullable()
-      .optional(),
-    annual_revenue: z
-      .string()
-      .refine((value) => revenues.includes(value), {
-        message: 'Invalid Selection',
-      })
-      .nullable()
-      .optional(),
+    business_industry: z.string().nullable().optional(),
+    business_category: z.string().nullable().optional(),
+    annual_revenue: z.string().nullable().optional(),
     business_email: z.string().nullable().optional(),
     business_logo_url: z.string().nullable().optional(),
     business_bio: z.string().nullable().optional(),

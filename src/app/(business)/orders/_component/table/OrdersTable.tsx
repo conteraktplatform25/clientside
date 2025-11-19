@@ -5,7 +5,7 @@ import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from '@tanstack
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 
-import StatusBadge from '../StatusBadge';
+//import StatusBadge from '../StatusBadge';
 import { IOrderProps, OrderStatus } from '@/type/client/business/order.type';
 
 interface OrdersTableProps {
@@ -17,6 +17,7 @@ interface OrdersTableProps {
 }
 
 export const OrdersTable: React.FC<OrdersTableProps> = ({ data, onStatusChange, onViewDetails }) => {
+  console.log(onStatusChange);
   const columns: ColumnDef<IOrderProps>[] = [
     {
       accessorKey: 'orderId',
@@ -45,10 +46,11 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({ data, onStatusChange, 
       accessorKey: 'status',
       header: 'Status',
       cell: ({ row }) => (
-        <StatusBadge
-          status={row.original.status}
-          onStatusChange={(newStatus) => onStatusChange(row.original.id, newStatus)}
-        />
+        <div>{row.original.id}</div>
+        // <StatusBadge
+        //   status={row.original.status}
+        //   onStatusChange={(newStatus) => onStatusChange(row.original.id, newStatus)}
+        // />
       ),
     },
     {

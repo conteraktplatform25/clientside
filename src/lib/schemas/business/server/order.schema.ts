@@ -102,13 +102,14 @@ export const OrderItemResponseSchema = z.object({
 
 export const OrderResponseSchema = z.object({
   id: z.uuid(),
-  contact: ContactResponseSchema,
+  contactId: z.uuid(),
+  contact_name: z.string(),
+  contact_phone_number: z.string(),
   order_number: z.string(),
   total_amount: z.number(),
-  currency: z.nativeEnum(CurrencyType),
   status: z.nativeEnum(OrderStatus),
   payment_status: z.nativeEnum(PaymentStatus),
-  notes: z.string().nullable(),
+  created_at: z.coerce.date(),
 });
 
 const OrderSummarySchema = z.object({

@@ -1,8 +1,8 @@
 import React from 'react';
-import OrderManagementPage from './OrderManagementPage';
+import OrderManagementTestPage from './OrderManagementTestPage';
 
 const OrderPage = () => {
-  return <OrderManagementPage />;
+  return <OrderManagementTestPage />;
 };
 
 export default OrderPage;

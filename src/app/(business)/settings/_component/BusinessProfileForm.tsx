@@ -50,6 +50,8 @@ const BusinessProfileForm = ({ className }: BusinessProfileFormProps) => {
   const { mutateAsync: updateBusinessProfile, isPending: updateIsPending } = useUpdateBusinessProfile();
   const { mutateAsync: createBusinessProfile, isPending: createIsPending } = useCreateBusinessProfile();
 
+  console.log(phoneNumberVal, parsedPhone);
+
   const businessProfileForm = useForm<TBusinessProfileForm>({
     resolver: zodResolver(businessProfileSchema),
     defaultValues: {
@@ -79,36 +81,39 @@ const BusinessProfileForm = ({ className }: BusinessProfileFormProps) => {
   } = businessProfileForm;
 
   useEffect(() => {
-    if (data) {
-      setIsBusinessExist(true);
-      const phoneValue = data.phone_number ?? '';
-      const phone_details = parsePhoneNumber(phoneValue);
-      setPhoneNumberVal(phoneValue);
-      setParsedPhoneNumber(phone_details);
-
-      const matchedCategory =
-        categories.find((cat) => cat.toLowerCase() === data.business_category?.toLowerCase()) || '';
-      const matchedIndustry =
-        industries.find((ind) => ind.toLowerCase() === data.business_industry?.toLowerCase()) || '';
-      const matchedRevenue = revenues.find((rev) => rev.toLowerCase() === data.annual_revenue?.toLowerCase()) || '';
-      reset({
-        companyName: data.company_name || '',
-        phoneNumber: phoneNumberVal || '',
-        phoneCountryCodeNumber: parsedPhone.countryCode || '+234',
-        logo: '',
-        bio: data.business_bio || '',
-        category: matchedCategory,
-        industry: matchedIndustry,
-        revenue: matchedRevenue,
-        address: data.company_location || '',
-        email: data.user.email || '',
-        website: data.company_website || '',
-        business_hour: data.business_hour ?? defaultBusinessHours(),
-      });
-    } else {
+    if (!data) {
       setIsBusinessExist(false);
+      return;
     }
-  }, [data, parsedPhone, phoneNumberVal, setIsBusinessExist, reset]);
+
+    setIsBusinessExist(true);
+
+    const phoneValue = data.phone_number ?? '';
+    const phone_details = parsePhoneNumber(phoneValue);
+
+    // set states ONCE
+    setPhoneNumberVal(phoneValue);
+    setParsedPhoneNumber(phone_details);
+
+    const matchedCategory = categories.find((cat) => cat.toLowerCase() === data.business_category?.toLowerCase()) || '';
+    const matchedIndustry = industries.find((ind) => ind.toLowerCase() === data.business_industry?.toLowerCase()) || '';
+    const matchedRevenue = revenues.find((rev) => rev.toLowerCase() === data.annual_revenue?.toLowerCase()) || '';
+
+    reset({
+      companyName: data.company_name || '',
+      phoneNumber: phoneValue,
+      phoneCountryCodeNumber: phone_details.countryCode || '+234',
+      logo: '',
+      bio: data.business_bio || '',
+      category: matchedCategory,
+      industry: matchedIndustry,
+      revenue: matchedRevenue,
+      address: data.company_location || '',
+      email: data.user.email || '',
+      website: data.company_website || '',
+      business_hour: data.business_hour ?? defaultBusinessHours(),
+    });
+  }, [data, reset]);
 
   const businessLogo = watch('logo')!;
 

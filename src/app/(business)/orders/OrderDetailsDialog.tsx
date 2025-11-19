@@ -4,7 +4,7 @@ import { Separator } from '@/components/ui/separator';
 // import { Order, OrderStatus } from "./OrdersTable";
 // import StatusBadge from "./StatusBadge";
 import { IOrderProps, OrderStatus } from '@/type/client/business/order.type';
-import StatusBadge from './_component/StatusBadge';
+//import StatusBadge from './_component/StatusBadge';
 import { Label } from '@/components/ui/label';
 
 interface OrderDetailsDialogProps {
@@ -18,10 +18,11 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ order, isOpen, 
   if (!order) {
     return null;
   }
+  console.log(onStatusChange);
 
-  const handleStatusUpdate = (newStatus: OrderStatus) => {
-    onStatusChange(order.id, newStatus);
-  };
+  // const handleStatusUpdate = (newStatus: OrderStatus) => {
+  //   onStatusChange(order.id, newStatus);
+  // };
 
   const totalItemsAmount = order.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
@@ -69,7 +70,7 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({ order, isOpen, 
 
               <span className='text-muted-foreground'>Order status</span>
               <div className='flex justify-end'>
-                <StatusBadge status={order.status} onStatusChange={handleStatusUpdate} />
+                {/* <StatusBadge status={order.status} onStatusChange={handleStatusUpdate} /> */}
               </div>
             </div>
           </div>
