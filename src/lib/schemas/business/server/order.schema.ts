@@ -88,16 +88,15 @@ export const CreateOrderResponseSchema = z
  * Responses
  */
 export const ContactResponseSchema = z.object({
-  id: z.uuid(),
   name: z.string(),
   phone_number: z.string(),
+  email: z.string(),
 });
 export const OrderItemResponseSchema = z.object({
-  id: z.uuid(),
   name: z.string(),
   quantity: z.number(),
-  price: z.number(),
-  total: z.number(),
+  price: z.coerce.number(),
+  total: z.coerce.number(),
 });
 
 export const OrderResponseSchema = z.object({
@@ -128,17 +127,32 @@ export const OrderListResponseSchema = z
 export const OrderDetailsResponseSchema = z
   .object({
     id: z.uuid(),
-    contact: ContactResponseSchema,
     order_number: z.string(),
     status: z.nativeEnum(OrderStatus),
-    total_amount: z.number(),
+    total_amount: z.coerce.number().positive(),
     currency: z.nativeEnum(CurrencyType),
-    payment_status: z.nativeEnum(PaymentStatus),
-    payment_method: z.string(),
-    delivery_address: z.record(z.string(), z.any()).nullable(),
+    payment_status: z.nativeEnum(PaymentStatus).nullable().optional(),
+    payment_method: z.string().nullable().optional(),
+    delivery_address: z.record(z.string(), z.any()).nullable().optional(),
     notes: z.string().nullable(),
-    items: z.array(OrderItemResponseSchema),
-    created_at: z.string(),
-    updated_at: z.string(),
+    created_at: z.coerce.date(),
+    updated_at: z.coerce.date(),
+    contact: ContactResponseSchema,
+    OrderItem: z.array(OrderItemResponseSchema),
   })
-  .openapi('OrderDetailListResponse');
+  .openapi('OrderDetailsResponse');
+
+export const UpdateOrderStatusRequestSchema = z
+  .object({
+    status: z.nativeEnum(OrderStatus),
+  })
+  .openapi('UpdateOrderStatusRequest');
+
+export const UpdateOrderStatusResponseSchema = z
+  .object({
+    id: z.uuid(),
+    order_number: z.string(),
+    status: z.nativeEnum(OrderStatus),
+    updated_at: z.coerce.date(),
+  })
+  .openapi('UpdateOrderStatusResponse');

@@ -8,14 +8,13 @@ import { OrderStatus } from '@prisma/client';
 import StatusFilter from './_component/StatusFilter';
 //import DateFilter from '@/components/custom/DateFilter';
 import PaginationControls from '@/components/custom/PaginationControls';
-//import { Label } from '@/components/ui/label';
-//import OrderDetailsDialog from './OrderDetailsDialog';
 import { usePageTitleStore } from '@/lib/store/defaults/usePageTitleStore';
 import { TOrderQueryRequest, TOrderResponse, useGetProductOrders } from '@/lib/hooks/business/order-product.hook';
 import { useDebounce } from '@/lib/hooks/useDebounce';
-import { DateRangePicker } from '@/components/custom/DateRangePicker';
 import { Skeleton } from '@/components/ui/skeleton';
 import { OrderTestTable } from './_component/table/OrderTestTable';
+import { DateRangePickerPremium } from '@/components/custom/DateRangePickerPremium';
+import UILoaderIndicator from '@/components/custom/UILoaderIndicator';
 
 const OrderManagementTestPage = () => {
   const { setTitle } = usePageTitleStore();
@@ -90,7 +89,7 @@ const OrderManagementTestPage = () => {
 
           {/* Date Range Filter */}
           <div>
-            <DateRangePicker value={dateRange} onChange={setDateRange} />
+            <DateRangePickerPremium value={dateRange} onChange={setDateRange} />
           </div>
           <input
             placeholder='Search by name or OrderID'
@@ -121,9 +120,10 @@ const OrderManagementTestPage = () => {
       {/* Orders Table */}
       {isLoading ? (
         <div className='space-y-3 mb-6'>
-          {Array.from({ length: 5 }).map((_, i) => (
+          <UILoaderIndicator label='Fetching your Order list content...' />
+          {/* {Array.from({ length: 5 }).map((_, i) => (
             <Skeleton key={i} className='h-[50px] w-full rounded-md' />
-          ))}
+          ))} */}
         </div>
       ) : (
         <OrderTestTable

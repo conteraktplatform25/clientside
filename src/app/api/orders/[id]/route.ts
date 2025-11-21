@@ -1,7 +1,7 @@
 import { authenticateRequest, authorizeRole } from '@/lib/auth';
 import { validateRequest } from '@/lib/helpers/validation-request.helper';
 import prisma from '@/lib/prisma';
-import { UpdateOrderSchema } from '@/lib/schemas/business/server/order.schema';
+import { OrderDetailsResponseSchema, UpdateOrderSchema } from '@/lib/schemas/business/server/order.schema';
 import { getErrorMessage } from '@/utils/errors';
 import { failure, success } from '@/utils/response';
 import { NextRequest } from 'next/server';
@@ -13,16 +13,46 @@ export async function GET(req: NextRequest, context: { params: Promise<{ id: str
     const user = await authenticateRequest(req);
     if (!user) return failure('Unauthorized', 404);
 
-    const order = await prisma.order.findUnique({
+    const responseData = await prisma.order.findUnique({
       where: { id },
-      include: { contact: true, OrderItem: true },
+      select: {
+        id: true,
+        order_number: true,
+        status: true,
+        total_amount: true,
+        currency: true,
+        payment_status: true,
+        payment_method: true,
+        delivery_address: true,
+        notes: true,
+        created_at: true,
+        updated_at: true,
+        contact: {
+          select: {
+            name: true,
+            phone_number: true,
+            email: true,
+          },
+        },
+        OrderItem: {
+          select: {
+            name: true,
+            quantity: true,
+            price: true,
+            total: true,
+          },
+        },
+      },
     });
-    if (!order) return failure('Client Order not found', 404);
+    if (!responseData) return failure('Client Order not found', 404);
 
-    return success({ order }, 'Successful retrieval');
+    const order_details = OrderDetailsResponseSchema.parse(responseData);
+
+    return success({ order_details }, 'Successful retrieval');
   } catch (err) {
-    console.error('GET /orders/[id] error:', err);
-    return failure(getErrorMessage(err), 401);
+    const message = getErrorMessage(err);
+    console.error('GET /api/orders/[id] error:', err);
+    return failure(message, 401);
   }
 }
 
@@ -47,7 +77,8 @@ export async function PATCH(req: NextRequest, context: { params: Promise<{ id: s
     // 3️⃣ Verify Order profile and its Ownership
     const existingOrder = await prisma.order.findFirst({
       where: { id, businessProfileId },
-      include: { contact: true, OrderItem: true },
+      select: { id: true },
+      //include: { contact: true, OrderItem: true },
     });
     if (!existingOrder) return failure('Contact profile not found.', 404);
 
@@ -63,7 +94,9 @@ export async function PATCH(req: NextRequest, context: { params: Promise<{ id: s
 
     return success({ updatedOrder }, 'Client Order updated successfully', 200);
   } catch (err) {
-    return failure(getErrorMessage(err), 401);
+    const message = getErrorMessage(err);
+    console.error('PATCH /api/orders/[id] error:', err);
+    return failure(message, 401);
   }
 }
 
@@ -78,6 +111,9 @@ export async function DELETE(req: NextRequest, context: { params: Promise<{ id: 
     await prisma.order.delete({ where: { id } });
     return success(null, 'Client Order deleted');
   } catch (err) {
-    return failure(getErrorMessage(err), 500);
+    //return failure(getErrorMessage(err), 500);
+    const message = getErrorMessage(err);
+    console.error('DELETE /api/orders/[id] error:', err);
+    return failure(message, 401);
   }
 }

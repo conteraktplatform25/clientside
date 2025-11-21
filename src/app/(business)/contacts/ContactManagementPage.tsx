@@ -391,11 +391,6 @@ const ContactManagementPage: React.FC = () => {
         open={isAddTagDialogOpen}
         onOpenChange={setIsAddTagDialogOpen}
         contactId={selectedContactIdForTags}
-        // onSaved={() => {
-        //   // Refresh contacts after saving tags — depends on your data model
-        //   // e.g., re-fetch the list:
-        //   setServerFilter((prev) => prev); // triggers re-fetch
-        // }}
       />
     </div>
   );

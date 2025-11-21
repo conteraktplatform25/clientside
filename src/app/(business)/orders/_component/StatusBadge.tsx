@@ -11,7 +11,7 @@ import { OrderStatus } from '@prisma/client';
 //import { OrderStatus } from '@/type/client/business/order.type';
 
 interface StatusBadgeProps {
-  status: OrderStatus;
+  status: OrderStatus | null;
   onStatusChange?: (newStatus: OrderStatus) => void;
 }
 

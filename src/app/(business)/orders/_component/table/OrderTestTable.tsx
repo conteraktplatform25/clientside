@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,7 @@ import StatusBadge from '../StatusBadge';
 import { TOrderResponse } from '@/lib/hooks/business/order-product.hook';
 import { OrderStatus } from '@prisma/client';
 import { formatDateField } from '@/lib/helpers/date-manipulator.helper';
+import OrderDetailsTestDialog from '../OrderDetailsTestDialog';
 //import { IOrderProps, OrderStatus } from "@/type/client/business/order.type";
 
 interface IOrdersTableProps {
@@ -27,6 +28,11 @@ export const OrderTestTable: React.FC<IOrdersTableProps> = ({
   onStatusChange,
   onViewDetails,
 }) => {
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const [isViewDetailsOpen, setIsViewDetailsOpen] = useState(false);
+
+  console.log(onViewDetails);
+
   const columns: ColumnDef<TOrderResponse>[] = [
     {
       accessorKey: 'order_number',
@@ -70,7 +76,7 @@ export const OrderTestTable: React.FC<IOrdersTableProps> = ({
         <Button
           className='font-medium text-sm text-primary-base hover:text-primary-700'
           variant='link'
-          onClick={() => onViewDetails(row.original)}
+          onClick={() => handleViewDetails(row.original.id)}
         >
           View details
         </Button>
@@ -83,6 +89,12 @@ export const OrderTestTable: React.FC<IOrdersTableProps> = ({
     columns,
     getCoreRowModel: getCoreRowModel(),
   });
+
+  const handleViewDetails = (orderId: string) => {
+    console.log(orderId);
+    setSelectedOrderId(orderId);
+    setIsViewDetailsOpen(true);
+  };
 
   return (
     <div className='rounded-md border'>
@@ -128,6 +140,8 @@ export const OrderTestTable: React.FC<IOrdersTableProps> = ({
           )}
         </TableBody>
       </Table>
+
+      <OrderDetailsTestDialog orderId={selectedOrderId} open={isViewDetailsOpen} onOpenChange={setIsViewDetailsOpen} />
     </div>
   );
 };

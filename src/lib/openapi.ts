@@ -62,6 +62,8 @@ import {
   // OrderListResponseSchema,
   // OrderQuerySchema,
   UpdateOrderSchema,
+  UpdateOrderStatusRequestSchema,
+  UpdateOrderStatusResponseSchema,
 } from './schemas/business/server/order.schema';
 import {
   CreateOrderItemSchema,
@@ -1656,6 +1658,47 @@ registry.registerPath({
     401: { description: 'Unauthorized' },
     403: { description: 'Forbidden: Insufficient permissions' },
     500: { description: 'Internal server error' },
+  },
+});
+
+registry.registerPath({
+  method: 'patch',
+  path: '/api/orders/{id}/status',
+  tags: ['Product Orders'],
+  summary: 'Update order status by the order ID',
+  description:
+    'Allows authorized users (Business/Admin) to modify order status of an existing business owner client order.',
+  security: [{ bearerAuth: [] }],
+  request: {
+    params: z.object({
+      id: z.uuid().openapi({
+        example: 'b8d43f9e-cc8b-4b84-a20d-8e85acb8a654',
+      }),
+    }),
+    body: {
+      content: {
+        'application/json': {
+          schema: UpdateOrderStatusRequestSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: 'Product Order Status successfully updated',
+      content: {
+        'application/json': {
+          schema: z.object({
+            ok: z.boolean().openapi({ example: true }),
+            message: z.string().openapi({ example: 'Successful updated order status' }),
+            profile: UpdateOrderStatusResponseSchema,
+          }),
+        },
+      },
+    },
+    400: { description: 'Invalid input' },
+    401: { description: 'Unauthorized' },
+    403: { description: 'Forbidden: Insufficient permissions' },
   },
 });
 

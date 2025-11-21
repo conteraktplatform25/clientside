@@ -122,6 +122,10 @@ model BusinessProfile {
   tags Tag[]
 
   userActivities UserActivity[]
+
+  quickReplies QuickReply[]
+
+  broadcastMessages BroadcastMessage[]
 }
 
 model Account {
@@ -303,11 +307,12 @@ model Contact {
   updated_at        DateTime      @updatedAt
 
   // Relations
-  businessProfile BusinessProfile @relation(fields: [businessProfileId], references: [id])
-  contactTag      ContactTag[]
-  conversations   Conversation[] // Link to chat history if needed
-  Order           Order[]
-  UserActivity    UserActivity[]
+  businessProfile     BusinessProfile      @relation(fields: [businessProfileId], references: [id])
+  contactTag          ContactTag[]
+  conversations       Conversation[] // Link to chat history if needed
+  Order               Order[]
+  UserActivity        UserActivity[]
+  broadcastRecipients BroadcastRecipient[]
 
   @@unique([businessProfileId, phone_number])
   @@index([businessProfileId])
@@ -432,6 +437,93 @@ model Message {
   // Relations
   conversation Conversation @relation(fields: [conversationId], references: [id])
   user         User?        @relation(fields: [senderId], references: [id])
+}
+
+model QuickReply {
+  id                String   @id @default(cuid())
+  businessProfileId String
+  title             String // Name, e.g. "Welcome Message"
+  shortcut          String? // /welcome
+  content           String // The actual message text
+  category          String? // Optional grouping
+  isActive          Boolean  @default(false)
+  variables         Json?
+  createdById       String?
+  is_global         Boolean  @default(false) // If you support global templates
+  usageCount        Int      @default(0)
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+
+  business BusinessProfile @relation(fields: [businessProfileId], references: [id])
+
+  @@index([businessProfileId])
+  @@index([title])
+  @@index([content])
+}
+
+model BroadcastMessage {
+  id                String          @id @default(cuid())
+  businessProfileId String
+  createdById       String?
+  name              String // Internal name: “Black Friday Promo”
+  messageType       BroadcastType   @default(TEXT) // TEXT, TEMPLATE, MEDIA
+  content           String? // For TEXT messages
+  mediaUrl          String? // For images, videos, files
+  templateId        String? // If using WhatsApp template messages
+  scheduledFor      DateTime? // If scheduling broadcasts
+  status            BroadcastStatus @default(DRAFT) // DRAFT, SCHEDULED, SENDING, COMPLETED, FAILED
+  totalRecipients   Int             @default(0) // auto-filled
+  sentCount         Int             @default(0)
+  deliveredCount    Int             @default(0)
+  readCount         Int             @default(0)
+  failedCount       Int             @default(0)
+  created_at        DateTime        @default(now())
+
+  updated_at DateTime @updatedAt
+
+  business BusinessProfile @relation(fields: [businessProfileId], references: [id])
+
+  broadcastRecipients BroadcastRecipient[]
+}
+
+model BroadcastRecipient {
+  id           String                  @id @default(cuid())
+  broadcastId  String
+  contactId    String
+  status       BroadcastDeliveryStatus @default(PENDING) // PENDING, SENT, DELIVERED, READ, FAILED
+  sentAt       DateTime?
+  deliveredAt  DateTime?
+  readAt       DateTime?
+  failedReason String?
+  created_at   DateTime                @default(now())
+
+  broadcast BroadcastMessage @relation(fields: [broadcastId], references: [id])
+  contact   Contact          @relation(fields: [contactId], references: [id])
+
+  @@index([broadcastId])
+  @@index([contactId])
+}
+
+enum BroadcastDeliveryStatus {
+  PENDING
+  SENT
+  DELIVERED
+  READ
+  FAILED
+}
+
+enum BroadcastStatus {
+  DRAFT
+  SCHEDULED
+  SENDING
+  COMPLETED
+  FAILED
+}
+
+enum BroadcastType {
+  TEXT
+  TEMPLATE
+  MEDIA
 }
 
 enum OrderStatus {

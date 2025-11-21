@@ -3,6 +3,7 @@ import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
 import { TCreateProductRequest } from '@/lib/hooks/business/catalogue-sharing.hook';
+import { getCurrencySymbol } from '@/lib/helpers/string-manipulator.helper';
 
 interface ProductCardProps {
   product: TCreateProductRequest;
@@ -48,7 +49,7 @@ const ProductCardTest: React.FC<ProductCardProps> = ({ product }) => {
           </p>
           <div className='flex items-center justify-between'>
             <span className='text-base font-semibold text-neutral-900'>
-              {product.currency} {product.price.toLocaleString()}
+              {getCurrencySymbol(product.currency)} {product.price.toLocaleString()}
             </span>
           </div>
         </div>
