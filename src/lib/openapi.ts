@@ -77,6 +77,28 @@ import {
   UpdateUserSettingsSchema,
   UserSettingsResponseSchema,
 } from './schemas/business/server/settings.schema';
+import {
+  CreateQuickReplyRequestSchema,
+  CreateQuickReplyResponseSchema,
+  QuickReplyDetailsResponseSchema,
+  QuickReplyListResponseSchema,
+  QuickReplyQuerySchema,
+  UpdateQuickReplyRequestSchema,
+  UpdateQuickReplyResponseSchema,
+} from './schemas/business/server/quickReply.schema';
+import {
+  ConversationListResponseSchema,
+  ConversationQuerySchema,
+  CreateConversationResponseSchema,
+  CreateConversationSchema,
+  CreateMessageResponseSchema,
+  CreateMessageSchema,
+  DeleteConversationResponseSchema,
+  MessageDetailsResponseSchema,
+  MessageQuerySchema,
+  UpdateConversationResponseSchema,
+  UpdateConversationSchema,
+} from './schemas/business/server/inbox.schema';
 
 // ✅ Initialize zod-openapi
 extendZodWithOpenApi(z);
@@ -471,7 +493,9 @@ registry.registerPath({
   },
 });
 
-/** Business Profile Setting Open API documentation */
+/*************  *************************************************
+ * Business Profile Setting Module Open API Generation *******************
+ * ***************************************************************/
 registry.registerPath({
   method: 'get',
   path: '/api/settings/business-profile',
@@ -590,10 +614,11 @@ registry.registerPath({
     404: { description: 'Business profile not found' },
   },
 });
+/*************  ********************************************************************************/
 
 /*************  *************************************************
- * Category Registry Module Open API Generation *******************
- * ***************************************************************/
+ ********** Category Registry Module Open API Generation *******************
+ * **************************************************************************/
 registry.registerPath({
   method: 'get',
   path: '/api/catalogue/categories',
@@ -827,8 +852,11 @@ registry.registerPath({
     },
   },
 });
+/*************  ********************************************************************************/
 
-/** Product Catalogue Implementation */
+/*************  *************************************************
+ ********** Product Catalogue Module Open API Generation *******************
+ * **************************************************************************/
 registry.registerPath({
   method: 'get',
   path: '/api/catalogue/products',
@@ -1014,6 +1042,7 @@ registry.registerPath({
     500: { description: 'Internal server error' },
   },
 });
+/*************  ********************************************************************************/
 
 /***Product Media here... */
 registry.registerPath({
@@ -1384,6 +1413,7 @@ registry.registerPath({
     403: { description: 'Forbidden: Insufficient permissions' },
   },
 });
+/*************  ********************************************************************************/
 
 /*************  *************************************************
  * Contact Tag Open API Generation *******************
@@ -1491,6 +1521,8 @@ registry.registerPath({
 //     404: { description: 'Business profile not found' },
 //   },
 // });
+
+/*************  ********************************************************************************/
 
 /*************  *************************************************
  * Orders Open API Generation *******************
@@ -1701,8 +1733,11 @@ registry.registerPath({
     403: { description: 'Forbidden: Insufficient permissions' },
   },
 });
+/*************  ********************************************************************************/
 
-/** Client Order Item Open API Generation */
+/*************  *************************************************
+ * Client Order Item Open API Generation *******************
+ * ***************************************************************/
 registry.registerPath({
   method: 'get',
   path: '/api/orders/{id}/items',
@@ -1889,3 +1924,387 @@ registry.registerPath({
     500: { description: 'Internal server error' },
   },
 });
+/*************  ********************************************************************************/
+
+/*************  *************************************************
+ * Quick Reply Open API Generation *******************
+ * ***************************************************************/
+registry.registerPath({
+  method: 'get',
+  path: '/api/quick-replies',
+  tags: ['Automated Messaging - Quick Reply'],
+  summary: 'Get all quick replies for the authenticated business',
+  security: [{ bearerAuth: [] }],
+  request: {
+    query: QuickReplyQuerySchema,
+  },
+  responses: {
+    200: {
+      description: 'List of quick replies retrieved successfully',
+      content: {
+        'application/json': {
+          schema: z.object({
+            ok: z.boolean(),
+            message: z.string(),
+            profile: QuickReplyListResponseSchema,
+          }),
+        },
+      },
+    },
+    401: { description: 'Unauthorized' },
+    404: { description: 'Reply not found' },
+  },
+});
+
+registry.registerPath({
+  method: 'post',
+  path: '/api/quick-replies',
+  tags: ['Automated Messaging - Quick Reply'],
+  summary: 'Create a new quick reply profile under the authenticated business profile',
+  security: [{ bearerAuth: [] }],
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: CreateQuickReplyRequestSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    201: {
+      description: 'Quick reply successfully created',
+      content: {
+        'application/json': {
+          schema: z.object({
+            ok: z.boolean(),
+            message: z.string(),
+            profile: CreateQuickReplyResponseSchema,
+          }),
+        },
+      },
+    },
+    400: { description: 'Invalid input or missing fields' },
+    401: { description: 'Unauthorized' },
+    403: { description: 'Forbidden: Insufficient permissions' },
+    404: { description: 'Reply profile not configured' },
+  },
+});
+
+registry.registerPath({
+  method: 'get',
+  path: '/api/quick-replies/{id}',
+  tags: ['Automated Messaging - Quick Reply'],
+  summary: 'Retrieve a single reply profile by ID',
+  security: [{ bearerAuth: [] }],
+  request: {
+    params: z.object({
+      id: z.uuid().openapi({
+        example: 'b8d43f9e-cc8b-4b84-a20d-8e85acb8a654',
+        description: 'The UUID of the client order to retrieve',
+      }),
+    }),
+  },
+  responses: {
+    200: {
+      description: 'Successful retrieval of a client order for the business owner',
+      content: {
+        'application/json': {
+          schema: z.object({
+            ok: z.boolean().openapi({ example: true }),
+            message: z.string().openapi({ example: 'Successful retrieval' }),
+            profile: QuickReplyDetailsResponseSchema, // note: your success() function wraps payload under "profile"
+          }),
+        },
+      },
+    },
+    401: { description: 'Unauthorized' },
+    404: { description: 'reply not found' },
+  },
+});
+
+registry.registerPath({
+  method: 'patch',
+  path: '/api/quick-replies/{id}',
+  tags: ['Automated Messaging - Quick Reply'],
+  summary: 'Update quick reply by the order ID',
+  description:
+    'Allows authorized users (Business/Admin) to modify quick reply of an existing business owner client order.',
+  security: [{ bearerAuth: [] }],
+  request: {
+    params: z.object({
+      id: z.uuid().openapi({
+        example: 'b8d43f9e-cc8b-4b84-a20d-8e85acb8a654',
+      }),
+    }),
+    body: {
+      content: {
+        'application/json': {
+          schema: UpdateQuickReplyRequestSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: 'Quick reply message successfully updated',
+      content: {
+        'application/json': {
+          schema: z.object({
+            ok: z.boolean().openapi({ example: true }),
+            message: z.string().openapi({ example: 'Successful updated order status' }),
+            profile: UpdateQuickReplyResponseSchema,
+          }),
+        },
+      },
+    },
+    400: { description: 'Invalid input' },
+    401: { description: 'Unauthorized' },
+    403: { description: 'Forbidden: Insufficient permissions' },
+  },
+});
+/*************  ********************************************************************************/
+
+/*************  *************************************************
+ * Inbox Open API Generation *******************
+ * ***************************************************************/
+registry.registerPath({
+  method: 'get',
+  path: '/api/inbox/conversations',
+  tags: ['Inbox - Conversations'],
+  summary: 'Get all conversation for the authenticated business',
+  security: [{ bearerAuth: [] }],
+  request: {
+    query: ConversationQuerySchema,
+  },
+  responses: {
+    200: {
+      description: 'List of conversation retrieved successfully',
+      content: {
+        'application/json': {
+          schema: z.object({
+            ok: z.boolean(),
+            message: z.string(),
+            profile: ConversationListResponseSchema,
+          }),
+        },
+      },
+    },
+    400: { description: 'Business profile not configured.' },
+    401: { description: 'Unauthorized' },
+    403: { description: 'User is Forbidden to access' },
+    500: { description: 'Server Error.' },
+  },
+});
+
+registry.registerPath({
+  method: 'post',
+  path: '/api/inbox/conversations',
+  tags: ['Inbox - Conversations'],
+  summary: 'Initiate a new conversation with client under the authenticated business profile',
+  security: [{ bearerAuth: [] }],
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: CreateConversationSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    201: {
+      description: 'Conversation initiated successfully',
+      content: {
+        'application/json': {
+          schema: z.object({
+            ok: z.boolean(),
+            message: z.string(),
+            profile: CreateConversationResponseSchema,
+          }),
+        },
+      },
+    },
+    400: { description: 'Business profile not configured.' },
+    401: { description: 'Unauthorized' },
+    403: { description: 'Forbidden: Insufficient permissions' },
+    404: { description: 'Reply profile not configured' },
+  },
+});
+
+registry.registerPath({
+  method: 'get',
+  path: '/api/inbox/conversations/{id}',
+  tags: ['Inbox - Conversations'],
+  summary: 'Successfully retrieved message',
+  security: [{ bearerAuth: [] }],
+  request: {
+    params: z.object({
+      id: z.uuid().openapi({
+        example: 'b8d43f9e-cc8b-4b84-a20d-8e85acb8a654',
+        description: 'The UUID of the client order to retrieve',
+      }),
+    }),
+    query: MessageQuerySchema,
+  },
+  responses: {
+    200: {
+      description: 'Successful retrieval of a client order for the business owner',
+      content: {
+        'application/json': {
+          schema: z.object({
+            ok: z.boolean().openapi({ example: true }),
+            message: z.string().openapi({ example: 'Successfully retrieved message' }),
+            profile: MessageDetailsResponseSchema,
+          }),
+        },
+      },
+    },
+    401: { description: 'Unauthorized' },
+    404: { description: 'reply not found' },
+  },
+});
+
+registry.registerPath({
+  method: 'patch',
+  path: '/api/inbox/conversations/{id}',
+  tags: ['Inbox - Conversations'],
+  summary: 'Successfully retrieved message',
+  security: [{ bearerAuth: [] }],
+  request: {
+    params: z.object({
+      id: z.uuid().openapi({
+        example: 'b8d43f9e-cc8b-4b84-a20d-8e85acb8a654',
+        description: 'The UUID of the client order to retrieve',
+      }),
+    }),
+    body: {
+      content: {
+        'application/json': {
+          schema: UpdateConversationSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: 'Update Successful for the business owner conversation',
+      content: {
+        'application/json': {
+          schema: z.object({
+            ok: z.boolean().openapi({ example: true }),
+            message: z.string().openapi({ example: 'Successfully retrieved message' }),
+            profile: UpdateConversationResponseSchema,
+          }),
+        },
+      },
+    },
+    401: { description: 'Unauthorized' },
+    404: { description: 'reply not found' },
+  },
+});
+
+registry.registerPath({
+  method: 'delete',
+  path: '/api/inbox/conversations/{id}',
+  tags: ['Inbox - Conversations'],
+  summary: 'Successfully deactivated conversation',
+  security: [{ bearerAuth: [] }],
+  request: {
+    params: z.object({
+      id: z.uuid().openapi({
+        example: 'b8d43f9e-cc8b-4b84-a20d-8e85acb8a654',
+        description: 'The UUID of the client order to retrieve',
+      }),
+    }),
+  },
+  responses: {
+    200: {
+      description: 'Deactivation of conversation Successful for the business owner conversation',
+      content: {
+        'application/json': {
+          schema: z.object({
+            ok: z.boolean().openapi({ example: true }),
+            message: z.string().openapi({ example: 'Successfully deactivated conversation' }),
+            profile: DeleteConversationResponseSchema,
+          }),
+        },
+      },
+    },
+    401: { description: 'Unauthorized' },
+    404: { description: 'reply not found' },
+  },
+});
+
+registry.registerPath({
+  method: 'get',
+  path: '/api/inbox/conversations/{id}/message',
+  tags: ['Inbox - Conversation Messages'],
+  summary: 'Successfully retrieved message',
+  security: [{ bearerAuth: [] }],
+  request: {
+    params: z.object({
+      id: z.uuid().openapi({
+        example: 'b8d43f9e-cc8b-4b84-a20d-8e85acb8a654',
+        description: 'The UUID of the client order to retrieve',
+      }),
+    }),
+    query: MessageQuerySchema,
+  },
+  responses: {
+    200: {
+      description: 'Successful retrieval of a client order for the business owner',
+      content: {
+        'application/json': {
+          schema: z.object({
+            ok: z.boolean().openapi({ example: true }),
+            message: z.string().openapi({ example: 'Successfully retrieved message' }),
+            profile: MessageDetailsResponseSchema,
+          }),
+        },
+      },
+    },
+    401: { description: 'Unauthorized' },
+    404: { description: 'reply not found' },
+  },
+});
+
+registry.registerPath({
+  method: 'post',
+  path: '/api/inbox/conversations/{id}/message',
+  tags: ['Inbox - Conversation Messages'],
+  summary: 'Message delivered successfully',
+  security: [{ bearerAuth: [] }],
+  request: {
+    params: z.object({
+      id: z.uuid().openapi({
+        example: 'b8d43f9e-cc8b-4b84-a20d-8e85acb8a654',
+        description: 'The UUID of the client order to retrieve',
+      }),
+    }),
+    body: {
+      content: {
+        'application/json': {
+          schema: CreateMessageSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    201: {
+      description: 'Message delivered successfully for the business owner',
+      content: {
+        'application/json': {
+          schema: z.object({
+            ok: z.boolean().openapi({ example: true }),
+            message: z.string().openapi({ example: 'Message delivered successfully' }),
+            profile: CreateMessageResponseSchema,
+          }),
+        },
+      },
+    },
+    401: { description: 'Unauthorized' },
+    404: { description: 'reply not found' },
+  },
+});
+/*************  ********************************************************************************/

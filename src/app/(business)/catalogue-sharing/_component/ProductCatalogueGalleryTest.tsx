@@ -95,7 +95,7 @@ const ProductCatalogueGalleryTest: React.FC = () => {
   if (!hasCategories || !hasProducts) return <EmptyProductTest categories={categories} />;
 
   return (
-    <div className='container w-full mx-auto xl:mx-48 px-6 py-2'>
+    <div className='w-full px-4 flex flex-col gap-2'>
       {/* Header */}
       <div className='w-full flex justify-between my-4'>
         <div className='inline-flex space-x-2 py-3'>

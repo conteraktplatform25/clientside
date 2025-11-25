@@ -44,3 +44,19 @@ export const getCurrencySymbol = (currency: CurrencyType): string => {
   };
   return map[currency] ?? '₦';
 };
+
+export function stripHtml(html: string): string {
+  return html.replace(/<\/?[^>]+(>|$)/g, '').trim();
+}
+
+// highlight.ts
+export function highlightText(text: string, query: string) {
+  if (!query) return text;
+  const regex = new RegExp(`(${query})`, 'gi');
+  return text.replace(regex, `<mark class="bg-yellow-200">$1</mark>`);
+}
+
+// highlight variables like {{name}}
+export function formatVariables(text: string) {
+  return text.replace(/{{(.*?)}}/g, `<span class="px-1 py-0.5 text-blue-700 bg-blue-100 rounded">${'{{$1}}'}</span>`);
+}

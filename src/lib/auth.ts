@@ -76,3 +76,23 @@ export function authorizeRole(user: AuthenticatedUser | null, allowed: string[])
   const user_role = user && user.role && user.role.name;
   return !!user && allowed.includes(user_role!);
 }
+
+// checks that a user is a member of businessProfileId (BusinessTeam)
+export async function checkBusinessMembership(userId: string, businessProfileId: string) {
+  // Replace with actual prisma query
+  const membership = await prisma.businessTeamProfile.findUnique({
+    where: { businessProfileId_userId: { businessProfileId, userId } },
+    select: {
+      id: true,
+      status: true,
+    },
+  });
+  return !!membership && membership.status === 'ACTIVE';
+}
+
+// placeholder permission gate
+export async function userCan(userId: string, businessProfileId: string, permission: string) {
+  // Implement your role->permission lookup
+  // For now, assume all business members have access
+  return await checkBusinessMembership(userId, businessProfileId);
+}

@@ -62,7 +62,7 @@ export async function PATCH(req: NextRequest, context: { params: Promise<{ id: s
     const validation = await validateRequest(UpdateQuickReplyRequestSchema, req);
     if (!validation.success) return failure(validation.response, 401);
 
-    const { title, shortcut, content, category, is_global } = validation.data;
+    const { title, content, category, is_global } = validation.data;
 
     // 3️⃣ Verify Quick reply profile and its Ownership
     const existingReply = await prisma.quickReply.findFirst({
@@ -75,7 +75,6 @@ export async function PATCH(req: NextRequest, context: { params: Promise<{ id: s
       where: { id },
       data: {
         title: title ?? existingReply.title,
-        shortcut: shortcut ?? existingReply.shortcut,
         content: content ?? existingReply.content,
         category: category ?? existingReply.category,
         is_global: is_global ?? existingReply.is_global,

@@ -1,8 +1,15 @@
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 import { z } from 'zod';
 import { PaginationResponsechema } from '../pagination.schema';
+import { QuickReplyCategory } from '@prisma/client';
 
 extendZodWithOpenApi(z);
+
+const VariableSchema = z.object({
+  placeholder: z.string(),
+  value: z.string().nullable(),
+  fallback: z.string().optional().nullable(),
+});
 
 export const QuickReplyQuerySchema = z
   .object({
@@ -19,6 +26,7 @@ export const QuickReplyQuerySchema = z
       .default(10)
       .openapi({ example: 10 }),
     search: z.string().optional(),
+    category: z.nativeEnum(QuickReplyCategory).optional(),
     sortBy: z.enum(['created_at', 'usageCount']).default('created_at'),
     sortOrder: z.enum(['asc', 'desc']).default('desc'),
   })
@@ -30,9 +38,10 @@ export const QuickReplyDetailsResponseSchema = z
     title: z.string(),
     shortcut: z.string().nullable().optional(),
     content: z.string(),
-    category: z.string().nullable().optional(),
+    category: z.nativeEnum(QuickReplyCategory).nullable().optional(),
     isActive: z.boolean().default(false),
-    variables: z.record(z.string(), z.any()).nullable().optional(),
+    //variables: z.record(z.string(), z.any()).nullable().optional(),
+    variable: z.array(VariableSchema).nullable().optional(),
     createdById: z.string().nullable().optional(),
     is_global: z.boolean().default(false),
     usageCount: z.number().default(0),
@@ -42,10 +51,11 @@ export const QuickReplyDetailsResponseSchema = z
   .openapi('QuickReplyDetailsResponse');
 
 export const QuickReplyResponseSchema = z.object({
-  id: z.uuid(),
+  id: z.string(),
   title: z.string(),
   content: z.string(),
   isActive: z.boolean().default(false),
+  category: z.nativeEnum(QuickReplyCategory).nullable().optional(),
   variables: z.record(z.string(), z.any()).nullable().optional(),
   createdById: z.string().nullable().optional(),
   created_at: z.coerce.date(),
@@ -61,10 +71,10 @@ export const QuickReplyListResponseSchema = z
 export const CreateQuickReplyRequestSchema = z
   .object({
     title: z.string().min(1, 'Title is required'),
-    shortcut: z.string().optional().nullable(), // e.g. "/welcome"
     content: z.string().min(1, 'Content is required'),
-    category: z.string().optional().nullable(),
-    is_global: z.boolean().optional(),
+    category: z.nativeEnum(QuickReplyCategory).optional(),
+    is_global: z.boolean().default(false),
+    variables: z.array(VariableSchema).default([]),
   })
   .openapi('CreateQuickReplyRequest');
 

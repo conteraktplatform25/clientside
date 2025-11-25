@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
     const validation = await validateRequest(QuickReplyQuerySchema, req);
     if (!validation.success) return failure(validation.response, 401);
 
-    const { page, limit, search, sortBy, sortOrder } = validation.data;
+    const { page, limit, search, category, sortBy, sortOrder } = validation.data;
     const skip = (page - 1) * limit;
 
     //const where: Prisma.OrderWhereInput = { businessProfileId };
@@ -34,6 +34,7 @@ export async function GET(req: NextRequest) {
         { content: { contains: search, mode: 'insensitive' } },
       ];
     }
+    if (category) where.category = category;
 
     const [repliesPaginated, total] = await Promise.all([
       prisma.quickReply.findMany({
@@ -46,7 +47,7 @@ export async function GET(req: NextRequest) {
           title: true,
           content: true,
           isActive: true,
-          variables: true,
+          category: true,
           createdById: true,
           created_at: true,
         },
@@ -83,13 +84,13 @@ export async function POST(req: NextRequest) {
     const validation = await validateRequest(CreateQuickReplyRequestSchema, req);
     if (!validation.success) return failure(validation.response, 401);
 
-    const { title, shortcut, content, category, is_global } = validation.data;
+    const { title, content, category, variables, is_global } = validation.data;
     const responseData = await prisma.quickReply.create({
       data: {
         title,
-        shortcut,
         content,
         category,
+        variables,
         is_global: is_global ?? false,
         businessProfileId,
       },

@@ -11,7 +11,6 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-  // directUrl = env("DIRECT_URL")
 }
 
 /**
@@ -27,6 +26,8 @@ model Role {
   updated_at  DateTime         @updatedAt
   users       User[]
   permissions RolePermission[]
+
+  businessTeamProfiles BusinessTeamProfile[]
 }
 
 model Permission {
@@ -91,8 +92,12 @@ model User {
   //activities        UserActivity[] // User's own actions
   preference        NotificationPreference[]
   // conversation      Conversation[]
-  conversations     ConversationUser[]
+  conversationUsers ConversationUser[]
   message           Message[]
+
+  businessTeamProfiles BusinessTeamProfile[]
+
+  conversations Conversation[]
 }
 
 model BusinessProfile {
@@ -126,6 +131,31 @@ model BusinessProfile {
   quickReplies QuickReply[]
 
   broadcastMessages BroadcastMessage[]
+
+  conversations Conversation[]
+
+  messages Message[]
+
+  businessUserProfiles BusinessTeamProfile[]
+}
+
+model BusinessTeamProfile {
+  id                String           @id @default(uuid())
+  businessProfileId String
+  userId            String
+  roleId            Int
+  status            TeamMemberStatus @default(ACTIVE)
+  invited_by        String? // User.id who invited them
+  invited_at        DateTime?
+  joined_at         DateTime?        @default(now())
+  created_at        DateTime         @default(now())
+  updated_at        DateTime         @updatedAt
+
+  businessProfile BusinessProfile @relation(fields: [businessProfileId], references: [id])
+  user            User            @relation(fields: [userId], references: [id])
+  role            Role            @relation(fields: [roleId], references: [id])
+
+  @@unique([businessProfileId, userId])
 }
 
 model Account {
@@ -313,6 +343,7 @@ model Contact {
   Order               Order[]
   UserActivity        UserActivity[]
   broadcastRecipients BroadcastRecipient[]
+  messages            Message[]
 
   @@unique([businessProfileId, phone_number])
   @@index([businessProfileId])
@@ -399,60 +430,89 @@ model UserActivity {
 
 // Conversation (WhatsApp/Chat support)
 model Conversation {
-  id         String             @id @default(cuid())
-  contactId  String?
-  status     ConversationStatus @default(OPEN)
-  isGroup    Boolean            @default(false)
-  created_at DateTime           @default(now())
-  updated_at DateTime           @updatedAt
+  id                String             @id @default(uuid())
+  businessProfileId String
+  contactId         String
+  assignedTo        String? // BusinessUser.id
+  status            ConversationStatus @default(OPEN)
+  channel           MessageChannel     @default(WHATSAPP)
+  lastMessageAt     DateTime           @default(now())
+  created_at        DateTime           @default(now())
+  updated_at        DateTime           @updatedAt
 
   // Relations
-  contact  Contact?           @relation(fields: [contactId], references: [id])
-  users    ConversationUser[]
-  messages Message[]
+  businessProfile BusinessProfile    @relation(fields: [businessProfileId], references: [id])
+  contact         Contact?           @relation(fields: [contactId], references: [id])
+  assignee        User?              @relation(fields: [assignedTo], references: [id])
+  participants    ConversationUser[]
+  messages        Message[]
+
+  @@index([businessProfileId])
+  @@index([contactId])
+  @@index([assignedTo])
+  @@index([status])
+  @@index([lastMessageAt])
 }
 
 model ConversationUser {
-  userId         String
+  id             String    @id @default(uuid())
   conversationId String
-  joinedAt       DateTime @default(now())
+  userId         String
+  joinedAt       DateTime  @default(now())
+  leftAt         DateTime?
 
-  user         User         @relation(fields: [userId], references: [id])
   conversation Conversation @relation(fields: [conversationId], references: [id])
+  user         User         @relation(fields: [userId], references: [id])
 
-  @@id([userId, conversationId])
+  @@unique([conversationId, userId])
+  @@index([userId])
 }
 
 // Message (Chat messages)
 model Message {
-  id             String           @id @default(cuid())
-  conversationId String
-  content        String
-  direction      MessageDirection
-  senderId       String?
-  is_deleted     Boolean          @default(false)
-  created_at     DateTime         @default(now())
-  updated_at     DateTime         @updatedAt
+  id                String           @id @default(uuid())
+  businessProfileId String
+  conversationId    String
+  senderUserId      String? // Business user sending message (OUTBOUND)
+  senderContactId   String? // Customer sending message (INBOUND)
+  channel           MessageChannel   @default(WHATSAPP)
+  direction         MessageDirection
+  type              MessageType
+  content           String?
+  mediaUrl          String? // For images, files
+  mediaType         String?
+  rawPayload        Json? // Twilio full webhook or API response
+  whatsappMessageId String?          @unique // Twilio SID or WhatsApp message_id (optional)
+  created_at        DateTime         @default(now())
 
   // Relations
-  conversation Conversation @relation(fields: [conversationId], references: [id])
-  user         User?        @relation(fields: [senderId], references: [id])
+  businessProfile BusinessProfile @relation(fields: [businessProfileId], references: [id])
+  conversation    Conversation    @relation(fields: [conversationId], references: [id])
+  senderUser      User?           @relation(fields: [senderUserId], references: [id])
+  senderContact   Contact?        @relation(fields: [senderContactId], references: [id])
+
+  @@index([conversationId])
+  @@index([businessProfileId])
+  @@index([senderUserId])
+  @@index([senderContactId])
+  @@index([direction])
+  @@index([created_at])
 }
 
 model QuickReply {
-  id                String   @id @default(cuid())
+  id                String              @id @default(uuid())
   businessProfileId String
   title             String // Name, e.g. "Welcome Message"
   shortcut          String? // /welcome
   content           String // The actual message text
-  category          String? // Optional grouping
-  isActive          Boolean  @default(false)
+  category          QuickReplyCategory? // Optional grouping
+  isActive          Boolean             @default(false)
   variables         Json?
   createdById       String?
-  is_global         Boolean  @default(false) // If you support global templates
-  usageCount        Int      @default(0)
-  created_at        DateTime @default(now())
-  updated_at        DateTime @updatedAt
+  is_global         Boolean             @default(false) // If you support global templates
+  usageCount        Int                 @default(0)
+  created_at        DateTime            @default(now())
+  updated_at        DateTime            @updatedAt
 
   business BusinessProfile @relation(fields: [businessProfileId], references: [id])
 
@@ -462,7 +522,7 @@ model QuickReply {
 }
 
 model BroadcastMessage {
-  id                String          @id @default(cuid())
+  id                String          @id @default(uuid())
   businessProfileId String
   createdById       String?
   name              String // Internal name: “Black Friday Promo”
@@ -487,7 +547,7 @@ model BroadcastMessage {
 }
 
 model BroadcastRecipient {
-  id           String                  @id @default(cuid())
+  id           String                  @id @default(uuid())
   broadcastId  String
   contactId    String
   status       BroadcastDeliveryStatus @default(PENDING) // PENDING, SENT, DELIVERED, READ, FAILED
@@ -502,6 +562,12 @@ model BroadcastRecipient {
 
   @@index([broadcastId])
   @@index([contactId])
+}
+
+enum TeamMemberStatus {
+  PENDING
+  ACTIVE
+  REMOVED
 }
 
 enum BroadcastDeliveryStatus {
@@ -544,12 +610,29 @@ enum PaymentStatus {
 enum ConversationStatus {
   OPEN
   CLOSED
+  ARCHIVED
+}
+
+enum MessageChannel {
+  WHATSAPP
+  WEBCHAT
+  SMS
+  EMAIL
 }
 
 enum MessageDirection {
-  PENDING
-  SENT
-  RECEIVED
+  INBOUND
+  OUTBOUND
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  VIDEO
+  AUDIO
+  DOCUMENT
+  TEMPLATE
+  INTERACTIVE
 }
 
 enum CampaignStatus {
@@ -611,4 +694,28 @@ enum ContactSource {
   API
   WHATSAPP
   CHATBOT
+}
+
+enum QuickReplyCategory {
+  GREETING
+  FOLLOW_UP
+  APPOINTMENT
+  PRICING
+  PRODUCT_INFO
+  SERVICE_INFO
+  FAQ
+  SUPPORT
+  POLICY
+  CLOSING
+  PROMOTION
+  BILLING
+  ONBOARDING
+  MISC
+}
+
+enum BusinessRole {
+  ADMIN
+  CONTACTHUB
+  INBOX
+  ORDER
 }

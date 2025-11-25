@@ -28,6 +28,15 @@ export async function GET() {
         { name: 'Contact Tags', description: 'Endpoints related to client contact tag implementation' },
         { name: 'Product Orders', description: 'Endpoints related to client product order implementation' },
         { name: 'Product Order Items', description: 'Endpoints related to client product order items implementation' },
+        {
+          name: 'Automated Messaging - Quick Reply',
+          description: 'Endpoints related to business automated messaging reply implementation',
+        },
+        { name: 'Inbox - Conversations', description: 'Endpoints related to client inbox conversation implementation' },
+        {
+          name: 'Inbox - Conversation Messages',
+          description: 'Endpoints related to client inbox conversation messaging implementation',
+        },
       ],
     });
 
