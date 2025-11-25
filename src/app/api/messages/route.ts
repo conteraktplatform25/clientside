@@ -4,8 +4,9 @@ import { success } from '@/utils/response';
 import { NextRequest } from 'next/server';
 
 export async function POST(req: NextRequest) {
-  // const { content, conversationId, senderId } = await req.json();
-  const { content } = await req.json();
+  const { content, conversationId, senderId } = await req.json();
+  //const { content } = await req.json();
+  console.log(conversationId, senderId);
   //const message = await prisma.message.create({ data: { content, conversationId, senderId } });
   // const message = await prisma.message.create({
   //   data: {
