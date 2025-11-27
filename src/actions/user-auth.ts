@@ -12,7 +12,7 @@ import type { DecodedJWT } from 'next-auth';
 const RequestLogin = async (email: string, password: string): Promise<UserObject> => {
   const user = await prisma.user.findUnique({
     where: { email },
-    include: { role: true },
+    include: { role: true, businessProfile: true },
   });
   if (!user || !user.password) throw new Error('Invalid credentials');
   const ok = await bcrypt.compare(password, user.password);

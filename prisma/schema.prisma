@@ -430,15 +430,16 @@ model UserActivity {
 
 // Conversation (WhatsApp/Chat support)
 model Conversation {
-  id                String             @id @default(uuid())
-  businessProfileId String
-  contactId         String
-  assignedTo        String? // BusinessUser.id
-  status            ConversationStatus @default(OPEN)
-  channel           MessageChannel     @default(WHATSAPP)
-  lastMessageAt     DateTime           @default(now())
-  created_at        DateTime           @default(now())
-  updated_at        DateTime           @updatedAt
+  id                 String             @id @default(uuid())
+  businessProfileId  String
+  contactId          String
+  assignedTo         String? // BusinessUser.id
+  status             ConversationStatus @default(OPEN)
+  channel            MessageChannel     @default(WHATSAPP)
+  lastMessageAt      DateTime           @default(now())
+  lastMessagePreview String? // lightweight preview (denormalized)
+  created_at         DateTime           @default(now())
+  updated_at         DateTime           @updatedAt
 
   // Relations
   businessProfile BusinessProfile    @relation(fields: [businessProfileId], references: [id])
@@ -460,6 +461,8 @@ model ConversationUser {
   userId         String
   joinedAt       DateTime  @default(now())
   leftAt         DateTime?
+  lastReadAt     DateTime? // when this user last read the conversation
+  unreadCount    Int       @default(0)
 
   conversation Conversation @relation(fields: [conversationId], references: [id])
   user         User         @relation(fields: [userId], references: [id])
@@ -470,20 +473,21 @@ model ConversationUser {
 
 // Message (Chat messages)
 model Message {
-  id                String           @id @default(uuid())
+  id                String                @id @default(uuid())
   businessProfileId String
   conversationId    String
   senderUserId      String? // Business user sending message (OUTBOUND)
   senderContactId   String? // Customer sending message (INBOUND)
-  channel           MessageChannel   @default(WHATSAPP)
+  channel           MessageChannel        @default(WHATSAPP)
   direction         MessageDirection
   type              MessageType
   content           String?
   mediaUrl          String? // For images, files
   mediaType         String?
   rawPayload        Json? // Twilio full webhook or API response
-  whatsappMessageId String?          @unique // Twilio SID or WhatsApp message_id (optional)
-  created_at        DateTime         @default(now())
+  whatsappMessageId String?               @unique // Twilio SID or WhatsApp message_id (optional)
+  deliveryStatus    MessageDeliveryStatus @default(PENDING)
+  created_at        DateTime              @default(now())
 
   // Relations
   businessProfile BusinessProfile @relation(fields: [businessProfileId], references: [id])
@@ -497,6 +501,7 @@ model Message {
   @@index([senderContactId])
   @@index([direction])
   @@index([created_at])
+  @@index([deliveryStatus])
 }
 
 model QuickReply {
@@ -625,14 +630,22 @@ enum MessageDirection {
   OUTBOUND
 }
 
+enum MessageDeliveryStatus {
+  PENDING
+  SENT
+  DELIVERED
+  READ
+  FAILED
+}
+
 enum MessageType {
   TEXT
   IMAGE
   VIDEO
   AUDIO
   DOCUMENT
-  TEMPLATE
-  INTERACTIVE
+  // TEMPLATE
+  // INTERACTIVE
 }
 
 enum CampaignStatus {

@@ -1,14 +1,13 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import { z } from 'zod';
 import { motion } from 'framer-motion';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 import { QuickReplyCategory } from '@prisma/client';
 import { UpdateQuickReplyRequestSchema } from '@/lib/schemas/business/server/quickReply.schema';
-import { TQuickReplyDetailsResponse, TUpdateQuickReplyRequest } from '@/lib/hooks/business/quick-reply.hook';
+import { TUpdateQuickReplyRequest } from '@/lib/hooks/business/quick-reply.hook';
 import { useQuickReplyDetails } from '@/lib/hooks/business/quick-reply.hook';
 import { useUpdateQuickReply } from '@/lib/hooks/business/quick-reply.hook';
 
@@ -59,7 +58,7 @@ const EditQuickReplyDialog: React.FC<IEditQuickReplyDialogProps> = ({ open, onCl
       });
     }
     console.log(quickReply);
-  }, [quickReply]);
+  }, [quickReply, form]);
 
   /* ------------------------------------
     SUBMIT HANDLER

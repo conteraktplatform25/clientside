@@ -26,10 +26,17 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import AddTagDialog from './_component/tags/AddTagDialog';
+import { StartConversationSchema } from '@/lib/schemas/business/server/inbox.schema';
+import { useStartConversation } from '@/lib/hooks/business/inbox-conversation.hook';
+import { toast } from 'sonner';
+import { getErrorMessage } from '@/utils/errors';
+import { useRouter } from 'next/navigation';
 
 const DEBOUNCE_MS = 400;
 
 const ContactManagementPage: React.FC = () => {
+  const router = useRouter();
+
   const [searchTerm, setSearchTerm] = useState(''); // immediate controlled input
   const [serverFilter, setServerFilter] = useState(''); // debounced value used for server fetch
   const [page, setPage] = useState<number>(1);
@@ -47,6 +54,7 @@ const ContactManagementPage: React.FC = () => {
 
   // Fetch contacts from server (serverFilter is debounced)
   const { data, isLoading, isError } = useGetDesktopContacts(serverFilter, page, limit);
+  const startConversationMutation = useStartConversation();
 
   // store
   const { addedContacts, setAllContacts } = useContactStore();
@@ -184,6 +192,41 @@ const ContactManagementPage: React.FC = () => {
         cell: ({ row }) => {
           //const [openDialog, setOpenDialog] = useState<boolean>(false);
           const contact = row.original;
+          const handleStartConversation = async (contactId: string) => {
+            try {
+              const payload = StartConversationSchema.parse({ contactId });
+
+              const conversation = await startConversationMutation.mutateAsync(payload);
+              if (!conversation) {
+                toast.error('Could not start conversation.');
+                return;
+              }
+
+              // Extract useful data
+              const conversationId = conversation.id;
+              const name = conversation.contact?.name;
+              const phoneNumber = conversation.contact?.phone_number;
+              const channel = conversation.channel;
+              const assignee = conversation.assignee
+                ? `${conversation.assignee.first_name} ${conversation.assignee.last_name}`
+                : undefined;
+              const chatStatus = conversation.status;
+
+              const filterObj = {
+                chatStatus,
+                channel,
+                assignee,
+              };
+              const encodedFilter = encodeURIComponent(JSON.stringify(filterObj));
+
+              // Redirect to Inbox with the newly started conversation
+              // Assuming your inbox URL can accept a conversationId query param
+              const url = `/inbox?phone=${phoneNumber}&name=${name}&identity=${conversationId}&contact=${contactId}&filter=${encodedFilter}`;
+              router.push(url);
+            } catch (err) {
+              toast.error(getErrorMessage(err));
+            }
+          };
 
           return (
             <DropdownMenu>
@@ -212,9 +255,13 @@ const ContactManagementPage: React.FC = () => {
                     <span className='text-sm leading-[155%]'>Delete contact</span>
                   </div>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => alert(contact.id)}>
-                  <div className='inline-flex space-x-1.5'>
-                    <MessageCircle className='w-[16px] h-[16px]' />
+                <DropdownMenuItem onClick={() => handleStartConversation(contact.id)}>
+                  <div className='inline-flex items-center space-x-1.5'>
+                    {startConversationMutation.isPending ? (
+                      <div className='w-4 h-4 border-2 border-gray-300 border-t-gray-800 rounded-full animate-spin' />
+                    ) : (
+                      <MessageCircle className='w-[16px] h-[16px]' />
+                    )}
                     <span className='text-sm leading-[155%]'>Send message</span>
                   </div>
                 </DropdownMenuItem>
@@ -224,7 +271,7 @@ const ContactManagementPage: React.FC = () => {
         },
       },
     ],
-    []
+    [startConversationMutation, router]
   );
 
   const table = useReactTable({
@@ -361,27 +408,6 @@ const ContactManagementPage: React.FC = () => {
                   Next
                 </Button>
               </div>
-              {/* <div className='text-sm text-neutral-600'>
-                Showing <strong>{(page - 1) * limit + 1}</strong> -{' '}
-                <strong>{Math.min(page * limit, data?.pagination.total ?? tableData.length)}</strong> of{' '}
-                <strong>{data?.pagination.total ?? tableData.length}</strong>
-              </div>
-              <div className='flex items-center gap-2'>
-                <Button variant='outline' size='sm' onClick={handlePrevPage} disabled={page <= 1}>
-                  Prev
-                </Button>
-                <div className='px-2 text-sm'>
-                  Page {page} / {data?.pagination.totalPages ?? 1}
-                </div>
-                <Button
-                  variant='outline'
-                  size='sm'
-                  onClick={handleNextPage}
-                  disabled={page >= (data?.pagination.totalPages ?? 1)}
-                >
-                  Next
-                </Button>
-              </div> */}
             </div>
           </>
         )}

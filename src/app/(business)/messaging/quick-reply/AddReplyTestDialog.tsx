@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import RichTextEditor from '@/components/custom/RichTextEditorProps';
-import { showSuccess, showError } from '@/utils/toast';
+import { showError } from '@/utils/toast';
 import { IoMdAdd, IoMdTrash } from 'react-icons/io';
 
 import { useEditor } from '@tiptap/react';
@@ -24,9 +24,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ScrollArea } from '@radix-ui/react-scroll-area';
 import { QuickReplyCategory } from '@prisma/client';
-import { Loader2, Save, Search } from 'lucide-react';
+import { Loader2, Save } from 'lucide-react';
 
 const FormSchema = z.object({
   title: z.string().min(1, 'Title is required'),

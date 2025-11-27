@@ -46,7 +46,7 @@ export function ConversationItem({ conversation, currentUser, isActive, onClick 
         )}
         onClick={onClick}
       >
-        <UserAvatar profile={otherParticipant} showOnlineStatus />
+        {/* <UserAvatar profile={otherParticipant} showOnlineStatus /> */}
 
         <div className='flex-1 min-w-0'>
           <div className='flex items-center justify-between'>

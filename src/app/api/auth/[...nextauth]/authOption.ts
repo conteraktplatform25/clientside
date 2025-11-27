@@ -163,7 +163,7 @@ export const authOptions: NextAuthOptions = {
         // find business profile if you need extra fields
         const profile = await prisma.businessProfile.findFirst({
           where: { userId: accessDecoded.id },
-          select: { business_number: true, phone_number: true },
+          select: { id: true, business_number: true, phone_number: true },
         });
 
         const user: UserObject = {
@@ -173,6 +173,7 @@ export const authOptions: NextAuthOptions = {
           last_name: accessDecoded.last_name,
           role: accessDecoded.role,
           phone_number: profile?.phone_number,
+          businessProfileId: profile?.id,
           registered_number: profile?.business_number ?? '',
         };
 
@@ -292,6 +293,7 @@ export const authOptions: NextAuthOptions = {
           email: user.email,
           first_name: user.first_name ?? null,
           last_name: user.last_name ?? null,
+          businessProfileId: user.businessProfileId ?? null,
           image: user.image ?? null,
           role: typeof user.role === 'string' ? user.role : (user.role ?? 'Business'), // flatten role object
         };
@@ -303,6 +305,7 @@ export const authOptions: NextAuthOptions = {
           first_name: token.name?.split(' ')[0] ?? null,
           last_name: token.name?.split(' ').slice(1).join(' ') ?? null,
           image: token.picture ?? null,
+          businessProfileId: token.data.user?.businessProfileId ?? null,
           role: 'Business',
         };
       }

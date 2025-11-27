@@ -29,7 +29,7 @@ export function ImageUploader({ value, onChange, className }: ImageUploaderProps
         reader.readAsDataURL(file);
       }
     },
-    [onchange]
+    [onChange]
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({

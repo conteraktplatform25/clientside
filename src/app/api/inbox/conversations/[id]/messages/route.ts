@@ -1,8 +1,9 @@
 /*************************************************
  * ********** /api/inbox/conversations/[id]/messages **********
  **************************************************/
-import { authenticateRequest, authorizeRole, checkBusinessMembership, userCan } from '@/lib/auth';
+import { authenticateRequest, authorizeRole } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import { pusherServer } from '@/lib/pusher';
 import {
   CreateMessageResponseSchema,
   CreateMessageSchema,
@@ -12,7 +13,10 @@ import {
 import { getErrorMessage } from '@/utils/errors';
 import { failure, success } from '@/utils/response';
 import { NextRequest } from 'next/server';
-//import twilio from 'twilio';
+import twilio from 'twilio';
+import { MessageListInstanceCreateOptions } from 'twilio/lib/rest/api/v2010/account/message';
+
+const twClient = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 
 export async function GET(req: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
@@ -27,14 +31,15 @@ export async function GET(req: NextRequest, context: { params: Promise<{ id: str
         id: true,
         status: true,
         lastMessageAt: true,
+        lastMessagePreview: true,
         channel: true,
         businessProfile: { select: { id: true, company_name: true, business_number: true } },
       },
     });
     if (!conv) return failure('Conversation cannot be found', 404);
 
-    const isMember = await checkBusinessMembership(user.id, conv.businessProfile.id);
-    if (!isMember) return failure('User is Forbidden to access', 403);
+    // const isMember = await checkBusinessMembership(user.id, conv.businessProfile.id);
+    // if (!isMember) return failure('User is Forbidden to access', 403);
 
     const { searchParams } = new URL(req.url);
     const parsed = MessageQuerySchema.safeParse(Object.fromEntries(searchParams));
@@ -47,16 +52,17 @@ export async function GET(req: NextRequest, context: { params: Promise<{ id: str
 
     const messages = await prisma.message.findMany({
       where: { conversationId: id },
-      orderBy: { created_at: 'desc' },
+      orderBy: { created_at: 'asc' },
       take: limit + 1,
       cursor: cursor ? { id: cursor } : undefined,
       select: {
         id: true,
-        senderUser: { select: { first_name: true, last_name: true } },
         senderContact: { select: { id: true, name: true, phone_number: true, status: true } },
+        senderUser: { select: { first_name: true, last_name: true } },
         businessProfile: { select: { id: true, company_name: true, business_number: true } },
         channel: true,
         direction: true,
+        deliveryStatus: true,
         type: true,
         content: true,
         mediaUrl: true,
@@ -73,14 +79,14 @@ export async function GET(req: NextRequest, context: { params: Promise<{ id: str
       nextCursor = next?.id ?? null;
     }
     const responseData = {
-      conversation: conv,
       messages,
+      conversation: conv,
       nextCursor,
     };
 
     const messageProfile = MessageDetailsResponseSchema.parse(responseData);
 
-    return success({ messageProfile }, 'Successfully retrieved message');
+    return success(messageProfile, 'Successfully retrieved message');
   } catch (err) {
     const message = getErrorMessage(err);
     console.error('GET /inbox/conversations/[id]/messages error:', err);
@@ -106,15 +112,16 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
       where: { id },
       select: {
         id: true,
-        businessProfile: { select: { company_name: true, phone_number: true } },
+        businessProfileId: true,
+        businessProfile: { select: { company_name: true, business_number: true } },
         contact: { select: { name: true, phone_number: true, whatsapp_opt_in: true } },
         channel: true,
       },
     });
     if (!conv) return failure('Conversation cannot be found', 404);
 
-    const canSend = await userCan(user.id, businessProfileId, 'inbox.send');
-    if (!canSend) return failure('User is Forbidden to send message', 403);
+    // const canSend = await userCan(user.id, businessProfileId, 'inbox.send');
+    // if (!canSend) return failure('User is Forbidden to send message', 403);
 
     // 2️⃣ Parse + Validate Input
     const body = await req.json();
@@ -124,7 +131,7 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
       return failure('Invalid input: ' + JSON.stringify(parsed.error.flatten()), 400);
     }
 
-    const data = parsed.data;
+    const { mediaUrl, content } = parsed.data;
 
     // create message as OUTBOUND
     const responseData = await prisma.message.create({
@@ -133,10 +140,10 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
         businessProfileId,
         senderUserId: user.id,
         direction: 'OUTBOUND',
-        type: data.type,
-        content: data.content,
-        mediaUrl: data.mediaUrl ?? null,
-        mediaType: data.mediaType ?? null,
+        type: mediaUrl ? 'IMAGE' : 'TEXT',
+        content: content,
+        mediaUrl: mediaUrl ?? null,
+        deliveryStatus: 'PENDING',
       },
       select: {
         id: true,
@@ -144,32 +151,51 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
         channel: true,
         direction: true,
         type: true,
+        content: true,
+        mediaUrl: true,
         created_at: true,
+        deliveryStatus: true,
       },
     });
 
-    // update conversation lastMessageAt
-    await prisma.conversation.update({ where: { id }, data: { lastMessageAt: new Date() } });
+    // update conversation preview
+    await prisma.conversation.update({
+      where: { id },
+      data: { lastMessageAt: new Date(), lastMessagePreview: content ?? mediaUrl ?? null },
+      select: { id: true },
+    });
 
-    // if (conv.contact && conv.contact.whatsapp_opt_in && conv.channel === 'WHATSAPP') {
-    //   const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
-    //   //const from = `whatsapp:${conv.businessProfile.phone_number}`;
-    //   const from = `whatsapp:${process.env.TWILIO_ACCOUNT_SID}`; //for test purpose, on product get phone number from registered whatsapp number
-    //   const to = `whatsapp:${conv.contact.phone_number}`;
+    const registeredNumber = process.env.TWILIO_WHATSAPP_NUMBER!;
+    console.log('API Messaging route: ', registeredNumber);
+    if (conv.contact && conv.contact.whatsapp_opt_in && conv.channel === 'WHATSAPP') {
+      (async () => {
+        try {
+          const from = `whatsapp:${registeredNumber}`;
+          const to = `whatsapp:${conv.contact?.phone_number}`;
+          const payload: MessageListInstanceCreateOptions = { from, to, body: content ?? undefined };
+          if (mediaUrl) payload.mediaUrl = [mediaUrl];
 
-    //   const twResp = await client.messages.create({
-    //     from,
-    //     to,
-    //     body: data.content ?? undefined,
-    //     mediaUrl: data.mediaUrl ? [data.mediaUrl] : undefined,
-    //   });
+          const twResp = await twClient.messages.create(payload);
 
-    //   // persist external id
-    //   await prisma.message.update({
-    //     where: { id: message.id },
-    //     data: { whatsappMessageId: twResp.sid, rawPayload: twResp },
-    //   });
-    // }
+          // update message record with SID and delivered status (SENT)
+          await prisma.message.update({
+            where: { id: responseData.id },
+            data: { whatsappMessageId: twResp.sid, deliveryStatus: 'SENT', rawPayload: twResp },
+          });
+        } catch (err) {
+          console.error('Twilio send failed', err);
+          await prisma.message.update({
+            where: { id: responseData.id },
+            data: { deliveryStatus: 'FAILED', rawPayload: { error: String(err) } },
+          });
+          // optionally enqueue retry job
+        }
+        // notify clients of updated message (delivery status)
+        await pusherServer.trigger(`private-business-${conv.businessProfileId}`, 'message.updated', {
+          id: responseData.id,
+        });
+      })();
+    }
 
     const messageProfile = CreateMessageResponseSchema.parse(responseData);
 

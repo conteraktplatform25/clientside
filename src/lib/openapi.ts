@@ -2238,7 +2238,7 @@ registry.registerPath({
 
 registry.registerPath({
   method: 'get',
-  path: '/api/inbox/conversations/{id}/message',
+  path: '/api/inbox/conversations/{id}/messages',
   tags: ['Inbox - Conversation Messages'],
   summary: 'Successfully retrieved message',
   security: [{ bearerAuth: [] }],
@@ -2271,7 +2271,7 @@ registry.registerPath({
 
 registry.registerPath({
   method: 'post',
-  path: '/api/inbox/conversations/{id}/message',
+  path: '/api/inbox/conversations/{id}/messages',
   tags: ['Inbox - Conversation Messages'],
   summary: 'Message delivered successfully',
   security: [{ bearerAuth: [] }],

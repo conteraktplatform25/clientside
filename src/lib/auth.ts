@@ -94,5 +94,6 @@ export async function checkBusinessMembership(userId: string, businessProfileId:
 export async function userCan(userId: string, businessProfileId: string, permission: string) {
   // Implement your role->permission lookup
   // For now, assume all business members have access
+  console.log(permission);
   return await checkBusinessMembership(userId, businessProfileId);
 }

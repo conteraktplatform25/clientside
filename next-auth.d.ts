@@ -13,6 +13,7 @@ declare module 'next-auth' {
     image?: string | null;
     phone_number?: string | null;
     registered_number?: string;
+    businessProfileId?: string | null;
   }
 
   /**

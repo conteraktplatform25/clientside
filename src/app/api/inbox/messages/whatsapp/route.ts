@@ -1,139 +1,163 @@
-import { validateTwilioSignature, twilioClient } from '@/lib/twilio';
-import { triggerMessageCreated } from '@/lib/pusher';
+export const runtime = 'nodejs';
+export const config = { api: { bodyParser: false } };
+
+import twilio from 'twilio';
+import { pusherServer } from '@/lib/pusher';
 import { NextRequest } from 'next/server';
 import { getErrorMessage } from '@/utils/errors';
 import { failure, success } from '@/utils/response';
 import prisma from '@/lib/prisma';
 
-/**
- * Disable body parsing so we can access raw body for signature verification
- */
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
+// --------------------------------------------
+//  UTIL: Read raw request body
+// --------------------------------------------
+async function readRawBody(req: Request): Promise<string> {
+  return await req.text();
+}
+
+// --------------------------------------------
+//  UTIL: Validate Twilio signature
+// --------------------------------------------
+function validateTwilioSignature(req: NextRequest, rawBody: string) {
+  const signature = req.headers.get('x-twilio-signature') ?? '';
+  const url = req.nextUrl.href;
+
+  const params = Object.fromEntries(new URLSearchParams(rawBody));
+
+  return twilio.validateRequest(process.env.TWILIO_AUTH_TOKEN!, signature, url, params);
+}
 
 export async function POST(req: NextRequest) {
+  const rawBody = await readRawBody(req); // Twilio sends application/x-www-form-urlencoded
+
+  if (!validateTwilioSignature(req, rawBody)) return failure('Invalid Twilio signature', 401);
+
+  const params = Object.fromEntries(new URLSearchParams(rawBody));
+
+  const from = (params['From'] || '').replace(/^whatsapp:/i, '');
+  const to = (params['To'] || '').replace(/^whatsapp:/i, '');
+  const body = params['Body'] ?? null;
+  const messageSid = params['MessageSid'] ?? null;
+  const numMedia = Number(params['NumMedia'] ?? 0);
+  const mediaUrl = numMedia > 0 ? params['MediaUrl0'] : null;
+  const mediaType = numMedia > 0 ? params['MediaContentType0'] : null;
+
+  console.log('📩 Incoming WhatsApp Message', {
+    from,
+    to,
+    body,
+    mediaUrl,
+    messageSid,
+  });
+
+  // Lookup business by business_number
+  const businessProfile = await prisma.businessProfile.findUnique({ where: { business_number: to } });
+  if (!businessProfile) {
+    // respond 200 to avoid Twilio retries but log
+    console.error('Incoming message for unknown business number:', to, params);
+    return success(true);
+  }
+  const businessProfileId = businessProfile.id;
+
+  // Use transaction to ensure consistent state
   try {
-    // get raw text body
-    const rawBody = await req.text(); // Twilio sends application/x-www-form-urlencoded
+    const result = await prisma.$transaction(async (tx) => {
+      // find or create contact
+      let contact = await tx.contact.findFirst({
+        where: { businessProfileId, phone_number: from },
+        select: { id: true, name: true, phone_number: true },
+      });
+      if (!contact) {
+        contact = await tx.contact.create({
+          data: { businessProfileId, phone_number: from, whatsapp_opt_in: true },
+          select: { id: true, name: true, phone_number: true },
+        });
+      }
 
-    // verify signature
-    const signature = req.headers.get('x-twilio-signature') ?? '';
-    const url = req.url; // full url Twilio called (must match publicly)
-    const valid = validateTwilioSignature({ signature, url, rawBody });
-    if (!valid) return failure('Invalid Twilio signature', 401);
+      // find open conversation or create
+      let conversation = await tx.conversation.findFirst({
+        where: { businessProfileId, contactId: contact.id, status: 'OPEN' },
+        select: { id: true, businessProfileId: true },
+      });
+      if (!conversation) {
+        conversation = await tx.conversation.create({
+          data: {
+            businessProfileId,
+            contactId: contact.id,
+            channel: 'WHATSAPP',
+            lastMessageAt: new Date(),
+            lastMessagePreview: body ?? mediaUrl ?? null,
+          },
+        });
+      } else {
+        // update last message preview/time (denormalized)
+        await tx.conversation.update({
+          where: { id: conversation.id },
+          data: { lastMessageAt: new Date(), lastMessagePreview: body ?? mediaUrl ?? null },
+          select: { id: true },
+        });
+      }
 
-    // parse the form-encoded params
-    const params = Object.fromEntries(new URLSearchParams(rawBody)) as Record<string, string>;
-
-    // Twilio fields of interest
-    const from = (params['From'] || '').replace(/^whatsapp:/i, ''); // customer phone
-    const to = (params['To'] || '').replace(/^whatsapp:/i, ''); // business phone (our WhatsApp number)
-    const body = params['Body'] ?? null;
-    const messageSid = params['MessageSid'] ?? null;
-    const numMedia = Number(params['NumMedia'] ?? 0);
-
-    // Lookup business by business_number
-    const businessProfile = await prisma.businessProfile.findUnique({ where: { business_number: to } });
-    if (!businessProfile) {
-      // respond 200 to avoid Twilio retries but log
-      console.error('Incoming message for unknown business number:', to, params);
-      return success(true);
-    }
-
-    // Find or create contact (scoped to business)
-    let contact = await prisma.contact.findFirst({
-      where: { businessProfileId: businessProfile.id, phone_number: from },
-    });
-    if (!contact) {
-      contact = await prisma.contact.create({
+      // create message, idempotent on whatsappMessageId:
+      const message = await tx.message.create({
         data: {
-          businessProfileId: businessProfile.id,
-          phone_number: from,
-          name: null,
+          businessProfileId,
+          conversationId: conversation.id,
+          senderContactId: contact.id,
+          direction: 'INBOUND',
+          type: mediaUrl ? 'IMAGE' : 'TEXT',
+          content: body,
+          mediaUrl,
+          mediaType,
+          rawPayload: params,
+          whatsappMessageId: messageSid,
+          deliveryStatus: 'SENT',
+        },
+        select: {
+          id: true,
+          senderContact: { select: { name: true, phone_number: true } },
+          content: true,
+          mediaUrl: true,
+          direction: true,
+          deliveryStatus: true,
+          created_at: true,
         },
       });
-    }
-
-    // Find an open conversation for this contact (prefer open, else create)
-    let conversation = await prisma.conversation.findFirst({
-      where: {
-        businessProfileId: businessProfile.id,
-        contactId: contact.id,
-        status: 'OPEN',
-      },
-    });
-
-    if (!conversation) {
-      conversation = await prisma.conversation.create({
-        data: {
-          businessProfileId: businessProfile.id,
-          contactId: contact.id,
-          channel: 'WHATSAPP',
-        },
+      // update unread counts for conversation participants
+      const participants = await tx.conversationUser.findMany({
+        where: { conversationId: conversation.id },
+        select: { id: true },
       });
-    }
+      for (const p of participants) {
+        await tx.conversationUser.update({
+          where: { id: p.id },
+          data: { unreadCount: { increment: 1 } },
+        });
+      }
 
-    // handle media if any (for simplicity, store first media)
-    let mediaUrl: string | null = null;
-    let mediaType: string | null = null;
-    if (numMedia > 0) {
-      // Twilio provides MediaUrl0, MediaContentType0, etc.
-      mediaUrl = params['MediaUrl0'] ?? null;
-      mediaType = params['MediaContentType0'] ?? null;
-    }
+      return { contact, conversation, message };
+    });
 
-    // Persist inbound message
-    const message = await prisma.message.create({
-      data: {
-        conversationId: conversation.id,
-        businessProfileId: businessProfile.id,
-        senderContactId: contact.id,
-        direction: 'INBOUND',
-        type: mediaUrl ? 'IMAGE' : 'TEXT', // simple inference
-        content: body,
-        mediaUrl,
-        mediaType,
-        whatsappMessageId: messageSid ?? null,
-        rawPayload: params,
+    // trigger pusher update outside transaction (nonblocking)
+    await pusherServer.trigger(`private-business-${result.conversation.businessProfileId}`, 'message.created', {
+      conversationId: result.conversation.id,
+      message: {
+        id: result.message.id,
+        content: result.message.content,
+        mediaUrl: result.message.mediaUrl,
+        created_at: result.message.created_at,
+        direction: result.message.direction,
+        deliveryStatus: result.message.deliveryStatus,
       },
-      include: {
-        senderContact: true,
-        conversation: true,
+      contact: {
+        id: result.contact.id,
       },
     });
 
-    // Update conversation lastMessageAt
-    await prisma.conversation.update({
-      where: { id: conversation.id },
-      data: { lastMessageAt: new Date(), status: 'OPEN' },
-    });
-
-    // Trigger Pusher event to notify any subscribed clients for this business
-    const payload = {
-      id: message.id,
-      conversationId: message.conversationId,
-      content: message.content,
-      mediaUrl: message.mediaUrl,
-      mediaType: message.mediaType,
-      direction: message.direction,
-      created_at: message.created_at,
-      contact: { id: contact.id, phone_number: contact.phone_number, name: contact.name },
-    };
-
-    try {
-      await triggerMessageCreated(businessProfile.id, payload);
-    } catch (err) {
-      console.error('Pusher trigger failed', err);
-    }
-
-    // Reply to Twilio with 200 OK quickly
-    return success({ ok: true });
+    return success(result, 'INBOUND Data successfully registered', 201);
   } catch (err) {
     const message = getErrorMessage(err);
-    console.error('POST /inbox/messages/whatsapp error:', err);
+    console.error('POST /inbox/conversations/[id]/messages error:', err);
     return failure(message, 500);
   }
 }

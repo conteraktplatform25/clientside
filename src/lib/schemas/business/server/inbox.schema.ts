@@ -9,7 +9,15 @@ extendZodWithOpenApi(z);
 export const MessageChannelEnum = z.enum(['WHATSAPP', 'WEBCHAT', 'SMS', 'EMAIL']);
 export const ConversationStatusEnum = z.enum(['OPEN', 'CLOSED', 'ARCHIVED']);
 export const MessageDirectionEnum = z.enum(['INBOUND', 'OUTBOUND']);
-export const MessageTypeEnum = z.enum(['TEXT', 'IMAGE', 'VIDEO', 'AUDIO', 'DOCUMENT', 'TEMPLATE', 'INTERACTIVE']);
+export const MessageTypeEnum = z.enum(['TEXT', 'IMAGE', 'VIDEO', 'AUDIO', 'DOCUMENT']);
+export const MessageDeliveryStatus = z.enum(['PENDING', 'SENT', 'DELIVERED', 'READ', 'FAILED']);
+
+export interface InboxFilterState {
+  status: 'ALL' | 'OPEN' | 'CLOSED' | 'ARCHIVED';
+  channel: 'ALL' | 'WHATSAPP' | 'WEBCHAT' | 'SMS' | 'EMAIL';
+  assigned: 'ALL' | 'UNASSIGNED' | 'ME';
+  search: string;
+}
 
 /*****************************************
  * ****** Conversation ******************
@@ -89,6 +97,7 @@ export const ConversationResponseSchema = z
     channel: MessageChannelEnum,
     lastMessageAt: z.coerce.date(),
     created_at: z.coerce.date(),
+    lastMessagePreview: z.string().nullable().optional(),
     assignee: UserResponseSchema.nullable().optional(),
   })
   .openapi('ConversationResponse');
@@ -111,15 +120,17 @@ const ConversationDataSchema = z.object({
   status: ConversationStatusEnum,
   channel: MessageChannelEnum,
   lastMessageAt: z.coerce.date(),
+  lastMessagePreview: z.string().nullable().optional(),
   businessProfile: BusinessProfileDataSchema,
 });
-const MessageDataResponseSchema = z.object({
+export const MessageDataResponseSchema = z.object({
   id: z.string(),
-  senderContact: ContactResponseSchema,
-  senderUser: UserResponseSchema,
+  senderContact: ContactResponseSchema.nullable().optional(),
+  senderUser: UserResponseSchema.nullable().optional(),
   businessProfile: BusinessProfileDataSchema,
   channel: MessageChannelEnum,
   direction: MessageDirectionEnum,
+  deliveryStatus: MessageDeliveryStatus,
   type: MessageTypeEnum,
   content: z.string().nullable().optional(),
   mediaUrl: z.string().nullable().optional(),
@@ -137,7 +148,6 @@ export const MessageDetailsResponseSchema = z
   })
   .openapi('MessageDetailsResponse');
 
-export type CreateConversationInput = z.infer<typeof CreateConversationSchema>;
 export type UpdateConversationInput = z.infer<typeof UpdateConversationSchema>;
 
 /***************************************************
@@ -155,27 +165,21 @@ export type CreateConversationUserInput = z.infer<typeof CreateConversationUserS
  ***************************************/
 export const CreateMessageSchema = z
   .object({
-    conversationId: z.string().uuid().optional(), // optional if creating via webhook and conversation auto-created
-    senderUserId: z.string().uuid().optional().nullable(),
-    senderContactId: z.string().uuid().optional().nullable(),
-    channel: MessageChannelEnum.optional(),
-    direction: MessageDirectionEnum,
-    type: MessageTypeEnum.optional().default('TEXT'),
     content: z.string().optional().nullable(),
     mediaUrl: z.string().url().optional().nullable(),
-    mediaType: z.string().optional().nullable(),
-    rawPayload: z.any().optional().nullable(),
-    whatsappMessageId: z.string().optional().nullable(),
   })
   .openapi('CreateMessage');
 
 export const CreateMessageResponseSchema = z
   .object({
     id: z.string(),
-    senderContact: ContactResponseSchema,
+    senderContact: ContactResponseSchema.nullable().optional(),
     channel: MessageChannelEnum,
     direction: MessageDirectionEnum,
+    deliveryStatus: MessageDeliveryStatus,
     type: MessageTypeEnum,
+    content: z.string().nullable().optional(),
+    mediaUrl: z.string().nullable().optional(),
     created_at: z.coerce.date(),
   })
   .openapi('CreateMessageResponse');
@@ -188,8 +192,8 @@ export const MessageQuerySchema = z.object({
   cursor: z.string().optional(),
 });
 
-export type CreateMessageInput = z.infer<typeof CreateMessageSchema>;
-export type MessageQuery = z.infer<typeof MessageQuerySchema>;
+// export type CreateMessageInput = z.infer<typeof CreateMessageSchema>;
+// export type MessageQuery = z.infer<typeof MessageQuerySchema>;
 
 // -----------------------------
 //
@@ -204,3 +208,21 @@ export const AssignConversationSchema = z.object({
 export const CloseConversationSchema = z.object({
   reason: z.string().optional(),
 });
+
+export const StartConversationSchema = z.object({
+  contactId: z.string(),
+  //channel: z.enum(['WHATSAPP', 'WEBCHAT', 'SMS', 'EMAIL']).optional().default('WHATSAPP'),
+});
+
+export type TConversationQuery = z.infer<typeof ConversationQuerySchema>;
+export type TConversationListResponse = z.infer<typeof ConversationListResponseSchema>;
+export type TCreateConversation = z.infer<typeof CreateConversationSchema>;
+export type TCreateConversationResponse = z.infer<typeof CreateConversationResponseSchema>;
+export type TMessageQuery = z.infer<typeof MessageQuerySchema>;
+export type TMessageDetailsResponse = z.infer<typeof MessageDetailsResponseSchema>;
+export type TMessageDataResponse = z.infer<typeof MessageDataResponseSchema>;
+export type TCreateMessage = z.infer<typeof CreateMessageSchema>;
+export type TCreateMessageResponse = z.infer<typeof CreateMessageResponseSchema>;
+export type TConversationResponse = z.infer<typeof ConversationResponseSchema>;
+export type TStartConversation = z.infer<typeof StartConversationSchema>;
+export type TContactResponse = z.infer<typeof ContactResponseSchema>;

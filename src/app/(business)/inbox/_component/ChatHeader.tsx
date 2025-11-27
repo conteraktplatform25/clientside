@@ -2,48 +2,32 @@
 import { MoveHorizontal as MoreHorizontal, Phone, Video, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { UserAvatar } from './UserAvarta';
-import { useChatStore } from '@/lib/store/business/survey/inbox-survey.store';
-import { formatDistanceToNow } from 'date-fns';
+// import { formatDistanceToNow } from 'date-fns';
+import { TInboxState, useInboxStore } from '@/lib/store/business/inbox.store';
+import { useMemo } from 'react';
 
-export function ChatHeader() {
-  const { activeConversation, currentUser } = useChatStore();
+interface ChatHeaderProps {
+  conversationId: string | null;
+}
 
-  if (!activeConversation || !currentUser) {
-    return (
-      <div className='p-4 border-b border-gray-200 bg-white'>
-        <div className='flex items-center justify-between'>
-          <div className='flex items-center space-x-3'>
-            <div className='w-10 h-10 bg-gray-200 rounded-full' />
-            <div>
-              <h3 className='font-semibold text-gray-400'>Select a conversation</h3>
-              <p className='text-sm text-gray-400'>No active chat</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+export function ChatHeader({ conversationId }: ChatHeaderProps) {
+  const conversation = useInboxStore((s: TInboxState) =>
+    conversationId ? (s.conversations?.find((c) => c.id === conversationId) ?? null) : null
+  );
+  // Memoize the other participant info
+  const otherParticipant = useMemo(() => {
+    if (!conversation) return null;
+    return conversation.contact ?? null;
+  }, [conversation]);
 
-  const otherParticipant = activeConversation.participants.find((p) => p.id !== currentUser.id);
-
-  if (!otherParticipant) return null;
-
-  const getLastSeenText = () => {
-    if (otherParticipant.isOnline) return 'Active now';
-    if (otherParticipant.lastSeen) {
-      return `Last seen ${formatDistanceToNow(otherParticipant.lastSeen, { addSuffix: true })}`;
-    }
-    return 'Last seen recently';
-  };
-
+  if (!conversationId || !conversation) return null;
   return (
     <div className='p-4 border-b border-gray-200 bg-white'>
       <div className='flex items-center justify-between'>
         <div className='flex items-center space-x-3'>
           <UserAvatar profile={otherParticipant} showOnlineStatus />
           <div>
-            <h3 className='font-semibold text-gray-900'>{otherParticipant.name}</h3>
-            <p className='text-sm text-gray-600'>{getLastSeenText()}</p>
+            <h3 className='font-semibold text-gray-900'>{otherParticipant!.name}</h3>
           </div>
         </div>
 

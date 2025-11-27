@@ -23,3 +23,29 @@ export interface TUserMessageProfile {
   agent?: string;
   time: string;
 }
+
+export interface IMessageAttachment {
+  id: string; // client-side temp ID
+  name: string;
+  type: 'IMAGE' | 'VIDEO' | 'AUDIO' | 'FILE';
+  file: File; // actual File object
+  previewUrl: string; // URL.createObjectURL
+}
+
+export interface ISender {
+  id: string;
+  name: string;
+  avatarUrl: string | null;
+}
+
+export interface IMessageWithSender {
+  id: string;
+  text: string | null;
+  createdAt: Date;
+  senderId: string;
+  status: 'SENDING' | 'SENT' | 'DELIVERED' | 'ERROR';
+  sender: ISender;
+  attachments: IMessageAttachment[];
+}
+
+export type ChatAttachment = IMessageAttachment;

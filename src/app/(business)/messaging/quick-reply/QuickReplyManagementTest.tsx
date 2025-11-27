@@ -16,7 +16,6 @@ import AddReplyTestDialog, { IVariable } from './AddReplyTestDialog';
 import { FaSearch } from 'react-icons/fa';
 import { Input } from '@/components/ui/input';
 import { QuickReplyCategory } from '@prisma/client';
-import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import EditQuickReplyDialog from './_component/EditQuickReplyDialog';
 

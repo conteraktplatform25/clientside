@@ -32,7 +32,7 @@ export function MessageBubble({ message, sender, isCurrentUser, showAvatar = tru
       transition={{ duration: 0.3 }}
       className={cn('flex items-end space-x-2 mb-4', isCurrentUser && 'flex-row-reverse space-x-reverse')}
     >
-      {showAvatar && !isCurrentUser && <UserAvatar profile={sender} size='sm' />}
+      {/* {showAvatar && !isCurrentUser && <UserAvatar profile={sender} size='sm' />} */}
 
       <div
         className={cn(

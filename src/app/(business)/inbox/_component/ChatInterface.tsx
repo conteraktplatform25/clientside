@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ChatSidebar } from './ChatSidebar';
-import { ChatHeader } from './ChatHeader';
 import { ChatMessages } from './ChatMessages';
 import { MessageInput } from './MessageInput';
 import { useChatStore } from '@/lib/store/business/survey/inbox-survey.store';
@@ -156,7 +155,7 @@ export default function ChatInterface() {
 
       {/* Main Chat Area */}
       <div className='flex-1 flex flex-col'>
-        <ChatHeader />
+        {/* <ChatHeader /> */}
 
         <div className='flex-1 flex flex-col bg-white'>
           {activeConversation ? (
