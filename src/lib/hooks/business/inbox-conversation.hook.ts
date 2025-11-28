@@ -103,8 +103,6 @@ export function useInboxMessages(conversationId: string | null, pageSize = 25) {
       return;
     }
 
-    console.log('From the Hook', query.data.pages[0]);
-
     const all = query.data.pages.flatMap((p) => p.messages ?? []);
     setMessages(conversationId, all);
   }, [query.data, conversationId, setMessages]);

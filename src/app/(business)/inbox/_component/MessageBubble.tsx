@@ -1,8 +1,8 @@
 'use client';
 
 import { motion } from 'framer-motion';
-//import { formatDistanceToNow } from 'date-fns';
-import { UserAvatar } from './UserAvarta';
+// //import { formatDistanceToNow } from 'date-fns';
+// import { UserAvatar } from './UserAvarta';
 import { UserProfile, Message } from '@/type/client/business/survey/inbox-survey.type';
 // import { Message, User } from '@/types/chat';
 // import { UserAvatar } from './UserAvatar';
@@ -11,12 +11,12 @@ import { Check, CheckCheck } from 'lucide-react';
 
 interface MessageBubbleProps {
   message: Message;
-  sender: UserProfile;
+  sender?: UserProfile;
   isCurrentUser: boolean;
   showAvatar?: boolean;
 }
-
-export function MessageBubble({ message, sender, isCurrentUser, showAvatar = true }: MessageBubbleProps) {
+export function MessageBubble({ message, isCurrentUser }: MessageBubbleProps) {
+  //export function MessageBubble({ message, sender, isCurrentUser, showAvatar = true }: MessageBubbleProps) {
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString('en-US', {
       hour: 'numeric',

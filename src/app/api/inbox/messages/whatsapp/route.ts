@@ -4,23 +4,29 @@ export const config = { api: { bodyParser: false } };
 import twilio from 'twilio';
 import { pusherServer } from '@/lib/pusher';
 import { NextRequest } from 'next/server';
-import { getErrorMessage } from '@/utils/errors';
-import { failure, success } from '@/utils/response';
 import prisma from '@/lib/prisma';
+import { failure, success } from '@/utils/response';
+import { getErrorMessage } from '@/utils/errors';
 
-// --------------------------------------------
-//  UTIL: Read raw request body
-// --------------------------------------------
 async function readRawBody(req: Request): Promise<string> {
-  return await req.text();
+  try {
+    return await req.text();
+  } catch (err) {
+    console.error('❌ Failed to read raw body:', err);
+    return '';
+  }
+}
+function getTwilioUrl(req: NextRequest) {
+  const host = req.headers.get('host');
+  const path = req.nextUrl.pathname + req.nextUrl.search;
+  return `https://${host}${path}`;
 }
 
-// --------------------------------------------
-//  UTIL: Validate Twilio signature
-// --------------------------------------------
 function validateTwilioSignature(req: NextRequest, rawBody: string) {
   const signature = req.headers.get('x-twilio-signature') ?? '';
-  const url = req.nextUrl.href;
+
+  // MUST use the full URL Twilio called (works with ngrok)
+  const url = getTwilioUrl(req);
 
   const params = Object.fromEntries(new URLSearchParams(rawBody));
 
@@ -28,21 +34,36 @@ function validateTwilioSignature(req: NextRequest, rawBody: string) {
 }
 
 export async function POST(req: NextRequest) {
-  const rawBody = await readRawBody(req); // Twilio sends application/x-www-form-urlencoded
+  console.log('📥 Incoming Twilio Webhook');
 
-  if (!validateTwilioSignature(req, rawBody)) return failure('Invalid Twilio signature', 401);
+  // 1. Read raw body safely
+  const rawBody = await readRawBody(req);
+  if (!rawBody) return failure('Empty body', 400);
 
+  // 2. Validate Twilio Signature
+  try {
+    const isValid = validateTwilioSignature(req, rawBody);
+    if (!isValid) {
+      console.warn('⚠️ Invalid Twilio signature');
+      return failure('Invalid Twilio signature', 401);
+    }
+  } catch (err) {
+    console.error('❌ Signature validation error:', err);
+    return failure('Signature validation crash', 500);
+  }
+
+  // 3. Parse form-data params
   const params = Object.fromEntries(new URLSearchParams(rawBody));
-
   const from = (params['From'] || '').replace(/^whatsapp:/i, '');
   const to = (params['To'] || '').replace(/^whatsapp:/i, '');
+
   const body = params['Body'] ?? null;
   const messageSid = params['MessageSid'] ?? null;
   const numMedia = Number(params['NumMedia'] ?? 0);
   const mediaUrl = numMedia > 0 ? params['MediaUrl0'] : null;
   const mediaType = numMedia > 0 ? params['MediaContentType0'] : null;
 
-  console.log('📩 Incoming WhatsApp Message', {
+  console.log('📩 WhatsApp message:', {
     from,
     to,
     body,
@@ -50,34 +71,43 @@ export async function POST(req: NextRequest) {
     messageSid,
   });
 
-  // Lookup business by business_number
-  const businessProfile = await prisma.businessProfile.findUnique({ where: { business_number: to } });
-  if (!businessProfile) {
-    // respond 200 to avoid Twilio retries but log
-    console.error('Incoming message for unknown business number:', to, params);
-    return success(true);
+  // 4. Business profile lookup
+  let businessProfile;
+  try {
+    businessProfile = await prisma.businessProfile.findUnique({
+      where: { business_number: to },
+    });
+
+    if (!businessProfile) {
+      console.warn('⚠️ Unknown business number:', to);
+      return success(true, 'Unknown business. Acknowledged to Twilio.', 200);
+    }
+  } catch (err) {
+    console.error('❌ Prisma businessProfile error:', err);
+    return failure('Database lookup failed', 500);
   }
   const businessProfileId = businessProfile.id;
 
-  // Use transaction to ensure consistent state
+  let result;
   try {
-    const result = await prisma.$transaction(async (tx) => {
-      // find or create contact
+    result = await prisma.$transaction(async (tx) => {
       let contact = await tx.contact.findFirst({
         where: { businessProfileId, phone_number: from },
-        select: { id: true, name: true, phone_number: true },
       });
+
       if (!contact) {
         contact = await tx.contact.create({
-          data: { businessProfileId, phone_number: from, whatsapp_opt_in: true },
-          select: { id: true, name: true, phone_number: true },
+          data: {
+            businessProfileId,
+            phone_number: from,
+            whatsapp_opt_in: true,
+          },
         });
       }
 
-      // find open conversation or create
+      // Conversation
       let conversation = await tx.conversation.findFirst({
         where: { businessProfileId, contactId: contact.id, status: 'OPEN' },
-        select: { id: true, businessProfileId: true },
       });
       if (!conversation) {
         conversation = await tx.conversation.create({
@@ -86,19 +116,20 @@ export async function POST(req: NextRequest) {
             contactId: contact.id,
             channel: 'WHATSAPP',
             lastMessageAt: new Date(),
-            lastMessagePreview: body ?? mediaUrl ?? null,
+            lastMessagePreview: body ?? mediaUrl,
           },
         });
       } else {
-        // update last message preview/time (denormalized)
         await tx.conversation.update({
           where: { id: conversation.id },
-          data: { lastMessageAt: new Date(), lastMessagePreview: body ?? mediaUrl ?? null },
-          select: { id: true },
+          data: {
+            lastMessageAt: new Date(),
+            lastMessagePreview: body ?? mediaUrl,
+          },
         });
       }
 
-      // create message, idempotent on whatsappMessageId:
+      // Message
       const message = await tx.message.create({
         data: {
           businessProfileId,
@@ -113,51 +144,32 @@ export async function POST(req: NextRequest) {
           whatsappMessageId: messageSid,
           deliveryStatus: 'SENT',
         },
-        select: {
-          id: true,
-          senderContact: { select: { name: true, phone_number: true } },
-          content: true,
-          mediaUrl: true,
-          direction: true,
-          deliveryStatus: true,
-          created_at: true,
-        },
       });
-      // update unread counts for conversation participants
-      const participants = await tx.conversationUser.findMany({
+      // Update unread counters
+      await tx.conversationUser.updateMany({
         where: { conversationId: conversation.id },
-        select: { id: true },
+        data: { unreadCount: { increment: 1 } },
       });
-      for (const p of participants) {
-        await tx.conversationUser.update({
-          where: { id: p.id },
-          data: { unreadCount: { increment: 1 } },
-        });
-      }
 
       return { contact, conversation, message };
     });
+  } catch (err) {
+    console.error('❌ DB transaction error:', getErrorMessage(err));
+    return failure('Database transaction failed', 500);
+  }
 
-    // trigger pusher update outside transaction (nonblocking)
+  // 6. Pusher trigger — does NOT break webhook if it fails
+  try {
     await pusherServer.trigger(`private-business-${result.conversation.businessProfileId}`, 'message.created', {
       conversationId: result.conversation.id,
-      message: {
-        id: result.message.id,
-        content: result.message.content,
-        mediaUrl: result.message.mediaUrl,
-        created_at: result.message.created_at,
-        direction: result.message.direction,
-        deliveryStatus: result.message.deliveryStatus,
-      },
-      contact: {
-        id: result.contact.id,
-      },
+      message: result.message,
+      contact: result.contact,
     });
-
-    return success(result, 'INBOUND Data successfully registered', 201);
   } catch (err) {
-    const message = getErrorMessage(err);
-    console.error('POST /inbox/conversations/[id]/messages error:', err);
-    return failure(message, 500);
+    console.error('⚠️ Pusher trigger failed (non-fatal):', err);
+    // Do NOT return failure — Twilio must get 200
   }
+
+  // 🎉 Always return 200 to Twilio unless there was a real error
+  return success(result, 'Inbound WhatsApp processed', 201);
 }

@@ -4,7 +4,6 @@ import { motion } from 'framer-motion';
 import { formatDistanceToNow } from 'date-fns';
 // import { Conversation, User } from '@/types/chat';
 import { UserProfile, Conversation } from '@/type/client/business/survey/inbox-survey.type';
-import { UserAvatar } from './UserAvarta';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 

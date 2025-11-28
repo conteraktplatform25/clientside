@@ -58,11 +58,11 @@ const ContactManagementPage: React.FC = () => {
 
   // store
   const { addedContacts, setAllContacts } = useContactStore();
-  console.log(openDrawer);
 
   useEffect(() => {
     setLimit(10);
-  }, [setLimit]);
+    console.log(openDrawer);
+  }, [setLimit, openDrawer]);
 
   // when new data arrives from server, update the store once
   useEffect(() => {

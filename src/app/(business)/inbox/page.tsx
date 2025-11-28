@@ -46,6 +46,7 @@ export default function InboxPage() {
     // 2. CASE: PRELOAD CONVERSATION FROM CONTACT (via Contact table link)
     // -------------------------------------------------------------------
     if (conversationId && contactId && phone) {
+      console.log('Contact Person Name: ', name);
       preloadConversation(conversationId, {
         id: contactId,
         name: name ?? null,
@@ -59,7 +60,8 @@ export default function InboxPage() {
     // 3. CASE: USER OPENED /inbox?identity=ABC
     // -------------------------------------------------------------------
     if (conversationId) {
-      setSelectedConversation(conversationId);
+      //setSelectedConversation(conversationId);
+      console.log('Profile with ConversationID, ContactID and Phone Number');
       setInitialized(true);
       return;
     }
@@ -70,15 +72,16 @@ export default function InboxPage() {
     if (contactId) {
       (async () => {
         try {
-          const result = await startConversation.mutateAsync({ contactId });
-          const newId = result.id;
+          console.log('Profile with ContactID');
+          // const result = await startConversation.mutateAsync({ contactId });
+          // const newId = result.id;
 
-          setSelectedConversation(newId);
+          // setSelectedConversation(newId);
 
-          // update URL
-          const newParams = new URLSearchParams(q.toString());
-          newParams.set('identity', newId);
-          router.replace(`/inbox?${newParams.toString()}`);
+          // // update URL
+          // const newParams = new URLSearchParams(q.toString());
+          // newParams.set('identity', newId);
+          // router.replace(`/inbox?${newParams.toString()}`);
         } catch (err) {
           toast.error(getErrorMessage(err) || 'Unable to start conversation');
         } finally {
@@ -100,6 +103,7 @@ export default function InboxPage() {
         const newParams = new URLSearchParams(q.toString());
         newParams.set('identity', first.id);
         router.replace(`/inbox?${newParams.toString()}`);
+        setInitialized(true);
       }
     }
 

@@ -41,9 +41,12 @@ export default function ConversationsList({
           (c.lastMessagePreview ?? '').toLowerCase().includes(search);
         if (!found) return false;
       }
+
       return true;
     });
   }, [convs, filters]);
+
+  console.log('Trying to get Information:', filtered);
 
   return (
     <div className='h-full flex flex-col'>
