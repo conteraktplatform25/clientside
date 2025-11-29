@@ -60,6 +60,10 @@ declare module 'next-auth' {
     validity: AuthValidity | object;
     error?: 'RefreshTokenExpired' | 'RefreshAccessTokenError';
     redirectTo?: string;
+    accessToken: string;
+    refreshToken: string;
+    accessToken: string;
+    refreshToken: string;
   }
 
   /**

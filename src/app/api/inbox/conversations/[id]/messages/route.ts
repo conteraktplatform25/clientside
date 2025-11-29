@@ -52,11 +52,12 @@ export async function GET(req: NextRequest, context: { params: Promise<{ id: str
 
     const messages = await prisma.message.findMany({
       where: { conversationId: id },
-      orderBy: { created_at: 'asc' },
+      orderBy: { created_at: 'desc' },
       take: limit + 1,
       cursor: cursor ? { id: cursor } : undefined,
       select: {
         id: true,
+        conversationId: true,
         senderContact: { select: { id: true, name: true, phone_number: true, status: true } },
         senderUser: { select: { first_name: true, last_name: true } },
         businessProfile: { select: { id: true, company_name: true, business_number: true } },
@@ -147,12 +148,15 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
       },
       select: {
         id: true,
+        conversationId: true,
         senderContact: { select: { id: true, name: true, phone_number: true, status: true } },
+        businessProfile: { select: { id: true, company_name: true, business_number: true } },
         channel: true,
         direction: true,
         type: true,
         content: true,
         mediaUrl: true,
+        whatsappMessageId: true,
         created_at: true,
         deliveryStatus: true,
       },

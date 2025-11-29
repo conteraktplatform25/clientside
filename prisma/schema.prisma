@@ -634,8 +634,8 @@ enum MessageDeliveryStatus {
   PENDING
   SENT
   DELIVERED
-  READ
   FAILED
+  READ
 }
 
 enum MessageType {

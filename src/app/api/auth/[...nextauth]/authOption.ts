@@ -285,6 +285,9 @@ export const authOptions: NextAuthOptions = {
 
     // session: expose a stable session.user shape client-side
     async session({ session, token }) {
+      session.accessToken = token?.data?.tokens?.access ?? '';
+      session.refreshToken = token?.data?.tokens?.refresh ?? '';
+
       if (token?.data?.user) {
         const user = token.data.user;
         // Handle Prisma nested role object

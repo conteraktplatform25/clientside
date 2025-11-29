@@ -1,3 +1,5 @@
+// /api/inbox/conversations/messages/whatsapp
+
 export const runtime = 'nodejs';
 export const config = { api: { bodyParser: false } };
 
@@ -93,6 +95,9 @@ export async function POST(req: NextRequest) {
     result = await prisma.$transaction(async (tx) => {
       let contact = await tx.contact.findFirst({
         where: { businessProfileId, phone_number: from },
+        select: {
+          id: true,
+        },
       });
 
       if (!contact) {
@@ -102,12 +107,19 @@ export async function POST(req: NextRequest) {
             phone_number: from,
             whatsapp_opt_in: true,
           },
+          select: {
+            id: true,
+          },
         });
       }
 
       // Conversation
       let conversation = await tx.conversation.findFirst({
         where: { businessProfileId, contactId: contact.id, status: 'OPEN' },
+        select: {
+          id: true,
+          businessProfileId: true,
+        },
       });
       if (!conversation) {
         conversation = await tx.conversation.create({
@@ -118,6 +130,10 @@ export async function POST(req: NextRequest) {
             lastMessageAt: new Date(),
             lastMessagePreview: body ?? mediaUrl,
           },
+          select: {
+            id: true,
+            businessProfileId: true,
+          },
         });
       } else {
         await tx.conversation.update({
@@ -125,6 +141,10 @@ export async function POST(req: NextRequest) {
           data: {
             lastMessageAt: new Date(),
             lastMessagePreview: body ?? mediaUrl,
+          },
+          select: {
+            id: true,
+            businessProfileId: true,
           },
         });
       }
@@ -143,6 +163,9 @@ export async function POST(req: NextRequest) {
           rawPayload: params,
           whatsappMessageId: messageSid,
           deliveryStatus: 'SENT',
+        },
+        select: {
+          id: true,
         },
       });
       // Update unread counters

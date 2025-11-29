@@ -97,3 +97,8 @@ export async function userCan(userId: string, businessProfileId: string, permiss
   console.log(permission);
   return await checkBusinessMembership(userId, businessProfileId);
 }
+
+export async function getBusinessProfileID() {
+  const session = await getServerSession(authOptions);
+  return session?.user?.businessProfileId || null;
+}

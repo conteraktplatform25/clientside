@@ -76,37 +76,27 @@ export async function POST(req: NextRequest) {
   const mappedStatus = statusMapping[messageStatus?.toLowerCase()] || 'UNKNOWN';
 
   // Update DB — wrapped in try/catch so no crash
+  let updatedMessage = null;
   try {
-    const message = await prisma.message.updateMany({
+    updatedMessage = await prisma.message.update({
       where: { whatsappMessageId: messageSid },
-      data: {
-        deliveryStatus: mappedStatus as MessageDeliveryStatus,
+      data: { deliveryStatus: mappedStatus as MessageDeliveryStatus },
+      select: {
+        id: true,
+        businessProfileId: true,
+        whatsappMessageId: true,
+        deliveryStatus: true,
+        conversationId: true,
       },
     });
-
-    if (message.count === 0) {
-      console.warn('⚠️ No message found with SID:', messageSid);
-    }
+    await pusherServer.trigger(`private-business-${updatedMessage.businessProfileId}`, 'message.status.updated', {
+      messageSid,
+      messageStatus: mappedStatus,
+      raw: params,
+    });
   } catch (err) {
     console.error('❌ Error updating message status:', err);
     return success(failure, 'DB error acknowledged', 200); // ACK anyway
-  }
-
-  // Notify frontend (non-blocking)
-  try {
-    const msg = await prisma.message.findUnique({
-      where: { whatsappMessageId: messageSid },
-      select: { businessProfileId: true },
-    });
-    if (msg) {
-      await pusherServer.trigger(`private-business-${msg.businessProfileId}`, 'message.status.updated', {
-        messageSid,
-        messageStatus: mappedStatus,
-        raw: params,
-      });
-    }
-  } catch (err) {
-    console.error('⚠️ Pusher error (ignored):', err);
   }
 
   return success(true, 'Status callback processed');

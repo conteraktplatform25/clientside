@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useInboxConversations } from '@/lib/hooks/business/inbox-conversation.hook';
+//import { useInboxStore } from '@/lib/store/business/inbox.store';
 import { useInboxStore } from '@/lib/store/business/inbox.store';
 import type { TConversationResponse } from '@/lib/schemas/business/server/inbox.schema';
 
@@ -45,8 +46,6 @@ export default function ConversationsList({
       return true;
     });
   }, [convs, filters]);
-
-  console.log('Trying to get Information:', filtered);
 
   return (
     <div className='h-full flex flex-col'>

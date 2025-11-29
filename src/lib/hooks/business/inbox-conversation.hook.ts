@@ -1,6 +1,7 @@
 // /src/hooks/useInbox.ts
 import { useQuery, useInfiniteQuery, useMutation, useQueryClient, InfiniteData } from '@tanstack/react-query';
 //import { pusherClient } from '@/lib/pusher.client';
+//import { useInboxStore } from '@/lib/store/business/inbox.store';
 import { useInboxStore } from '@/lib/store/business/inbox.store';
 import {
   apiFetchConversations,
@@ -21,10 +22,9 @@ import {
   TMessageDataResponse,
   TStartConversation,
   TConversationResponse,
+  TMessagesInfinite,
 } from '@/lib/schemas/business/server/inbox.schema';
 import { useEffect } from 'react';
-
-type TMessagesInfinite = InfiniteData<TMessageDetailsResponse>;
 
 /* ------------------------------
   useInboxConversations
@@ -103,45 +103,14 @@ export function useInboxMessages(conversationId: string | null, pageSize = 25) {
       return;
     }
 
-    const all = query.data.pages.flatMap((p) => p.messages ?? []);
+    const all = query.data.pages
+      .flatMap((p) => p.messages ?? [])
+      .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
     setMessages(conversationId, all);
   }, [query.data, conversationId, setMessages]);
 
   return query; // let TS infer the exact UseInfiniteQueryResult type
 }
-// export function useInboxMessages(conversationId: string | null, pageSize = 25): UseInfiniteQueryResult {
-//   const setMessages = useInboxStore((s) => s.setMessages);
-
-//   const query = useInfiniteQuery<
-//     TMessageDetailsResponse,
-//     Error,
-//     InfiniteData<TMessageDetailsResponse>,
-//     ['inbox:messages', string | null],
-//     string | undefined
-//   >({
-//     queryKey: ['inbox:messages', conversationId],
-//     queryFn: async ({ pageParam }) =>
-//       apiFetchMessages(String(conversationId), {
-//         limit: pageSize,
-//         cursor: pageParam,
-//       }),
-//     getNextPageParam: (lastPage) => lastPage.cursor ?? undefined,
-//     initialPageParam: undefined,
-//     enabled: !!conversationId,
-//     staleTime: 1000 * 60 * 5,
-//   });
-
-//   // sync query -> zustand
-//   useEffect(() => {
-//     if (!conversationId) return;
-//     if (!query.data) return;
-
-//     const all = query.data.pages.flatMap((p) => p.messages ?? []);
-//     setMessages(conversationId, all);
-//   }, [query.data, conversationId, setMessages]);
-
-//   return query;
-// }
 
 /* ------------------------------
   useSendMessage
@@ -169,6 +138,7 @@ export function useSendMessage(conversationId: string | null) {
       const tempId = `temp-${Date.now()}`;
       const optimistic: TMessageDataResponse = {
         id: tempId,
+        conversationId: tempId,
         senderContact: {
           id: 'me',
           name: null,

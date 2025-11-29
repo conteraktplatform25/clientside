@@ -1,33 +1,35 @@
 'use client';
 import { MoveHorizontal as MoreHorizontal, Phone, Video, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { UserAvatar } from './UserAvarta';
+//import { UserAvatar } from './UserAvarta';
 // import { formatDistanceToNow } from 'date-fns';
-import { TInboxState, useInboxStore } from '@/lib/store/business/inbox.store';
-import { useMemo } from 'react';
+//import { TInboxState, useInboxStore } from '@/lib/store/business/inbox.store';
+//import { useInboxStore, TInboxState } from '@/lib/store/business/inbox.store';
+//import { useMemo } from 'react';
 
 interface ChatHeaderProps {
   conversationId: string | null;
 }
 
 export function ChatHeader({ conversationId }: ChatHeaderProps) {
-  const conversation = useInboxStore((s: TInboxState) =>
-    conversationId ? (s.conversations?.find((c) => c.id === conversationId) ?? null) : null
-  );
+  // const conversation = useInboxStore((s: TInboxState) =>
+  //   conversationId ? (s.conversations?.find((c) => c.id === conversationId) ?? null) : null
+  // );
   // Memoize the other participant info
-  const otherParticipant = useMemo(() => {
-    if (!conversation) return null;
-    return conversation.contact ?? null;
-  }, [conversation]);
+  // const otherParticipant = useMemo(() => {
+  //   if (!conversation) return null;
+  //   return conversation.contact ?? null;
+  // }, [conversation]);
 
-  if (!conversationId || !conversation) return null;
+  //if (!conversationId || !conversation) return null;
+  console.log(conversationId);
   return (
     <div className='p-4 border-b border-gray-200 bg-white'>
       <div className='flex items-center justify-between'>
         <div className='flex items-center space-x-3'>
-          <UserAvatar profile={otherParticipant} showOnlineStatus />
+          {/* <UserAvatar profile={otherParticipant} showOnlineStatus /> */}
           <div>
-            <h3 className='font-semibold text-gray-900'>{otherParticipant!.name}</h3>
+            <h3 className='font-semibold text-gray-900'>Justine</h3>
           </div>
         </div>
 

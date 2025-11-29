@@ -3,6 +3,7 @@ import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 import { ContactStatus } from '@prisma/client';
 import { z } from 'zod';
 import { PaginationResponsechema } from '../pagination.schema';
+import { InfiniteData } from '@tanstack/react-query';
 
 extendZodWithOpenApi(z);
 // Reusable enums
@@ -125,6 +126,7 @@ const ConversationDataSchema = z.object({
 });
 export const MessageDataResponseSchema = z.object({
   id: z.string(),
+  conversationId: z.string(),
   senderContact: ContactResponseSchema.nullable().optional(),
   senderUser: UserResponseSchema.nullable().optional(),
   businessProfile: BusinessProfileDataSchema,
@@ -173,11 +175,14 @@ export const CreateMessageSchema = z
 export const CreateMessageResponseSchema = z
   .object({
     id: z.string(),
+    conversationId: z.string(),
     senderContact: ContactResponseSchema.nullable().optional(),
+    businessProfile: BusinessProfileDataSchema,
     channel: MessageChannelEnum,
     direction: MessageDirectionEnum,
     deliveryStatus: MessageDeliveryStatus,
     type: MessageTypeEnum,
+    whatsappMessageId: z.string().nullable().optional(),
     content: z.string().nullable().optional(),
     mediaUrl: z.string().nullable().optional(),
     created_at: z.coerce.date(),
@@ -213,7 +218,13 @@ export const StartConversationSchema = z.object({
   contactId: z.string(),
   //channel: z.enum(['WHATSAPP', 'WEBCHAT', 'SMS', 'EMAIL']).optional().default('WHATSAPP'),
 });
+export const InboxEvaluationSchema = z.object({
+  conversationId: z.string(),
+  contact: ContactResponseSchema.optional(),
+  message: CreateMessageResponseSchema.optional(),
+});
 
+export type TMessagesInfinite = InfiniteData<TMessageDetailsResponse>;
 export type TConversationQuery = z.infer<typeof ConversationQuerySchema>;
 export type TConversationListResponse = z.infer<typeof ConversationListResponseSchema>;
 export type TCreateConversation = z.infer<typeof CreateConversationSchema>;
@@ -226,3 +237,5 @@ export type TCreateMessageResponse = z.infer<typeof CreateMessageResponseSchema>
 export type TConversationResponse = z.infer<typeof ConversationResponseSchema>;
 export type TStartConversation = z.infer<typeof StartConversationSchema>;
 export type TContactResponse = z.infer<typeof ContactResponseSchema>;
+
+export type TInboxRealtime = z.infer<typeof InboxEvaluationSchema>;

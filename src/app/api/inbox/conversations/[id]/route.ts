@@ -52,6 +52,7 @@ export async function GET(req: NextRequest, context: { params: Promise<{ id: str
       cursor: cursor ? { id: cursor } : undefined,
       select: {
         id: true,
+        conversationId: true,
         senderUser: { select: { first_name: true, last_name: true } },
         senderContact: { select: { id: true, name: true, phone_number: true, status: true } },
         businessProfile: { select: { id: true, company_name: true, business_number: true } },
