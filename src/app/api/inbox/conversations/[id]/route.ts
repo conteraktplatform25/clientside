@@ -68,6 +68,10 @@ export async function GET(req: NextRequest, context: { params: Promise<{ id: str
         created_at: true,
       },
     });
+    const normalizedMessages = messages.map((m) => ({
+      ...m,
+      created_at: m.created_at.toISOString(),
+    }));
 
     let nextCursor: string | null = null;
     if (messages.length > limit) {
@@ -76,7 +80,7 @@ export async function GET(req: NextRequest, context: { params: Promise<{ id: str
     }
     const responseData = {
       conversation: conv,
-      messages,
+      normalizedMessages,
       nextCursor,
     };
 

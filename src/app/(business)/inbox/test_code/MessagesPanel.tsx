@@ -2,13 +2,9 @@ import React, { useEffect, useRef } from 'react';
 import { useInboxStore } from '@/lib/store/business/inbox.store';
 import MessageBubble from './MessageBubble';
 import { MessageInputBar } from './MessageInputBar';
-//import { useInboxMessages, useSendMessage } from '@/hooks/useInbox';
 import { useInboxMessages, useSendMessage } from '@/lib/hooks/business/inbox-conversation.hook';
-import { TMessageDataResponse } from '@/lib/schemas/business/server/inbox.schema';
 
-type Props = { conversationId: string | null };
-
-export default function MessagesPanel({ conversationId }: Props) {
+export default function MessagesPanel({ conversationId }: { conversationId: string | null }) {
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
   // seed messages from server -> Zustand
@@ -16,8 +12,8 @@ export default function MessagesPanel({ conversationId }: Props) {
 
   // read messages from Zustand (single source of truth)
   const messagesFromStore = useInboxStore((s) => s.messagesByConversation[conversationId || '']);
-
   const messages = React.useMemo(() => messagesFromStore ?? [], [messagesFromStore]);
+
   const sendMessage = useSendMessage(conversationId);
 
   useEffect(() => {
@@ -43,14 +39,12 @@ export default function MessagesPanel({ conversationId }: Props) {
     sendMessage.mutate({ content: undefined, mediaUrl: url });
   };
 
-  const keyFor = (m: TMessageDataResponse) => m.id ?? m.whatsappMessageId ?? `${m.created_at}-${Math.random()}`;
-
   return (
     <div className='flex flex-col h-[520px] w-full relative'>
       <div ref={scrollRef} className='flex-1 overflow-y-auto px-4 py-2 space-y-3 bg-slate-50'>
-        {messages.length === 0 && <div className='text-center text-slate-400 mt-10'>No messages yet. Say hello 👋</div>}
+        {messages.length === 0 && <div className='text-center text-slate-400 mt-10'>No messages yet.</div>}
         {messages.map((m) => (
-          <MessageBubble key={keyFor(m)} message={m} />
+          <MessageBubble key={m.id ?? m.whatsappMessageId ?? `${m.created_at}-${m.id}`} message={m} />
         ))}
       </div>
 

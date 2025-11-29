@@ -26,6 +26,11 @@ export async function GET() {
 
     const businessProfileId = user.businessProfile[0].id;
 
+    const contacts = await prisma.contact.findMany({
+      where: { businessProfileId, status: 'ACTIVE' },
+      select: { id: true },
+    });
+
     const getCategories = await prisma.category.findMany({
       where: { businessProfileId, parentCategoryId: null },
       select: {
@@ -36,18 +41,22 @@ export async function GET() {
     });
     const categories = CategoryResponseListSchema.parse(getCategories);
 
-    const product_count = await prisma.product.count({
-      where: { businessProfileId },
+    const products = await prisma.product.findMany({
+      where: { businessProfileId, deleted: false },
+      select: { id: true },
+    });
+
+    const quickReplies = await prisma.quickReply.findMany({
+      where: { businessProfileId, isActive: true },
+      select: { id: true },
     });
 
     const onboardingStatus = {
       phoneNumber: !!user.phone,
       businessProfile: user.businessProfile.length > 0,
-      productCatalogue: product_count > 0,
-      // quickReplies: user.quickReplies?.length > 0,
-      // contactInformation: user.contactInformation?.length > 0,
-      quickReplies: false,
-      contactInformation: false,
+      contactInformation: contacts && contacts.length > 0 ? true : false,
+      productCatalogue: products && products.length > 0 ? true : false,
+      quickReplies: quickReplies && quickReplies.length > 0 ? true : false,
     };
     const dependentField = {
       productCategoryList: categories,

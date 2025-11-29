@@ -9,3 +9,7 @@ export const defaultBusinessHours = (): TBusinessHourRecord => ({
   saturday: { open: null, close: null },
   sunday: { open: null, close: null },
 });
+
+export function hasTimestamp(x: unknown): x is { timestamp: string } {
+  return typeof x === 'object' && x !== null && 'timestamp' in x;
+}

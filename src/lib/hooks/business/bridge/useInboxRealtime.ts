@@ -25,7 +25,6 @@ export function useInboxRealtime(businessId: string | null, authToken: string | 
     }
 
     const pusher = initPusherClient(authToken);
-
     if (!pusher) {
       console.error('[Realtime] Failed to init pusher client');
       return;
@@ -41,33 +40,43 @@ export function useInboxRealtime(businessId: string | null, authToken: string | 
     channel.bind('pusher:subscription_error', (err: unknown) => console.error('[Realtime] subscription error', err));
 
     // inbound message (server uses 'message.created')
-    const onMessageCreated = (payload: {
-      conversationId: string;
-      message: TMessageDataResponse;
-      contact?: unknown;
-    }) => {
-      // Defensive: ensure payload.message has conversationId; server should include
-      const message = payload.message;
-      if (!message.conversationId && payload.conversationId) message.conversationId = payload.conversationId;
-      if (!message.conversationId) {
-        console.warn('[Realtime] incoming message missing conversationId', payload);
-        return;
-      }
-      onMessage(message);
-    };
+    // const onMessageCreated = (payload: {
+    //   conversationId: string;
+    //   message: TMessageDataResponse;
+    //   contact?: unknown;
+    // }) => {
+    //   // Defensive: ensure payload.message has conversationId; server should include
+    //   const message = payload.message;
+    //   if (!message.conversationId && payload.conversationId) message.conversationId = payload.conversationId;
+    //   if (!message.conversationId) {
+    //     console.warn('[Realtime] incoming message missing conversationId', payload);
+    //     return;
+    //   }
+    //   onMessage(message);
+    // };
 
     // status
-    const onStatusUpdated = (payload: { messageSid: string; messageStatus: string; raw?: unknown }) => {
-      onStatus({ messageSid: payload.messageSid, messageStatus: payload.messageStatus });
-    };
+    // const onStatusUpdated = (payload: { messageSid: string; messageStatus: string; raw?: unknown }) => {
+    //   onStatus({ messageSid: payload.messageSid, messageStatus: payload.messageStatus });
+    // };
 
-    channel.bind('message.created', onMessageCreated);
-    channel.bind('message.status.updated', onStatusUpdated);
+    // server event names: message.created and message.status.updated
+    channel.bind(
+      'message.created',
+      (payload: { conversationId?: string; message?: TMessageDataResponse; contact?: unknown }) => {
+        // normalize: server may send { conversationId, message } or message directly
+        const message = (payload.message ?? payload) as Partial<TMessageDataResponse> & { conversationId?: string };
+        if (payload.conversationId && !message.conversationId) message.conversationId = payload.conversationId;
+        onMessage(message);
+      }
+    );
+    channel.bind('message.status.updated', (payload: { messageSid: string; messageStatus: string }) => {
+      onStatus({ messageSid: payload.messageSid, messageStatus: payload.messageStatus });
+    });
 
     return () => {
-      channel.unbind('message.created', onMessageCreated);
-      channel.unbind('message.status.updated', onStatusUpdated);
       try {
+        channel.unbind();
         pusher.unsubscribe(channelName);
       } catch {
         /* ignore */

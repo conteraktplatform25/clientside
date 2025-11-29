@@ -139,7 +139,7 @@ export const MessageDataResponseSchema = z.object({
   mediaType: z.string().nullable().optional(),
   rawPayload: z.any().optional().nullable(),
   whatsappMessageId: z.string().nullable().optional(),
-  created_at: z.coerce.date(),
+  created_at: z.string(),
 });
 
 export const MessageDetailsResponseSchema = z
@@ -185,7 +185,7 @@ export const CreateMessageResponseSchema = z
     whatsappMessageId: z.string().nullable().optional(),
     content: z.string().nullable().optional(),
     mediaUrl: z.string().nullable().optional(),
-    created_at: z.coerce.date(),
+    created_at: z.string(),
   })
   .openapi('CreateMessageResponse');
 

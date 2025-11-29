@@ -9,6 +9,7 @@ import {
   CreateMessageSchema,
   MessageDetailsResponseSchema,
   MessageQuerySchema,
+  TCreateMessageResponse,
 } from '@/lib/schemas/business/server/inbox.schema';
 import { getErrorMessage } from '@/utils/errors';
 import { failure, success } from '@/utils/response';
@@ -73,6 +74,10 @@ export async function GET(req: NextRequest, context: { params: Promise<{ id: str
         created_at: true,
       },
     });
+    const normalizedMessages = messages.map((m) => ({
+      ...m,
+      created_at: m.created_at.toISOString(),
+    }));
 
     let nextCursor: string | null = null;
     if (messages.length > limit) {
@@ -80,7 +85,7 @@ export async function GET(req: NextRequest, context: { params: Promise<{ id: str
       nextCursor = next?.id ?? null;
     }
     const responseData = {
-      messages,
+      messages: normalizedMessages,
       conversation: conv,
       nextCursor,
     };
@@ -161,6 +166,10 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
         deliveryStatus: true,
       },
     });
+    const normalizedMessage: TCreateMessageResponse = {
+      ...responseData,
+      created_at: responseData.created_at.toISOString(),
+    };
 
     // update conversation preview
     await prisma.conversation.update({
@@ -201,7 +210,7 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
       })();
     }
 
-    const messageProfile = CreateMessageResponseSchema.parse(responseData);
+    const messageProfile = CreateMessageResponseSchema.parse(normalizedMessage);
 
     return success({ messageProfile }, 'Message delivered successfully', 201);
   } catch (err) {

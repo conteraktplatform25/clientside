@@ -4,7 +4,7 @@ import {
   TConversationResponse,
   InboxFilterState,
 } from '@/lib/schemas/business/server/inbox.schema';
-import { MessageDeliveryStatus } from '@prisma/client';
+import { MessageDeliveryStatus, MessageType } from '@prisma/client';
 
 export type TInboxMessage = TMessageDataResponse;
 
@@ -38,7 +38,7 @@ export type InboxState = {
   setFilters: (f: InboxFilterState) => void;
 
   // realtime handlers
-  onMessage: (message: TInboxMessage) => void;
+  onMessage: (raw: Partial<TMessageDataResponse> & { conversationId?: string }) => void;
   onMessageStatusUpdate: (payload: { messageSid: string; messageStatus: string }) => void;
 };
 
@@ -106,21 +106,36 @@ export const useInboxStore = create<InboxState>((set, get) => ({
 
   setFilters: (f) => set({ filters: f }),
 
-  onMessage: (message) => {
-    // message must contain conversationId
+  onMessage: (raw) => {
+    // Normalize timestamp and conversation id
+    const message: TMessageDataResponse = {
+      id: raw.id ?? `temp-${Date.now()}`,
+      conversationId: raw.conversationId ?? raw.whatsappMessageId ?? 'unknown-convo',
+      businessProfile: raw.businessProfile!,
+      senderContact: raw.senderContact ?? null,
+      senderUser: raw.senderUser ?? null,
+      channel: raw.channel ?? 'WHATSAPP',
+      direction: raw.direction ?? 'INBOUND',
+      deliveryStatus: (raw.deliveryStatus as MessageDeliveryStatus) ?? 'SENT',
+      type: (raw.type as MessageType) ?? (raw.mediaUrl ? 'IMAGE' : 'TEXT'),
+      content: raw.content ?? null,
+      mediaUrl: raw.mediaUrl ?? null,
+      mediaType: raw.mediaType ?? null,
+      rawPayload: raw.rawPayload ?? null,
+      whatsappMessageId: raw.whatsappMessageId ?? null,
+      created_at: raw.created_at ?? new Date().toISOString(),
+    };
+
     const convoId = message.conversationId;
     if (!convoId) {
-      console.error('[InboxStore] onMessage missing conversationId', message);
+      console.error('[inbox.store] missing conversationId for incoming message', raw);
       return;
     }
 
-    // append message and adjust unread if not active
     get().addMessage(convoId, message);
 
     const selected = get().selectedConversationId;
-    if (selected !== convoId) {
-      get().incrementUnread(convoId);
-    }
+    if (selected !== convoId) get().incrementUnread(convoId);
   },
 
   onMessageStatusUpdate: ({ messageSid, messageStatus }) => {

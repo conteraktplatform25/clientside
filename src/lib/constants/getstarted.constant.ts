@@ -20,6 +20,11 @@ export const ConstUserTask: IGettingStartedOption[] = [
     href: '/business/profile',
   },
   {
+    value: 'contactInformation',
+    label: 'Add contacts',
+    href: '/profile/contact-info',
+  },
+  {
     value: 'productCatalogue',
     label: 'Create product catalogue',
     href: '/catalogue-sharing',
@@ -27,11 +32,6 @@ export const ConstUserTask: IGettingStartedOption[] = [
   {
     value: 'quickReplies',
     label: 'Setup quick replies',
-    href: '/messaging/quick-replies',
-  },
-  {
-    value: 'contactInformation',
-    label: 'Add contacts',
-    href: '/profile/contact-info',
+    href: '/messaging/quick-reply',
   },
 ];

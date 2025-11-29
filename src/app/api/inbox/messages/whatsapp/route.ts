@@ -118,7 +118,11 @@ export async function POST(req: NextRequest) {
         where: { businessProfileId, contactId: contact.id, status: 'OPEN' },
         select: {
           id: true,
+          status: true,
           businessProfileId: true,
+          lastMessageAt: true,
+          lastMessagePreview: true,
+          channel: true,
         },
       });
       if (!conversation) {
@@ -133,6 +137,10 @@ export async function POST(req: NextRequest) {
           select: {
             id: true,
             businessProfileId: true,
+            status: true,
+            lastMessageAt: true,
+            lastMessagePreview: true,
+            channel: true,
           },
         });
       } else {
@@ -145,6 +153,10 @@ export async function POST(req: NextRequest) {
           select: {
             id: true,
             businessProfileId: true,
+            status: true,
+            lastMessageAt: true,
+            lastMessagePreview: true,
+            channel: true,
           },
         });
       }
@@ -166,6 +178,17 @@ export async function POST(req: NextRequest) {
         },
         select: {
           id: true,
+          conversationId: true,
+          senderContact: { select: { id: true, name: true, phone_number: true, status: true } },
+          businessProfile: { select: { id: true, company_name: true, business_number: true } },
+          channel: true,
+          direction: true,
+          type: true,
+          content: true,
+          mediaUrl: true,
+          whatsappMessageId: true,
+          created_at: true,
+          deliveryStatus: true,
         },
       });
       // Update unread counters

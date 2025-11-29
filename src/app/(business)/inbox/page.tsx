@@ -5,7 +5,6 @@ import { useSession } from 'next-auth/react';
 import { useInboxRealtime } from '@/lib/hooks/business/bridge/useInboxRealtime';
 import InboxChatUI from './test_code/InboxChatUI';
 import { useInboxStore } from '@/lib/store/business/inbox.store';
-//import { useStartConversation } from '@/lib/hooks/business/inbox-conversation.hook';
 import { useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import { getErrorMessage } from '@/utils/errors';
@@ -14,8 +13,6 @@ export default function InboxPage() {
   const params = useSearchParams();
   const { data: session } = useSession();
   const setSelectedConversation = useInboxStore((s) => s.setSelectedConversation);
-  // const preloadConversation = useInboxStore((s) => s.setMessages); // optional helper
-  // const startConversation = useStartConversation();
 
   const [initialized, setInitialized] = useState(false);
 

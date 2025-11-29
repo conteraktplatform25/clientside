@@ -46,38 +46,32 @@ function DeliveryIcon({ status }: { status?: TMessageDataResponse['deliveryStatu
   }
 }
 
+function formatTime(ts: string | undefined) {
+  try {
+    const d = new Date(ts ?? '');
+    if (Number.isNaN(d.getTime())) return '';
+    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  } catch {
+    return '';
+  }
+}
+
 export default function MessageBubble({ message }: { message: TCreateMessageResponse }) {
   const isOutbound = message.direction === 'OUTBOUND';
-  console.log(message.created_at);
+  const time = formatTime(message.created_at);
 
   return (
     <div className={`flex ${isOutbound ? 'justify-end' : 'justify-start'}`}>
       <div
-        className={`max-w-[70%] p-3 rounded-2xl shadow-sm text-sm whitespace-pre-wrap break-words ${isOutbound ? 'bg-[#E9F3FF] text-neutral-700' : 'bg-[#F3F4F6] text-[#35393F]'}`}
+        className={`max-w-[70%] min-w-[180px] p-3 rounded-2xl shadow-sm text-sm whitespace-pre-wrap break-words ${isOutbound ? 'bg-[#E9F3FF]' : 'bg-[#F3F4F6]'}`}
       >
-        {/* Text or media */}
-        <div className='flex items-start justify-between gap-6'>
-          {message.mediaUrl ? (
-            <Image
-              src={message.mediaUrl}
-              className='rounded-xl mb-1 max-w-[200px]'
-              width={120}
-              height={120}
-              alt='media'
-            />
-          ) : null}
-          {message.type === 'TEXT' && <div className='whitespace-pre-wrap'>{message.content}</div>}
-          {/* meta row: timestamp + status (for outbound) */}
-          <div
-            className={`flex items-center justify-end gap-2 mt-2 text-xs ${isOutbound ? 'text-neutral-600' : 'text-slate-500'}`}
-          >
-            <div>{new Date(message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
-            {isOutbound && (
-              <div className='flex items-center'>
-                <DeliveryIcon status={message.deliveryStatus} />
-              </div>
-            )}
-          </div>
+        {message.mediaUrl && (
+          <Image src={message.mediaUrl} alt='media' width={160} height={160} className='rounded-md mb-2' />
+        )}
+        {message.type === 'TEXT' && <div className='mb-1'>{message.content}</div>}
+        <div className='flex items-center justify-end gap-2 text-xs text-slate-500 mt-2'>
+          <div>{time}</div>
+          {isOutbound && <DeliveryIcon status={message.deliveryStatus} />}
         </div>
       </div>
     </div>

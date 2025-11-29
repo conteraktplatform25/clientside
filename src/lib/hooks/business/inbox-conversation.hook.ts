@@ -138,12 +138,12 @@ export function useSendMessage(conversationId: string | null) {
       const tempId = `temp-${Date.now()}`;
       const optimistic: TMessageDataResponse = {
         id: tempId,
-        conversationId: tempId,
+        conversationId,
         senderContact: {
           id: 'me',
           name: null,
           phone_number: '',
-          status: 'ACTIVE',
+          status: 'UNSUBSCRIBED',
         },
         senderUser: {
           first_name: null,
@@ -156,14 +156,14 @@ export function useSendMessage(conversationId: string | null) {
         },
         channel: 'WHATSAPP',
         direction: 'OUTBOUND',
-        deliveryStatus: 'SENT',
+        deliveryStatus: 'PENDING',
         type: newMsg.mediaUrl ? 'IMAGE' : 'TEXT',
         content: newMsg.content ?? null,
         mediaUrl: newMsg.mediaUrl ?? null,
         mediaType: null,
         rawPayload: null,
         whatsappMessageId: null,
-        created_at: new Date(),
+        created_at: new Date().toISOString(),
       };
       addMessage(conversationId, optimistic);
 
@@ -200,11 +200,12 @@ export function useSendMessage(conversationId: string | null) {
       }
     },
 
-    onSuccess: (data) => {
+    onSuccess: (data: TCreateMessageResponse) => {
       // server will likely send pusher event; still invalidate to be safe
+      addMessage(conversationId!, data);
       queryClient.invalidateQueries({ queryKey: ['inbox:messages', conversationId] });
       queryClient.invalidateQueries({ queryKey: ['inbox:conversations'] });
-      addMessage(conversationId!, data);
+      //
     },
   });
 }

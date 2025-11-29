@@ -1,15 +1,14 @@
 // /src/components/inbox/InboxChatUI.tsx
 import React from 'react';
+import { useInboxConversations } from '@/lib/hooks/business/inbox-conversation.hook';
+import { useInboxStore } from '@/lib/store/business/inbox.store';
 import InboxFilters from './InboxFilters';
 import MessagesPanel from './MessagesPanel';
 import ConversationsList from './ConversationsList';
-import { useInboxStore } from '@/lib/store/business/inbox.store';
-import { useInboxConversations } from '@/lib/hooks/business/inbox-conversation.hook';
 
 export default function InboxChatUI() {
   const selected = useInboxStore((s) => s.selectedConversationId);
   const setFilters = useInboxStore((s) => s.setFilters);
-
   const convsQuery = useInboxConversations({ page: 1, limit: 25, search: '' });
 
   React.useEffect(() => {
