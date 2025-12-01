@@ -43,10 +43,10 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Update Phone Number
-    await prisma.user.updateMany({
+    // Update user profile
+    await prisma.user.update({
       where: { id: user.id },
-      data: { phone: phone_number, password: hashedPassword },
+      data: { email_verified_date: new Date(), is_activated: true, phone: phone_number, password: hashedPassword },
     });
 
     return NextResponse.json(

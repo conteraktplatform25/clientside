@@ -14,6 +14,7 @@ declare module 'next-auth' {
     phone_number?: string | null;
     registered_number?: string;
     businessProfileId?: string | null;
+    is_activated?: boolean;
   }
 
   /**

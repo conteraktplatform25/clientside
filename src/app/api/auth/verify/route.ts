@@ -17,10 +17,12 @@ export async function GET(req: NextRequest) {
     }
 
     // Activate user
-    const user = await prisma.user.update({
+    const user = await prisma.user.findUnique({
       where: { email: verification.identifier },
-      data: { email_verified_date: new Date(), is_activated: true },
+      select: { email: true, first_name: true, last_name: true },
     });
+    if (!user) return NextResponse.json({ error: 'User profile cannot be found' }, { status: 404 });
+
     const full_name = user.first_name + ' ' + user.last_name;
 
     // Update token

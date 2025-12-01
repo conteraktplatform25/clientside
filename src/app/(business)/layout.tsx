@@ -1,7 +1,8 @@
 import React, { ReactNode } from 'react';
 import { cookies } from 'next/headers';
 import { getServerSession } from 'next-auth';
-import authOptions from '../api/auth/[...nextauth]/authOption';
+//import authOptions from '../api/auth/[...nextauth]/authOption';
+import { authOptions } from '../api/auth/[...nextauth]/authOption';
 import ClientDashboardLayout from './ClientDashboardLayout';
 
 interface DashboardLayoutProps {

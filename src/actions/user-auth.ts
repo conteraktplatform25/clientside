@@ -25,6 +25,7 @@ const RequestLogin = async (email: string, password: string): Promise<UserObject
     first_name: user.first_name,
     last_name: user.last_name,
     role: user.role.name,
+    is_activated: user.is_activated,
   };
   return profile;
 };
@@ -65,6 +66,7 @@ export async function refresh(token: string): Promise<Response> {
     email: decoded.email,
     first_name: decoded.first_name ?? null,
     last_name: decoded.last_name ?? null,
+    is_activated: decoded.is_activated,
     role: decoded.role ?? 'Business',
   };
 

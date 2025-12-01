@@ -2,7 +2,8 @@ import { NextRequest } from 'next/server';
 import prisma from './prisma';
 import { hash } from 'bcryptjs';
 import { getServerSession, UserObject } from 'next-auth';
-import authOptions from '@/app/api/auth/[...nextauth]/authOption';
+//import authOptions from '@/app/api/auth/[...nextauth]/authOption';
+import { authOptions } from '@/app/api/auth/[...nextauth]/authOption';
 import { AuthenticatedUser } from '@/type/server/authentication.type';
 import { verifyAccessToken } from '@/actions/mobile-auth';
 

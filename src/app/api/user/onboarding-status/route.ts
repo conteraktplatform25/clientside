@@ -1,5 +1,6 @@
 import { getServerSession } from 'next-auth';
-import authOptions from '../../auth/[...nextauth]/authOption';
+//import authOptions from '../../auth/[...nextauth]/authOption';
+import { authOptions } from '../../auth/[...nextauth]/authOption';
 import prisma from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 import { CategoryResponseListSchema } from '@/lib/schemas/business/server/catalogue.schema';

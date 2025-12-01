@@ -1,5 +1,5 @@
 // src/app/api/[...nextauth]/authOption.ts
-import { PrismaAdapter } from '@next-auth/prisma-adapter';
+//import { PrismaAdapter } from '@next-auth/prisma-adapter';
 import prisma from '@/lib/prisma';
 import GoogleProvider from 'next-auth/providers/google';
 import CredentialsProvider from 'next-auth/providers/credentials';
@@ -10,7 +10,10 @@ import { login, refresh } from '@/actions/user-auth';
 import { PrismaClient } from '@prisma/client';
 import { Adapter, AdapterUser } from 'next-auth/adapters';
 
-// keep your custom types in next-auth.d.ts
+// ⛔ TURN OFF automatic user creation by the PrismaAdapter for OAuth
+import { PrismaAdapter } from '@auth/prisma-adapter';
+const BaseAdapter = PrismaAdapter(prisma);
+
 type BackendJWT = import('next-auth').BackendJWT;
 type DecodedJWT = import('next-auth').DecodedJWT;
 type CredentialsUser = import('next-auth').CredentialsUser;
@@ -22,12 +25,8 @@ interface GoogleProfile {
   family_name?: string;
   name?: string;
   picture?: string;
-  email?: string;
 }
 
-// ==========================================
-// 🔹 Role-based redirect mapping
-// ==========================================
 const ROLE_REDIRECTS: Record<string, string> = {
   Admin: '/admin',
   Business: '/',
@@ -43,7 +42,6 @@ async function refreshAccessToken(nextAuthJWT: NextAuthJWT): Promise<NextAuthJWT
     const accessPayload = await res.json();
     if (!res.ok) throw accessPayload;
 
-    // decode the new access for expiry (`exp` as seconds)
     const decoded = jwtDecode<DecodedJWT>(accessPayload.access);
     const exp = decoded.exp ?? 0;
 
@@ -70,40 +68,53 @@ async function refreshAccessToken(nextAuthJWT: NextAuthJWT): Promise<NextAuthJWT
     };
   }
 }
-
+/**
+ * Custom Prisma Adapter
+ *
+ * Important behavior:
+ *  - When NextAuth asks to create a user (OAuth flow), we create the user but set
+ *    is_activated = false by default (so users signing up with Google are NOT auto-activated).
+ *  - We return the shape NextAuth expects for AdapterUser.
+ */
 function CustomPrismaAdapter(p: PrismaClient): Adapter {
-  // ✅ type parameter
-  const base = PrismaAdapter(p);
+  //const base = PrismaAdapter(p);
 
   return {
-    ...base,
+    ...BaseAdapter,
+    // override createUser to ensure `is_activated` default and mapping of names
     async createUser(data: Omit<AdapterUser, 'id'>): Promise<AdapterUser> {
-      // Ensure default "Business" role exists
-      const defaultRole = await p.role.findFirst({
-        where: { name: 'Business' },
-      });
-
+      // Ensure default role exists or create it
+      let defaultRole = await p.role.findFirst({ where: { name: 'Business' } });
       if (!defaultRole) {
-        throw new Error('Default role "Business" not found in database');
+        defaultRole = await p.role.create({ data: { name: 'Business', is_default: true, is_admin: false } });
       }
 
-      // 🔹 Map NextAuth's `name` → `first_name` / `last_name`
+      // Map name string into first/last
       const [firstName, ...rest] = (data.name ?? '').split(' ');
       const lastName = rest.join(' ') || null;
-      // 🔹 Create your User with your own field names
+
+      // Determine email verified date if provided
+      let emailVerifiedDate = null;
+      if (data.emailVerified) {
+        try {
+          emailVerifiedDate = new Date(data.emailVerified as unknown as string);
+          if (Number.isNaN(emailVerifiedDate.getTime())) emailVerifiedDate = null;
+        } catch {
+          emailVerifiedDate = null;
+        }
+      }
+
       const created = await p.user.create({
         data: {
           email: data.email ?? '',
           first_name: firstName || null,
           last_name: lastName,
           image: data.image ?? null,
-          email_verified_date: new Date() ?? null,
-          is_activated: true,
+          is_activated: false,
+          email_verified_date: emailVerifiedDate,
           role: { connect: { id: defaultRole.id } },
         },
       });
-
-      // 🔹 Return the shape NextAuth expects
       return {
         id: created.id,
         name: `${created.first_name ?? ''} ${created.last_name ?? ''}`.trim(),
@@ -139,6 +150,7 @@ export const authOptions: NextAuthOptions = {
       clientId: process.env.GOOGLE_CLIENT_ID || '',
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
       authorization: { params: { scope: 'openid email profile' } },
+      allowDangerousEmailAccountLinking: true,
     }),
     CredentialsProvider({
       name: 'Credentials',
@@ -151,16 +163,13 @@ export const authOptions: NextAuthOptions = {
           throw new Error('Email and password required');
         }
 
-        // `login` returns a Response containing BackendJWT (access & refresh)
         const res = await login(credentials.email, credentials.password);
         const tokens = (await res.json()) as BackendJWT;
         if (!res.ok) throw new Error('Invalid credentials');
 
-        // decode tokens to extract user info and expiry
         const accessDecoded = jwtDecode<DecodedJWT>(tokens.access);
         const refreshDecoded = jwtDecode<DecodedJWT>(tokens.refresh!);
 
-        // find business profile if you need extra fields
         const profile = await prisma.businessProfile.findFirst({
           where: { userId: accessDecoded.id },
           select: { id: true, business_number: true, phone_number: true },
@@ -175,6 +184,7 @@ export const authOptions: NextAuthOptions = {
           phone_number: profile?.phone_number,
           businessProfileId: profile?.id,
           registered_number: profile?.business_number ?? '',
+          is_activated: accessDecoded.is_activated,
         };
 
         const validity: AuthValidity = {
@@ -182,7 +192,6 @@ export const authOptions: NextAuthOptions = {
           refresh_until: refreshDecoded.exp,
         };
 
-        // IMPORTANT: The object returned here becomes `user` in the jwt callback
         const credentialsUser: CredentialsUser = {
           id: refreshDecoded.jti,
           user,
@@ -194,103 +203,139 @@ export const authOptions: NextAuthOptions = {
       },
     }),
   ],
+  // Custom pages if you have them
+  pages: {
+    signIn: '/login',
+    error: '/error',
+  },
   callbacks: {
-    // preserve callbackUrl when present; otherwise default to baseUrl
-    async redirect({ url, baseUrl }) {
+    /**
+     * signIn callback:
+     * - This runs during sign-in. We use it to:
+     *   1) ensure Google users are not fully allowed to sign-in if their user record is not activated
+     *   2) redirect new/inactive Google users to /get-profile to complete activation
+     *
+     * Returning `true` continues login; returning `false` blocks; returning a string redirects.
+     */
+    async signIn({ user, account, profile }) {
       try {
-        // 1️⃣ Always allow NextAuth's internal URLs
-        if (url.startsWith('/api/auth')) return baseUrl;
+        if (account?.provider === 'google') {
+          const email = (user as NextAuthUser).email ?? null;
+          if (!email) {
+            // we require email
+            return false;
+          }
 
-        // 2️⃣ If it's a relative callback URL (like `/dashboard`), return it
-        if (url.startsWith('/')) return `${baseUrl}${url}`;
+          // Find the DB user (the adapter may have already created them)
+          const dbUser = await prisma.user.findUnique({
+            where: { email },
+          });
 
-        // 3️⃣ Same-origin absolute URLs
-        const target = new URL(url);
-        if (target.origin === baseUrl) return url;
+          const full_name = (profile as GoogleProfile)?.name;
 
-        // 4️⃣ Fallback
-        return baseUrl;
-      } catch {
-        return baseUrl;
+          // If user doesn't exist for some reason, create them as inactive (defensive)
+          if (!dbUser) {
+            const [first_name, ...rest] = full_name?.split(' ') ?? [];
+            const last_name = rest.join(' ') || null;
+            let defaultRole = await prisma.role.findFirst({ where: { name: 'Business' } });
+            if (!defaultRole) {
+              defaultRole = await prisma.role.create({ data: { name: 'Business', is_default: true, is_admin: false } });
+            }
+            await prisma.user.create({
+              data: {
+                email,
+                first_name: first_name ?? null,
+                last_name,
+                image: (profile as GoogleProfile)?.picture ?? null,
+                is_activated: false,
+                role: { connect: { id: defaultRole.id } },
+              },
+            });
+
+            return `/profile?verified=true&email=${user.email}&name=${full_name}`;
+          }
+          // If user exists but not activated -> redirect to profile completion
+          if (!dbUser.is_activated) {
+            return `/profile?verified=true&email=${user.email}&name=${full_name}`;
+          }
+        }
+        // default: allow
+        return true;
+      } catch (err) {
+        console.error('signIn callback error', err);
+        return false;
       }
     },
 
-    // jwt callback — unify data shape for both providers
-    async jwt({ token, user, account, profile }) {
-      // token: existing JWT between calls
-      // user: present only on initial sign-in
+    /**
+     * jwt callback — unify shape for credentials & oauth
+     */
+    async jwt({ token, user, account }) {
       const nextToken: NextAuthJWT = { ...(token as NextAuthJWT) };
 
       // INITIAL SIGN IN
       if (user && account) {
-        // Credentials provider returned a custom object via authorize()
+        // Credentials provider returns a custom object in authorize()
         if (account.provider === 'credentials') {
-          // The CredentialsProvider returns a custom user-like object in authorize.
-          // We stored that as `user` so cast it.
           const creds = user as unknown as CredentialsUser;
           nextToken.data = {
             user: creds.user,
             validity: creds.validity,
             tokens: creds.tokens,
+            redirectTo: ROLE_REDIRECTS[creds.user.role] ?? '/',
           };
-          nextToken.data.redirectTo = ROLE_REDIRECTS[creds.user.role] ?? '/';
           nextToken.error = undefined;
           return nextToken;
         }
 
-        // OAuth provider (google)
-        // `user` here is the NextAuth user (created by Prisma adapter)
-        // map to your application UserObject consistently
+        // OAuth (Google)
+        // user is the Adapter-created user (basic fields). We want richer info from DB.
         const oauthUser = user as NextAuthUser;
-        const googleProfile = profile as GoogleProfile;
-        // Build a safe app user shape
+        // fetch full DB record to get role + is_activated + business profile
+        const dbUser = await prisma.user.findUnique({
+          where: { id: oauthUser.id as string },
+          include: { role: true },
+        });
+
         const appUser: Partial<UserObject> = {
-          id: oauthUser.id as string,
+          id: dbUser?.id ?? (oauthUser.id as string),
           email: oauthUser.email ?? undefined,
-          first_name: googleProfile.given_name ?? oauthUser.name?.split(' ')[0] ?? undefined,
-          last_name: googleProfile.family_name ?? oauthUser.name?.split(' ').slice(1).join(' ') ?? undefined,
+          first_name: dbUser?.first_name ?? oauthUser.name?.split(' ')[0] ?? undefined,
+          last_name: dbUser?.last_name ?? oauthUser.name?.split(' ').slice(1).join(' ') ?? undefined,
           image: oauthUser.image ?? null,
-          role: 'Business', // default role name; you may want to look up actual role from DB if needed
+          role: dbUser?.role?.name ?? 'Business',
+          // include activation flag for middleware/UI
+          is_activated: dbUser?.is_activated ?? false,
         };
 
         nextToken.data = {
           user: appUser as UserObject,
-          validity: { valid_until: 0, refresh_until: 0 }, // placeholders (no backend tokens available)
+          validity: { valid_until: 0, refresh_until: 0 },
           tokens: undefined,
           redirectTo: ROLE_REDIRECTS[appUser.role!] ?? '/',
         };
         nextToken.error = undefined;
         return nextToken;
       }
-
-      // NOT initial sign-in: check token validity if we stored validity/tokens (credentials flow)
+      // Subsequent requests: if we have validity from credentials flow, handle refresh
       if (nextToken.data?.validity && typeof nextToken.data.validity === 'object') {
         const v = nextToken.data.validity as AuthValidity;
-        // if access still valid
         if (v.valid_until && Date.now() < v.valid_until * 1000) {
           return nextToken;
         }
-        // if refresh still valid, attempt refresh
         if (v.refresh_until && Date.now() < v.refresh_until * 1000) {
           return await refreshAccessToken(nextToken);
         }
-        // expired
         nextToken.error = 'RefreshTokenExpired';
         return nextToken;
       }
 
-      // fallback: return token unchanged
       return nextToken;
     },
 
-    // session: expose a stable session.user shape client-side
     async session({ session, token }) {
-      session.accessToken = token?.data?.tokens?.access ?? '';
-      session.refreshToken = token?.data?.tokens?.refresh ?? '';
-
       if (token?.data?.user) {
         const user = token.data.user;
-        // Handle Prisma nested role object
         session.user = {
           id: user.id,
           email: user.email,
@@ -298,39 +343,39 @@ export const authOptions: NextAuthOptions = {
           last_name: user.last_name ?? null,
           businessProfileId: user.businessProfileId ?? null,
           image: user.image ?? null,
-          role: typeof user.role === 'string' ? user.role : (user.role ?? 'Business'), // flatten role object
+          role: typeof user.role === 'string' ? user.role : (user.role ?? 'Business'),
+          is_activated: user.is_activated ?? false,
         };
       } else {
-        // --- 2️⃣ Fallback to NextAuth defaults (e.g., Google) ---
+        // fallback to defaults coming from token
         session.user = {
           id: token.sub ?? '',
           email: token.email ?? '',
           first_name: token.name?.split(' ')[0] ?? null,
           last_name: token.name?.split(' ').slice(1).join(' ') ?? null,
           image: token.picture ?? null,
-          businessProfileId: token.data.user?.businessProfileId ?? null,
-          role: 'Business',
+          role: token.role ?? 'Business',
+          is_activated: false,
         };
       }
 
       session.validity = token?.data?.validity ?? {};
       session.error = token?.error;
-
-      const role = session.user.role;
-      session.redirectTo = ROLE_REDIRECTS[role] ?? '/';
+      session.redirectTo = token?.data?.redirectTo ?? ROLE_REDIRECTS[session.user.role] ?? '/';
 
       return session;
     },
-  },
 
-  // custom pages
-  pages: {
-    signIn: '/login',
-    error: '/error',
+    async redirect({ url, baseUrl }) {
+      try {
+        if (url.startsWith('/api/auth')) return baseUrl;
+        if (url.startsWith('/')) return `${baseUrl}${url}`;
+        const target = new URL(url);
+        if (target.origin === baseUrl) return url;
+        return baseUrl;
+      } catch {
+        return baseUrl;
+      }
+    },
   },
-
-  // debug helpful while developing
-  debug: process.env.NODE_ENV === 'development',
 };
-
-export default authOptions;
