@@ -40,7 +40,7 @@ const ContactManagementPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState(''); // immediate controlled input
   const [serverFilter, setServerFilter] = useState(''); // debounced value used for server fetch
   const [page, setPage] = useState<number>(1);
-  const [limit, setLimit] = useState<number>(0);
+  const [limit, setLimit] = useState<number>(10);
   const [isCreateContactDialogOpen, setIsCreateContactDialogOpen] = useState<boolean>(false);
   const [openDrawer, setOpenDrawer] = useState(false);
   const [pageInput, setPageInput] = useState('1');

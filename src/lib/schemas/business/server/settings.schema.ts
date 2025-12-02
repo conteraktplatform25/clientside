@@ -46,7 +46,6 @@ export const BusinessHoursSchema = z.object({
 export const CreateBusinessSettingsSchema = z
   .object({
     company_name: z.string(),
-    // phone_country_code: z.string().min(1, 'Country code is required').nullable().optional(),
     phone_number: z.string().min(6, 'Phone number is required'),
     company_location: z.string().nullable().optional(),
     company_website: z.string().nullable().optional(),
@@ -60,7 +59,21 @@ export const CreateBusinessSettingsSchema = z
   })
   .openapi('CreateBusinessSettings');
 
-export const UpdateBusinessSettingsSchema = CreateBusinessSettingsSchema.partial().openapi('UpdateBusinessSettings');
+//export const UpdateBusinessSettingsSchema = CreateBusinessSettingsSchema.partial().openapi('UpdateBusinessSettings');
+export const UpdateBusinessSettingsSchema = z
+  .object({
+    phone_number: z.string().min(6, 'Phone number is required'),
+    company_location: z.string().nullable().optional(),
+    company_website: z.string().nullable().optional(),
+    business_industry: z.string().nullable().optional(),
+    business_category: z.string().nullable().optional(),
+    annual_revenue: z.string().nullable().optional(),
+    business_email: z.string().nullable().optional(),
+    business_logo_url: z.string().nullable().optional(),
+    business_bio: z.string().nullable().optional(),
+    business_hour: BusinessHoursSchema.nullable().optional(),
+  })
+  .openapi('UpdateBusinessSettings');
 
 const UserBusinessSchema = z.object({
   id: z.uuid(),

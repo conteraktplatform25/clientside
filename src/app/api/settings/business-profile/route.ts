@@ -102,8 +102,7 @@ export async function PATCH(req: NextRequest) {
     if (!isAuthorized) return failure('Forbidden: Insufficient permissions', 403);
 
     const userId = user.id;
-    //const businessProfileId = user.businessProfile?.[0]?.id;
-    const businessProfileId = '520159e9-2ee7-4af3-b1eb-cefc18984b28';
+    const businessProfileId = user.businessProfile?.[0]?.id;
     if (!userId || !businessProfileId) return failure('User or Business profile not configured.', 400);
 
     const validation = await validateRequest(UpdateBusinessSettingsSchema, req);
@@ -133,11 +132,13 @@ export async function PATCH(req: NextRequest) {
       });
     }
 
+    console.log('Business Data: ', data);
+    console.log('Business Profile Data: ', profile);
+
     // Update business profile
     const updatedBusinessProfile = await prisma.businessProfile.update({
       where: { id: businessProfileId },
       data: {
-        company_name: data.company_name || profile.company_name,
         phone_number: phone_number_combined || profile.phone_number,
         company_location: data.company_location || profile.company_location,
         company_website: data.company_website || profile.company_website,

@@ -10,15 +10,43 @@ export const userProfileSchema = z.object({
   first_name: z.string().min(1, 'First name is required'),
   last_name: z.string().min(1, 'Last name is required'),
   email: z.email({ message: 'Invalid email' }),
-  phone_country_code: z.string().min(1, 'Country code is required'),
-  phone_number: z.string().min(6, 'Phone number is required'),
+  //phone_country_code: z.string().min(1, 'Country code is required'),
+  phone_number: z.string().min(6, 'Phone number is required').nullable().optional(),
 });
 
 export const businessProfileSchema = z.object({
   companyName: z.string(),
   phoneNumber: z.string(),
-  phoneCountryCodeNumber: z.string(),
-  logo: z.string().nullable().optional(),
+  logo: z
+    .any()
+    .optional()
+    .nullable()
+    .refine(
+      (file) => {
+        if (!file) return true; // allow empty
+
+        if (file instanceof File) return true;
+
+        // If ImageUploaderWithCrop returns a Blob
+        if (file instanceof Blob) return true;
+
+        // If a FileList was passed
+        if (file instanceof FileList && file.length > 0) return true;
+
+        return false;
+      },
+      { message: 'Invalid logo file' }
+    ),
+  // logo: z
+  //   .custom<File | null>((val) => {
+  //     if (!val) return true;
+  //     if (val instanceof File) return true;
+  //     if (val instanceof FileList && val.length > 0) return true;
+  //     return false;
+  //   }, 'Invalid file')
+  //   .nullable()
+  //   .optional(),
+  logo_url: z.string().nullable().optional(),
   bio: z.string().nullable().optional(),
   category: z
     .string()

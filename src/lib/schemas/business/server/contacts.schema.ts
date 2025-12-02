@@ -117,12 +117,12 @@ export const ContactTagSchema = z.object({
 export const ContactResponseSchema = z
   .object({
     id: z.string(),
-    name: z.string().nullable(),
+    name: z.string().nullable().optional(),
     phone_number: z.string(),
-    email: z.string().nullable(),
+    email: z.string().nullable().optional(),
     status: z.enum(ContactStatus),
     source: z.enum(ContactSource),
-    contactTag: z.array(ContactTagSchema),
+    contactTag: z.array(ContactTagSchema).nullable().optional(),
   })
   .openapi('ContactReponse');
 
@@ -153,7 +153,7 @@ export const ContactDetailsResponseSchema = z
 export const ContactDesktopResponseSchema = z
   .object({
     id: z.string(),
-    name: z.string(),
+    name: z.string().nullable().optional(),
     phone_number: z.string(),
     email: z.string().nullable(),
     totalAmountSpent: z.number(),
