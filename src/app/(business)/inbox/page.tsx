@@ -2,12 +2,12 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
-import { useInboxRealtime } from '@/lib/hooks/business/bridge/useInboxRealtime';
 import InboxChatUI from './test_code/InboxChatUI';
 import { useInboxStore } from '@/lib/store/business/inbox.store';
 import { useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import { getErrorMessage } from '@/utils/errors';
+import { useSupabaseInboxRealtime } from '@/lib/hooks/business/bridge/useSupabaseInboxRealtime';
 
 export default function InboxPage() {
   const params = useSearchParams();
@@ -17,7 +17,6 @@ export default function InboxPage() {
   const [initialized, setInitialized] = useState(false);
 
   const businessId = session?.user.businessProfileId ?? null;
-  const token = session?.accessToken ?? null;
 
   // set business id in store once session loaded
   useEffect(() => {
@@ -25,9 +24,8 @@ export default function InboxPage() {
   }, [businessId]);
 
   // start realtime (runs when businessId+token available)
-  useInboxRealtime(businessId, token);
+  useSupabaseInboxRealtime(businessId);
 
-  // Page startup logic (same as your previous logic)
   useEffect(() => {
     if (initialized) return;
     const q = params;

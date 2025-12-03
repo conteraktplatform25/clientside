@@ -3,7 +3,7 @@
  **************************************************/
 import { authenticateRequest, authorizeRole } from '@/lib/auth';
 import prisma from '@/lib/prisma';
-import { pusherServer } from '@/lib/pusher';
+//import { pusherServer } from '@/lib/pusher';
 import {
   CreateMessageResponseSchema,
   CreateMessageSchema,
@@ -204,9 +204,9 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
           // optionally enqueue retry job
         }
         // notify clients of updated message (delivery status)
-        await pusherServer.trigger(`private-business-${conv.businessProfileId}`, 'message.updated', {
-          id: responseData.id,
-        });
+        // await pusherServer.trigger(`private-business-${conv.businessProfileId}`, 'message.updated', {
+        //   id: responseData.id,
+        // });
       })();
     }
 

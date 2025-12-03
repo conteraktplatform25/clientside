@@ -1,6 +1,6 @@
 // /app/api/inbox/messages/status/route.ts
 import prisma from '@/lib/prisma';
-import { pusherServer } from '@/lib/pusher';
+//import { pusherServer } from '@/lib/pusher';
 import { MessageDeliveryStatus } from '@prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -25,13 +25,13 @@ export async function POST(req: NextRequest) {
   });
 
   // optionally trigger pusher
-  const msg = await prisma.message.findUnique({ where: { whatsappMessageId: sid } });
-  if (msg) {
-    await pusherServer.trigger(`private-business-${msg.businessProfileId}`, 'message.updated', {
-      id: msg.id,
-      deliveryStatus: mapped,
-    });
-  }
+  // const msg = await prisma.message.findUnique({ where: { whatsappMessageId: sid } });
+  // if (msg) {
+  //   await pusherServer.trigger(`private-business-${msg.businessProfileId}`, 'message.updated', {
+  //     id: msg.id,
+  //     deliveryStatus: mapped,
+  //   });
+  // }
 
   return new NextResponse('OK');
 }

@@ -631,6 +631,8 @@ enum MessageDirection {
 }
 
 enum MessageDeliveryStatus {
+  QUEUED
+  SENDING
   PENDING
   SENT
   DELIVERED

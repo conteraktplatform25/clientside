@@ -11,7 +11,7 @@ export const MessageChannelEnum = z.enum(['WHATSAPP', 'WEBCHAT', 'SMS', 'EMAIL']
 export const ConversationStatusEnum = z.enum(['OPEN', 'CLOSED', 'ARCHIVED']);
 export const MessageDirectionEnum = z.enum(['INBOUND', 'OUTBOUND']);
 export const MessageTypeEnum = z.enum(['TEXT', 'IMAGE', 'VIDEO', 'AUDIO', 'DOCUMENT']);
-export const MessageDeliveryStatus = z.enum(['PENDING', 'SENT', 'DELIVERED', 'READ', 'FAILED']);
+export const MessageDeliveryStatus = z.enum(['QUEUED', 'SENDING', 'PENDING', 'SENT', 'DELIVERED', 'READ', 'FAILED']);
 
 export interface InboxFilterState {
   status: 'ALL' | 'OPEN' | 'CLOSED' | 'ARCHIVED';
@@ -239,3 +239,5 @@ export type TStartConversation = z.infer<typeof StartConversationSchema>;
 export type TContactResponse = z.infer<typeof ContactResponseSchema>;
 
 export type TInboxRealtime = z.infer<typeof InboxEvaluationSchema>;
+
+export type TBusinessProfileData = z.infer<typeof BusinessProfileDataSchema>;

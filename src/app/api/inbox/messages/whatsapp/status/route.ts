@@ -4,100 +4,75 @@ export const config = { api: { bodyParser: false } };
 import twilio from 'twilio';
 import { NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
-import { pusherServer } from '@/lib/pusher';
+//import { supabase } from "@/lib/supabase";
+//import { supabase } from '@/lib/supabaseClient';
 import { failure, success } from '@/utils/response';
 import { MessageDeliveryStatus } from '@prisma/client';
+import { getErrorMessage } from '@/utils/errors';
 
 async function readRawBody(req: Request): Promise<string> {
   try {
     return await req.text();
-  } catch (err) {
-    console.error('❌ Failed reading status callback body:', err);
+  } catch {
     return '';
   }
 }
+function getTwilioUrl(req: NextRequest) {
+  const host = req.headers.get('host');
+  return `https://${host}${req.nextUrl.pathname}${req.nextUrl.search}`;
+}
 
-function validateTwilioSignature(req: NextRequest, rawBody: string) {
+function validateTwilioSignature(req: NextRequest, raw: string): boolean {
   const signature = req.headers.get('x-twilio-signature') ?? '';
-  const url = req.nextUrl.href;
-  const params = Object.fromEntries(new URLSearchParams(rawBody));
-
+  const url = getTwilioUrl(req);
+  const params = Object.fromEntries(new URLSearchParams(raw));
   return twilio.validateRequest(process.env.TWILIO_AUTH_TOKEN!, signature, url, params);
 }
 
 export async function POST(req: NextRequest) {
-  console.log('📡 Incoming Twilio Status Callback');
+  const raw = await readRawBody(req);
+  if (!raw) return failure('Empty body', 400);
 
-  const rawBody = await readRawBody(req);
-  if (!rawBody) return failure('Empty body', 400);
-
-  try {
-    const valid = validateTwilioSignature(req, rawBody);
-    if (!valid) {
-      console.warn('⚠️ Invalid Twilio signature on status callback');
-      return success(false, 'Invalid signature acknowledged', 200); // ACK anyway
-    }
-  } catch (err) {
-    console.error('❌ Signature validation error:', err);
-    return success(false, 'Signature crash acknowledged', 200); // ACK
+  const valid = validateTwilioSignature(req, raw);
+  if (!valid) {
+    console.warn('Invalid Twilio signature');
+    return success(true, 'Ack invalid', 200);
   }
 
-  // Parse event params
-  const params = Object.fromEntries(new URLSearchParams(rawBody));
-
+  const params = Object.fromEntries(new URLSearchParams(raw));
   const messageSid = params['MessageSid'];
-  const messageStatus = params['MessageStatus']; // sent, delivered, read, failed, etc
-  const errorCode = params['ErrorCode'] ?? null;
-  const errorMessage = params['ErrorMessage'] ?? null;
+  const messageStatus = params['MessageStatus']?.toLowerCase();
 
-  console.log('📬 Status update:', {
-    messageSid,
-    messageStatus,
-    errorCode,
-    errorMessage,
-  });
+  if (!messageSid) return success(true, 'Missing SID', 200);
 
-  if (!messageSid) {
-    console.warn('⚠️ Callback missing MessageSid');
-    return success(false, 'Missing SID acknowledged', 200);
-  }
-
-  // Map to your schema
-  const statusMapping: Record<string, string> = {
+  const map: Record<string, MessageDeliveryStatus> = {
     queued: 'QUEUED',
     sending: 'SENDING',
     sent: 'SENT',
     delivered: 'DELIVERED',
-    undelivered: 'FAILED',
-    failed: 'FAILED',
     read: 'READ',
+    failed: 'FAILED',
+    undelivered: 'FAILED',
   };
 
-  const mappedStatus = statusMapping[messageStatus?.toLowerCase()] || 'UNKNOWN';
+  const mapped: MessageDeliveryStatus = (map[messageStatus] ?? 'UNKNOWN') as MessageDeliveryStatus;
 
-  // Update DB — wrapped in try/catch so no crash
-  let updatedMessage = null;
+  let updated;
   try {
-    updatedMessage = await prisma.message.update({
+    updated = await prisma.message.update({
       where: { whatsappMessageId: messageSid },
-      data: { deliveryStatus: mappedStatus as MessageDeliveryStatus },
+      data: { deliveryStatus: mapped },
       select: {
         id: true,
         businessProfileId: true,
-        whatsappMessageId: true,
-        deliveryStatus: true,
         conversationId: true,
+        deliveryStatus: true,
+        whatsappMessageId: true,
       },
     });
-    await pusherServer.trigger(`private-business-${updatedMessage.businessProfileId}`, 'message.status.updated', {
-      messageSid,
-      messageStatus: mappedStatus,
-      raw: params,
-    });
+    return success(updated, 'Status updated');
   } catch (err) {
-    console.error('❌ Error updating message status:', err);
-    return success(failure, 'DB error acknowledged', 200); // ACK anyway
+    console.error('DB update error', err);
+    return success(true, 'Ack DB error', 200);
   }
-
-  return success(true, 'Status callback processed');
 }

@@ -4,7 +4,6 @@ export const runtime = 'nodejs';
 export const config = { api: { bodyParser: false } };
 
 import twilio from 'twilio';
-import { pusherServer } from '@/lib/pusher';
 import { NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
 import { failure, success } from '@/utils/response';
@@ -205,16 +204,16 @@ export async function POST(req: NextRequest) {
   }
 
   // 6. Pusher trigger — does NOT break webhook if it fails
-  try {
-    await pusherServer.trigger(`private-business-${result.conversation.businessProfileId}`, 'message.created', {
-      conversationId: result.conversation.id,
-      message: result.message,
-      contact: result.contact,
-    });
-  } catch (err) {
-    console.error('⚠️ Pusher trigger failed (non-fatal):', err);
-    // Do NOT return failure — Twilio must get 200
-  }
+  // try {
+  //   await pusherServer.trigger(`private-business-${result.conversation.businessProfileId}`, 'message.created', {
+  //     conversationId: result.conversation.id,
+  //     message: result.message,
+  //     contact: result.contact,
+  //   });
+  // } catch (err) {
+  //   console.error('⚠️ Pusher trigger failed (non-fatal):', err);
+  //   // Do NOT return failure — Twilio must get 200
+  // }
 
   // 🎉 Always return 200 to Twilio unless there was a real error
   return success(result, 'Inbound WhatsApp processed', 201);

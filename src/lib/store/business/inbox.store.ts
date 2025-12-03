@@ -3,8 +3,9 @@ import {
   TMessageDataResponse,
   TConversationResponse,
   InboxFilterState,
+  TBusinessProfileData,
 } from '@/lib/schemas/business/server/inbox.schema';
-import { MessageDeliveryStatus, MessageType } from '@prisma/client';
+import { MessageDeliveryStatus, MessageStatus, MessageType } from '@prisma/client';
 
 export type TInboxMessage = TMessageDataResponse;
 
@@ -107,11 +108,16 @@ export const useInboxStore = create<InboxState>((set, get) => ({
   setFilters: (f) => set({ filters: f }),
 
   onMessage: (raw) => {
+    const fakeBusinessProfile: TBusinessProfileData = {
+      id: raw.conversationId!,
+      company_name: 'General Name',
+      business_number: 'General Number',
+    };
     // Normalize timestamp and conversation id
     const message: TMessageDataResponse = {
       id: raw.id ?? `temp-${Date.now()}`,
       conversationId: raw.conversationId ?? raw.whatsappMessageId ?? 'unknown-convo',
-      businessProfile: raw.businessProfile!,
+      businessProfile: raw.businessProfile ?? fakeBusinessProfile,
       senderContact: raw.senderContact ?? null,
       senderUser: raw.senderUser ?? null,
       channel: raw.channel ?? 'WHATSAPP',
@@ -146,9 +152,16 @@ export const useInboxStore = create<InboxState>((set, get) => ({
       const idx = msgs.findIndex((m) => m.whatsappMessageId === messageSid || m.id === messageSid);
       if (idx >= 0) {
         const updated = [...msgs];
-        updated[idx] = { ...updated[idx], deliveryStatus: messageStatus as MessageDeliveryStatus };
+        updated[idx] = {
+          ...updated[idx],
+          deliveryStatus: messageStatus as MessageStatus,
+        };
+
         set({
-          messagesByConversation: { ...all, [convoId]: updated },
+          messagesByConversation: {
+            ...all,
+            [convoId]: updated,
+          },
         });
         break;
       }

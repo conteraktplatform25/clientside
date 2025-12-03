@@ -15,7 +15,7 @@ type MessageInputBarProps = {
 export function MessageInputBar({ conversationId, onSendText, onSendMedia, isSending }: MessageInputBarProps) {
   const [text, setText] = useState('');
   const [file, setFile] = useState<File | null>(null);
-  console.log(file);
+  //console.log(file);
 
   const handleSend = () => {
     if (!text.trim()) return;
