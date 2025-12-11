@@ -48,14 +48,24 @@ export async function POST(req: NextRequest) {
 
     // Activate user
     if (request_type === 'signup') {
-      await prisma.user.update({
-        where: { email },
-        data: { is_activated: true, email_verified_date: new Date() },
-      });
     }
 
-    if (request_type === 'signup')
-      return NextResponse.json({ ok: true, message: 'Email verified successfully.' }, { status: 200 });
+    if (request_type === 'signup') {
+      const userProfile = await prisma.user.update({
+        where: { email },
+        data: { email_verified_date: new Date(), updated_at: new Date() },
+        select: {
+          email: true,
+          first_name: true,
+          last_name: true,
+          email_verified_date: true,
+        },
+      });
+      return NextResponse.json(
+        { ok: true, message: 'Email verified successfully.', profile: userProfile },
+        { status: 200 }
+      );
+    }
     return NextResponse.json({ ok: true, message: 'One time Password verified successfully.', flow }, { status: 200 });
   } catch (error) {
     console.log(getErrorMessage(error));

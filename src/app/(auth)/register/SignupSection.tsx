@@ -1,3 +1,4 @@
+'use client';
 import HorizontalLineWithText from '@/components/custom/HorizontalLineWithText';
 import SVGIcon from '@/components/custom/SVGIcons';
 import { Button } from '@/components/ui/button';
@@ -5,8 +6,12 @@ import Link from 'next/link';
 import React from 'react';
 import SignupForm from './SignupForm';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { signIn } from 'next-auth/react';
+import { useSearchParams } from 'next/navigation';
 
 const SignupSection = () => {
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get('callbackUrl') || '/';
   return (
     <section className='w-full flex flex-col gap-8'>
       <div className='flex items-start justify-between px-4 sm:px-6 lg:px-8'>
@@ -31,10 +36,15 @@ const SignupSection = () => {
               </p>
             </div>
             <div className='w-full'>
-              <Button variant={'outline'} className='w-full cursor-pointer hover:bg-gray-100' asChild>
+              <Button
+                onClick={() => signIn('google', { callbackUrl: callbackUrl })}
+                variant={'outline'}
+                className='w-full cursor-pointer hover:bg-gray-100'
+                asChild
+              >
                 <div className='flex gap-4'>
                   <SVGIcon fileName='icon-google.svg' alt='Google Icon' height={25} />
-                  <span className='font-semibold text-base md:text-[18px]'>Sign up with Google</span>
+                  <span className='font-semibold text-base md:text-[18px]'>Sign in with Google</span>
                 </div>
               </Button>
             </div>

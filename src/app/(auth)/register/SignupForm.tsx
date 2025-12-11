@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { useSignupFormStore } from '@/lib/store/auth/signup.store';
 import { fetchWithIndicatorHook } from '@/lib/hooks/fetch-with-indicator.hook';
 import AlertDisplayField, { IAlertProps } from '@/components/custom/AlertMessageField';
+import { toast } from 'sonner';
 
 const SignupForm = () => {
   const router = useRouter();
@@ -37,21 +38,29 @@ const SignupForm = () => {
   }, [watchedValues, setFormData]);
 
   const handleRegisterSubmit = async (data: TRegisterFormSchema) => {
+    //toast.success(JSON.stringify(data))
     const response = await fetchWithIndicatorHook('/api/auth/signup', {
       method: 'POST',
       body: JSON.stringify({ ...data }),
       headers: { 'Content-Type': 'application/json' },
     });
-    console.log(response);
+    const json = await response.json();
     if (response?.ok) {
-      resetForm();
       reset();
       setAlert({
         type: 'success',
-        title: 'Registration Successful',
-        description: 'Check your email to verify your account.',
+        title: json.message || 'Check your Mail for one time password.',
+        description: 'Check your Mail for one time password.',
       });
-      router.push(`/verification/${data.email}`);
+      router.push(`/signup-otp-verification?email=${data.email}`);
+      // resetForm();
+      // reset();
+      // setAlert({
+      //   type: 'success',
+      //   title: 'Registration Successful',
+      //   description: 'Check your email to verify your account.',
+      // });
+      // router.push(`/verification/${data.email}`);
     } else {
       setAlert({
         type: 'error',

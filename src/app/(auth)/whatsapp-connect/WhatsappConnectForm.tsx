@@ -13,11 +13,13 @@ import SelectField from '@/components/custom/SelectField';
 import { ConstCountryCodeOptions } from '@/lib/constants/auth.constant';
 import { Separator } from '@/components/ui/separator';
 import InputField from '@/components/custom/InputField';
-import { Form } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
+import PhoneInput from 'react-phone-number-input';
+import 'react-phone-number-input/style.css';
 
 const connectPhoneSchema = z.object({
-  phone_country_code: z.string().min(1, 'Country code is required'),
-  phone_number: z.string().min(5, 'Invalid Phone Number'),
+  //phone_country_code: z.string().min(1, 'Country code is required'),
+  phone_number: z.string().min(7, 'Invalid Phone Number'),
 });
 // Infer form types from schema
 type TConnectPhoneSchema = z.infer<typeof connectPhoneSchema>;
@@ -34,7 +36,7 @@ const WhatsappConnetForm = () => {
   const connectPhoneForm = useForm<TConnectPhoneSchema>({
     resolver: zodResolver(connectPhoneSchema),
     defaultValues: {
-      phone_country_code: '+234',
+      //phone_country_code: '+234',
       phone_number: '',
     },
   });
@@ -44,11 +46,12 @@ const WhatsappConnetForm = () => {
     control,
     formState: { isSubmitting },
     reset,
+    clearErrors,
   } = connectPhoneForm;
 
   const handleConnectPhoneSubmit = async (data: TConnectPhoneSchema) => {
     const business_number = {
-      phone_number: `(${data.phone_country_code})${data.phone_number}`,
+      phone_number: data.phone_number,
     };
     const response = await fetchWithIndicatorHook(`/api/auth/profile/business-number?email=${email}`, {
       method: 'PATCH',
@@ -111,8 +114,28 @@ const WhatsappConnetForm = () => {
                 <form onSubmit={handleSubmit(handleConnectPhoneSubmit)} className='flex flex-col gap-6 w-full'>
                   <div className='w-[100%] mt-12'>
                     <div className='block space-y-0.5'>
-                      <p className='text-base leading-[150%]'>Phone Number</p>
-                      <Card className='w-full p-0 shadow-none rounded-sm'>
+                      <FormField
+                        control={control}
+                        name='phone_number'
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className='text-base leading-[150%]'>Phone Number</FormLabel>
+                            <FormControl>
+                              <PhoneInput
+                                defaultCountry='NG'
+                                value={field.value!}
+                                onChange={async (val) => {
+                                  field.onChange(val);
+                                  if (val) {
+                                    clearErrors('phone_number');
+                                  }
+                                }}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                      {/* <Card className='w-full p-0 shadow-none rounded-sm'>
                         <div className='max-w-[80%] grid grid-cols-[100px_1fr]'>
                           <SelectField<TConnectPhoneSchema>
                             control={control}
@@ -132,7 +155,7 @@ const WhatsappConnetForm = () => {
                             />
                           </div>
                         </div>
-                      </Card>
+                      </Card> */}
                     </div>
                   </div>
                   <div className='mt-10 w-full flex items-end justify-end gap-2'>

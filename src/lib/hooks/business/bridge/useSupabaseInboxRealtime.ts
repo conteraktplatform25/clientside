@@ -10,10 +10,11 @@ const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env
 });
 
 export function useSupabaseInboxRealtime(businessProfileId: string | null) {
-  const onMessage = useInboxStore((s) => s.onMessage);
-  const onMessageStatusUpdate = useInboxStore((s) => s.onMessageStatusUpdate);
-  const setConversations = useInboxStore((s) => s.setConversations);
-  const conversations = useInboxStore((s) => s.conversations);
+  // const onMessage = useInboxStore((s) => s.onMessage);
+  // const onMessageStatusUpdate = useInboxStore((s) => s.onMessageStatusUpdate);
+  // const setConversations = useInboxStore((s) => s.setConversations);
+  // const conversations = useInboxStore((s) => s.conversations);
+  const { onMessage, onMessageStatusUpdate, setConversations } = useInboxStore.getState();
 
   useEffect(() => {
     if (!businessProfileId) return;
@@ -82,7 +83,8 @@ export function useSupabaseInboxRealtime(businessProfileId: string | null) {
         },
         (payload) => {
           console.log('🟣 NEW CONVERSATION', payload.new);
-          setConversations([payload.new as TConversationResponse, ...conversations]);
+          const st = useInboxStore.getState();
+          setConversations([payload.new as TConversationResponse, ...st.conversations]);
         }
       )
       .subscribe();
@@ -94,5 +96,5 @@ export function useSupabaseInboxRealtime(businessProfileId: string | null) {
       supabase.removeChannel(messageUpdateChannel);
       supabase.removeChannel(conversationInsertChannel);
     };
-  }, [businessProfileId, onMessage, onMessageStatusUpdate, setConversations, conversations]);
+  }, [businessProfileId]);
 }
