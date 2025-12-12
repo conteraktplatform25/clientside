@@ -10,14 +10,13 @@ import { Button } from '@/components/ui/button';
 import { useSignupFormStore } from '@/lib/store/auth/signup.store';
 import { fetchWithIndicatorHook } from '@/lib/hooks/fetch-with-indicator.hook';
 import AlertDisplayField, { IAlertProps } from '@/components/custom/AlertMessageField';
-import { toast } from 'sonner';
 
 const SignupForm = () => {
   const router = useRouter();
   // Local state for alerts
   const [alert, setAlert] = useState<IAlertProps>({ type: null });
 
-  const { formData, setFormData, resetForm } = useSignupFormStore();
+  const { formData, setFormData } = useSignupFormStore();
   const registerForm = useForm<TRegisterFormSchema>({
     resolver: zodResolver(registerFormSchema),
     defaultValues: formData, //hydrate from zustand

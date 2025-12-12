@@ -8,7 +8,6 @@ import prisma from '@/lib/prisma';
 //import { supabase } from '@/lib/supabaseClient';
 import { failure, success } from '@/utils/response';
 import { MessageDeliveryStatus } from '@prisma/client';
-import { getErrorMessage } from '@/utils/errors';
 
 async function readRawBody(req: Request): Promise<string> {
   try {

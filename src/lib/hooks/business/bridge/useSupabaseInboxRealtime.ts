@@ -96,5 +96,5 @@ export function useSupabaseInboxRealtime(businessProfileId: string | null) {
       supabase.removeChannel(messageUpdateChannel);
       supabase.removeChannel(conversationInsertChannel);
     };
-  }, [businessProfileId]);
+  }, [businessProfileId, onMessage, onMessageStatusUpdate, setConversations]);
 }

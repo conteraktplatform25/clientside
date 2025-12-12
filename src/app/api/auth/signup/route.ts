@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { Resend } from 'resend';
-import { v4 as uuidv4 } from 'uuid';
 import { getErrorMessage } from '@/utils/errors';
 import { renderTemplate } from '@/lib/helpers/render-template.helper';
 import { User } from '@prisma/client';
