@@ -10,7 +10,7 @@ extendZodWithOpenApi(z);
 export const MessageChannelEnum = z.enum(['WHATSAPP', 'WEBCHAT', 'SMS', 'EMAIL']);
 export const ConversationStatusEnum = z.enum(['OPEN', 'CLOSED', 'ARCHIVED']);
 export const MessageDirectionEnum = z.enum(['INBOUND', 'OUTBOUND']);
-export const MessageTypeEnum = z.enum(['TEXT', 'IMAGE', 'VIDEO', 'AUDIO', 'DOCUMENT']);
+export const MessageTypeEnum = z.enum(['TEXT', 'IMAGE', 'VIDEO', 'AUDIO', 'DOCUMENT', 'TEMPLATE']);
 export const MessageDeliveryStatus = z.enum(['QUEUED', 'SENDING', 'PENDING', 'SENT', 'DELIVERED', 'READ', 'FAILED']);
 
 export interface InboxFilterState {

@@ -448,6 +448,7 @@ model Conversation {
   participants    ConversationUser[]
   messages        Message[]
 
+  // @@index([businessProfileId, contactId])
   @@index([businessProfileId])
   @@index([contactId])
   @@index([assignedTo])
@@ -471,7 +472,6 @@ model ConversationUser {
   @@index([userId])
 }
 
-// Message (Chat messages)
 model Message {
   id                String                @id @default(uuid())
   businessProfileId String
@@ -646,7 +646,7 @@ enum MessageType {
   VIDEO
   AUDIO
   DOCUMENT
-  // TEMPLATE
+  TEMPLATE
   // INTERACTIVE
 }
 
