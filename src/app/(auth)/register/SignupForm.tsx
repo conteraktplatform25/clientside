@@ -52,14 +52,6 @@ const SignupForm = () => {
         description: 'Check your Mail for one time password.',
       });
       router.push(`/signup-otp-verification?email=${data.email}`);
-      // resetForm();
-      // reset();
-      // setAlert({
-      //   type: 'success',
-      //   title: 'Registration Successful',
-      //   description: 'Check your email to verify your account.',
-      // });
-      // router.push(`/verification/${data.email}`);
     } else {
       setAlert({
         type: 'error',

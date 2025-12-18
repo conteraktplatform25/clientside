@@ -11,6 +11,7 @@ import AlertDisplayField, { IAlertProps } from '@/components/custom/AlertMessage
 import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import PhoneInput from 'react-phone-number-input';
 import 'react-phone-number-input/style.css';
+import { validateAndNormalizePhone } from '@/lib/phone/phone.util';
 
 const connectPhoneSchema = z.object({
   //phone_country_code: z.string().min(1, 'Country code is required'),
@@ -31,7 +32,6 @@ const WhatsappConnetForm = () => {
   const connectPhoneForm = useForm<TConnectPhoneSchema>({
     resolver: zodResolver(connectPhoneSchema),
     defaultValues: {
-      //phone_country_code: '+234',
       phone_number: '',
     },
   });
@@ -45,15 +45,32 @@ const WhatsappConnetForm = () => {
   } = connectPhoneForm;
 
   const handleConnectPhoneSubmit = async (data: TConnectPhoneSchema) => {
+    //validate phone number
+    const validatePhoneNumber = validateAndNormalizePhone(data.phone_number, 'NG');
+    if (!validatePhoneNumber.isValid) {
+      setAlert({
+        type: 'error',
+        title: 'Failed to validate phone number',
+        description: validatePhoneNumber.error,
+      });
+      return;
+    }
+    if (!validatePhoneNumber.normalized) {
+      setAlert({
+        type: 'error',
+        title: 'Failed!!!',
+        description: 'Phone number cannot be empty',
+      });
+      return;
+    }
     const business_number = {
-      phone_number: data.phone_number,
+      phone_number: validatePhoneNumber.normalized,
     };
     const response = await fetchWithIndicatorHook(`/api/auth/profile/business-number?email=${email}`, {
       method: 'PATCH',
       body: JSON.stringify({ ...business_number }),
       headers: { 'Content-Type': 'application/json' },
     });
-    console.log(response);
     const json = await response.json();
     if (json?.ok) {
       reset();

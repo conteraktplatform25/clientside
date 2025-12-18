@@ -50,3 +50,34 @@ export interface IInboundWhatsAppMessageProps {
   content: string;
   whatsappMessageId: string;
 }
+
+export type TSendWhatsAppMessageInput =
+  | {
+      type: 'TEXT';
+      to: string;
+      content: string;
+    }
+  | {
+      type: 'IMAGE';
+      to: string;
+      imageUrl: string;
+      caption?: string;
+    }
+  | {
+      type: 'VIDEO';
+      to: string;
+      videoUrl: string;
+      caption?: string;
+    }
+  | {
+      type: 'DOCUMENT';
+      to: string;
+      documentUrl: string;
+      filename?: string;
+    }
+  | {
+      type: 'TEMPLATE';
+      to: string;
+      templateName: string;
+      language?: string;
+    };

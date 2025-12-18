@@ -2271,7 +2271,7 @@ registry.registerPath({
 
 registry.registerPath({
   method: 'post',
-  path: '/api/inbox/conversations/{id}/messages',
+  path: '/api/inbox/conversations/{id}/messages/meta-ai',
   tags: ['Inbox - Conversation Messages'],
   summary: 'Message delivered successfully',
   security: [{ bearerAuth: [] }],

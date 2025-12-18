@@ -18,6 +18,7 @@ import { Switch } from '@/components/ui/switch';
 import PhoneInput from 'react-phone-number-input';
 import 'react-phone-number-input/style.css';
 import AlertDisplayField, { IAlertProps } from '@/components/custom/AlertMessageField';
+import { validateAndNormalizePhone } from '@/lib/phone/phone.util';
 
 interface CreateContactDrawerProps {
   open: boolean;
@@ -146,10 +147,28 @@ export function CreateContactDrawer({ open, onClose }: CreateContactDrawerProps)
   const createContact = useCreateContact();
 
   const onSubmit = async (data: TClientCreateContact) => {
+    //validate phone number
+    const validatePhoneNumber = validateAndNormalizePhone(data.phone_number, 'NG');
+    if (!validatePhoneNumber.isValid) {
+      setAlert({
+        type: 'error',
+        title: 'Failed to validate phone number',
+        description: validatePhoneNumber.error,
+      });
+      return;
+    }
+    if (!validatePhoneNumber.normalized) {
+      setAlert({
+        type: 'error',
+        title: 'Failed!!!',
+        description: 'Phone number cannot be empty',
+      });
+      return;
+    }
     // Build server payload respecting types
     const serverContact: TCreateContact = {
       name: data.name,
-      phone_number: data.phone_number,
+      phone_number: validatePhoneNumber.normalized,
       email: data.email,
       whatsapp_opt_in: data.whatsapp_opt_in,
       source: tag,

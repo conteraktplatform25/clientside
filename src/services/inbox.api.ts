@@ -48,7 +48,11 @@ export async function apiSendMessage(
   conversationId: string,
   payload: { content?: string; mediaUrl?: string | null }
 ): Promise<TCreateMessageResponse> {
-  return fetchJSON<TCreateMessageResponse>(`/api/inbox/conversations/${conversationId}/messages`, {
+  // return fetchJSON<TCreateMessageResponse>(`/api/inbox/conversations/${conversationId}/messages`, {
+  //   method: 'POST',
+  //   body: JSON.stringify(payload),
+  // });
+  return fetchJSON<TCreateMessageResponse>(`/api/inbox/conversations/${conversationId}/messages/meta-ai`, {
     method: 'POST',
     body: JSON.stringify(payload),
   });

@@ -60,3 +60,7 @@ export function highlightText(text: string, query: string) {
 export function formatVariables(text: string) {
   return text.replace(/{{(.*?)}}/g, `<span class="px-1 py-0.5 text-blue-700 bg-blue-100 rounded">${'{{$1}}'}</span>`);
 }
+
+export function normalizePhoneNumber(phone: string): string {
+  return phone.replace(/[^\d]/g, '');
+}

@@ -7,7 +7,7 @@ import {
 } from '@/lib/schemas/business/server/inbox.schema';
 import { WhatsAppSendResponse, WhatsAppTextMessagePayload } from '@/lib/whatsapp/whatsapp.types';
 import { getErrorMessage } from '@/utils/errors';
-import { failure, fetchJSON, success } from '@/utils/response';
+import { failure, fetchMetaAPI, success } from '@/utils/response';
 import { NextRequest } from 'next/server';
 
 export async function POST(req: NextRequest, context: { params: Promise<{ id: string }> }) {
@@ -85,39 +85,6 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
       select: { id: true },
     });
 
-    //const registeredNumber = process.env.TWILIO_WHATSAPP_NUMBER!;
-    //console.log('API Messaging route: ', registeredNumber);
-
-    // if (conv.contact && conv.contact.whatsapp_opt_in && conv.channel === 'WHATSAPP') {
-    //   (async () => {
-    //     try {
-    //       const from = `whatsapp:${registeredNumber}`;
-    //       const to = `whatsapp:${conv.contact?.phone_number}`;
-    //       const payload: MessageListInstanceCreateOptions = { from, to, body: content ?? undefined };
-    //       if (mediaUrl) payload.mediaUrl = [mediaUrl];
-
-    //       const twResp = await twClient.messages.create(payload);
-
-    //       // update message record with SID and delivered status (SENT)
-    //       await prisma.message.update({
-    //         where: { id: responseData.id },
-    //         data: { whatsappMessageId: twResp.sid, deliveryStatus: 'SENT', rawPayload: twResp },
-    //       });
-    //     } catch (err) {
-    //       console.error('Twilio send failed', err);
-    //       await prisma.message.update({
-    //         where: { id: responseData.id },
-    //         data: { deliveryStatus: 'FAILED', rawPayload: { error: String(err) } },
-    //       });
-    //       // optionally enqueue retry job
-    //     }
-    //     // notify clients of updated message (delivery status)
-    //     // await pusherServer.trigger(`private-business-${conv.businessProfileId}`, 'message.updated', {
-    //     //   id: responseData.id,
-    //     // });
-    //   })();
-    // }
-
     if (conv.contact && conv.contact.whatsapp_opt_in && conv.channel === 'WHATSAPP') {
       const ACCESS_TOKEN = process.env.META_AI_WHATSAPP_ACCESS_TOKEN!;
       const PHONE_NUMBER_ID = process.env.META_AI_WHATSAPP_PHONE_NUMBER_ID!;
@@ -125,7 +92,12 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
       const BASE_URL = process.env.META_AI_WHATSAPP_BASEURL;
 
       const WHATSAPP_ENDPOINT = `${BASE_URL}/${API_VERSION}/${PHONE_NUMBER_ID}/messages`;
-      await processMetaAIOutboundWhatsAppMessage(normalizedMessage, ACCESS_TOKEN, WHATSAPP_ENDPOINT);
+      await processMetaAIOutboundWhatsAppMessage(
+        normalizedMessage,
+        conv.contact.phone_number,
+        ACCESS_TOKEN,
+        WHATSAPP_ENDPOINT
+      );
     }
 
     const messageProfile = CreateMessageResponseSchema.parse(normalizedMessage);
@@ -140,19 +112,20 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
 
 async function processMetaAIOutboundWhatsAppMessage(
   messageData: TCreateMessageResponse,
+  contactPhoneNumber: string,
   access_token: string,
   metaAI_message_endpoint: string
 ) {
-  if (!messageData.conversationId || !messageData.senderContact) throw new Error('Invalid request body.');
+  if (!messageData.conversationId || !contactPhoneNumber) throw new Error('Invalid request body.');
 
   const payload: WhatsAppTextMessagePayload = {
     messaging_product: 'whatsapp',
-    to: messageData.senderContact?.phone_number,
+    to: contactPhoneNumber,
     type: 'text',
     text: { body: messageData.content! },
   };
   try {
-    const response = await fetchJSON<WhatsAppSendResponse>(metaAI_message_endpoint, {
+    const response = await fetchMetaAPI<WhatsAppSendResponse>(metaAI_message_endpoint, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${access_token}`,
@@ -168,7 +141,7 @@ async function processMetaAIOutboundWhatsAppMessage(
     await prisma.$transaction([
       prisma.message.update({
         where: { id: messageData.id },
-        data: { whatsappMessageId, deliveryStatus: 'SENT' },
+        data: { whatsappMessageId, deliveryStatus: 'SENT', rawPayload: response },
       }),
       prisma.conversation.update({
         where: { id: messageData.conversationId },
@@ -188,3 +161,66 @@ async function processMetaAIOutboundWhatsAppMessage(
     });
   }
 }
+
+// export function resolveWhatsAppPayload(input: TSendWhatsAppMessageInput) {
+//   switch (input.type) {
+//     case 'TEXT':
+//       return {
+//         messaging_product: 'whatsapp',
+//         to: input.to,
+//         type: 'text',
+//         text: {
+//           body: input.content,
+//         },
+//       };
+
+//     case 'IMAGE':
+//       return {
+//         messaging_product: 'whatsapp',
+//         to: input.to,
+//         type: 'image',
+//         image: {
+//           link: input.imageUrl,
+//           caption: input.caption,
+//         },
+//       };
+
+//     case 'VIDEO':
+//       return {
+//         messaging_product: 'whatsapp',
+//         to: input.to,
+//         type: 'video',
+//         video: {
+//           link: input.videoUrl,
+//           caption: input.caption,
+//         },
+//       };
+
+//     case 'DOCUMENT':
+//       return {
+//         messaging_product: 'whatsapp',
+//         to: input.to,
+//         type: 'document',
+//         document: {
+//           link: input.documentUrl,
+//           filename: input.filename,
+//         },
+//       };
+
+//     case 'TEMPLATE':
+//       return {
+//         messaging_product: 'whatsapp',
+//         to: input.to,
+//         type: 'template',
+//         template: {
+//           name: input.templateName,
+//           language: {
+//             code: input.language ?? 'en_US',
+//           },
+//         },
+//       };
+
+//     default:
+//       throw new Error('Unsupported WhatsApp message type');
+//   }
+// }

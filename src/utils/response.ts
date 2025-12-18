@@ -26,3 +26,21 @@ export async function fetchJSON<T>(url: string, options?: RequestInit): Promise<
   // ✅ Always return the `profile` field (your backend wraps actual data inside it)
   return json.profile as T;
 }
+
+export async function fetchMetaAPI<T>(url: string, options?: RequestInit): Promise<T> {
+  const res = await fetch(url, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(options?.headers || {}),
+    },
+  });
+
+  const json = await res.json();
+
+  if (!res.ok) {
+    throw new Error(json?.error?.message || 'Meta API request failed');
+  }
+
+  return json as T;
+}
