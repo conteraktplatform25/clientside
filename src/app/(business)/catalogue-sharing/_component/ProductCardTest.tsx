@@ -10,16 +10,18 @@ interface ProductCardProps {
 }
 
 const ProductCardTest: React.FC<ProductCardProps> = ({ product }) => {
+  console.log(product);
   return (
     <Card className='p-0 w-full max-w-md rounded-lg overflow-hidden shadow-none transition-shadow duration-200'>
       <CardContent className='p-0'>
         <div className='relative w-full h-48 bg-gray-100 flex items-center justify-center'>
-          {product.media ? (
+          {product.media && product.media.length > 0 ? (
             <Image
               height={48}
               width={48}
               src={product.media?.[0]?.url}
               alt={product.name}
+              unoptimized
               className='object-cover w-full h-full rounded-t-lg'
             />
           ) : (

@@ -345,6 +345,7 @@ export const authOptions: NextAuthOptions = {
           image: user.image ?? null,
           role: typeof user.role === 'string' ? user.role : (user.role ?? 'Business'),
           is_activated: user.is_activated ?? false,
+          registered_number: user.registered_number ?? undefined,
         };
       } else {
         // fallback to defaults coming from token

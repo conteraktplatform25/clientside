@@ -20,7 +20,6 @@ const TopNavigation = ({ session }: { session: Session | null }) => {
   const [profileName, setProfileName] = useState<UserObject | null>(session?.user ?? null);
   const { title } = usePageTitleStore();
 
-  //console.log('Top Navigation:', session?.user);
   useEffect(() => {
     setProfileName(session?.user ?? null);
   }, [session]);

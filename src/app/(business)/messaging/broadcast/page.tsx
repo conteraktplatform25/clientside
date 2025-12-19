@@ -15,9 +15,7 @@ const BroadcastMessaging = () => {
   }, [setTitle]);
   return (
     <div className='flex flex-col item-start gap-0 m-0'>
-      {/* <TopNotification /> */}
       <div className='flex flex-col gap-3 px-4'>
-        {/* <QuickReplyDataTable columns={QuickReplyTableHeaders} data={replies} /> */}
         <DataTableField columns={BroadcastTableHeaders} data={broadcasts} title='Broadcast Message'>
           <BroadcastDrawer />
         </DataTableField>

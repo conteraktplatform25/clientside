@@ -26,6 +26,7 @@ const RequestLogin = async (email: string, password: string): Promise<UserObject
     last_name: user.last_name,
     role: user.role.name,
     is_activated: user.is_activated,
+    registered_number: user.businessProfile[0].business_number ?? undefined,
   };
   return profile;
 };
@@ -68,6 +69,7 @@ export async function refresh(token: string): Promise<Response> {
     last_name: decoded.last_name ?? null,
     is_activated: decoded.is_activated,
     role: decoded.role ?? 'Business',
+    registered_number: decoded.registered_number,
   };
 
   const new_access: BackendJWT = {
