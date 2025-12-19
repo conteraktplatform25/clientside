@@ -60,7 +60,7 @@ const CreateContactResponseSchema = z.object({
 export const CreateConversationResponseSchema = z
   .object({
     id: z.string(),
-    contact: CreateContactResponseSchema.optional(),
+    contact: CreateContactResponseSchema.nullable().optional(),
     channel: MessageChannelEnum,
     created_at: z.coerce.date(),
   })

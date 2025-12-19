@@ -9,6 +9,7 @@ import {
   ConversationQuerySchema,
   CreateConversationResponseSchema,
   CreateConversationSchema,
+  TCreateConversationResponse,
 } from '@/lib/schemas/business/server/inbox.schema';
 import { getErrorMessage } from '@/utils/errors';
 import { failure, success } from '@/utils/response';
@@ -103,13 +104,11 @@ export async function POST(req: NextRequest) {
     const contact = await prisma.contact.findUnique({ where: { id: data.contactId } });
     if (!contact) return failure('contact not found', 404);
 
-    const responseData = await prisma.conversation.create({
-      data: {
-        businessProfileId,
-        contactId: data.contactId,
-        assignedTo: data.assignedTo ?? null,
-        channel: data.channel ?? 'WHATSAPP',
-      },
+    let responseData: TCreateConversationResponse | null = null;
+
+    // Ensure if Conversation for the contact previously exist based on the status if its previously closed
+    responseData = await prisma.conversation.findFirst({
+      where: { contactId: data.contactId, status: 'OPEN' },
       select: {
         id: true,
         contact: { select: { name: true, phone_number: true } },
@@ -118,8 +117,26 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // auto-add creator as participant
-    await prisma.conversationUser.create({ data: { conversationId: responseData.id, userId: user.id } });
+    if (!responseData) {
+      responseData = await prisma.conversation.create({
+        data: {
+          businessProfileId,
+          contactId: data.contactId,
+          assignedTo: data.assignedTo ?? null,
+          channel: data.channel ?? 'WHATSAPP',
+        },
+        select: {
+          id: true,
+          contact: { select: { name: true, phone_number: true } },
+          channel: true,
+          created_at: true,
+        },
+      });
+
+      // auto-add creator as participant
+      if (!responseData) return failure('Failed to initiate Comversation with client', 403);
+      await prisma.conversationUser.create({ data: { conversationId: responseData.id, userId: user.id } });
+    }
 
     const conversation = CreateConversationResponseSchema.parse(responseData);
 
