@@ -12,7 +12,11 @@ export default function MessagesPanel({ conversationId }: { conversationId: stri
 
   // read messages from Zustand (single source of truth)
   const messagesFromStore = useInboxStore((s) => s.messagesByConversation[conversationId || '']);
-  const messages = React.useMemo(() => messagesFromStore ?? [], [messagesFromStore]);
+  const messages = React.useMemo(() => {
+    return (messagesFromStore ?? []).filter(
+      (m) => typeof m.created_at === 'string' && !isNaN(new Date(m.created_at).getTime())
+    );
+  }, [messagesFromStore]);
 
   const sendMessage = useSendMessage(conversationId);
 

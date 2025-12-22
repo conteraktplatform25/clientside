@@ -8,6 +8,8 @@ import { UserProfile, Message } from '@/type/client/business/survey/inbox-survey
 // import { UserAvatar } from './UserAvatar';
 import { cn } from '@/lib/utils';
 import { Check, CheckCheck } from 'lucide-react';
+//import { getLocalMessageTime } from '@/utils/defaults.util';
+//import { formatMessageTime } from '@/utils/defaults.util';
 
 interface MessageBubbleProps {
   message: Message;
@@ -17,13 +19,17 @@ interface MessageBubbleProps {
 }
 export function MessageBubble({ message, isCurrentUser }: MessageBubbleProps) {
   //export function MessageBubble({ message, sender, isCurrentUser, showAvatar = true }: MessageBubbleProps) {
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true,
-    });
-  };
+  // const formatTime = (date: Date) => {
+  //   return date.toLocaleTimeString('en-US', {
+  //     hour: 'numeric',
+  //     minute: '2-digit',
+  //     hour12: true,
+  //   });
+  // };
+  if (!message.timestamp) {
+    console.warn('[MessageBubble] missing created_at', message);
+    return null;
+  }
 
   return (
     <motion.div
@@ -48,7 +54,7 @@ export function MessageBubble({ message, isCurrentUser }: MessageBubbleProps) {
             isCurrentUser ? 'text-blue-500' : 'text-gray-500'
           )}
         >
-          <span className='text-xs'>{formatTime(message.timestamp)}</span>
+          {/* <span className='text-xs'>{getLocalMessageTime(message.timestamp!)}</span> */}
 
           {isCurrentUser && (
             <div className='flex items-center'>

@@ -2,6 +2,7 @@ import React from 'react';
 import type { TCreateMessageResponse, TMessageDataResponse } from '@/lib/schemas/business/server/inbox.schema';
 import { Clock, Check, AlertCircle } from 'lucide-react';
 import Image from 'next/image';
+import { getLocalMessageTime } from '@/utils/defaults.util';
 
 function DeliveryIcon({ status }: { status?: TMessageDataResponse['deliveryStatus'] }) {
   // Use two checks visually for delivered/read. Lucide doesn't have a double-check icon built-in,
@@ -46,19 +47,21 @@ function DeliveryIcon({ status }: { status?: TMessageDataResponse['deliveryStatu
   }
 }
 
-function formatTime(ts: string | undefined) {
-  try {
-    const d = new Date(ts ?? '');
-    if (Number.isNaN(d.getTime())) return '';
-    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  } catch {
-    return '';
-  }
-}
+// function formatTime(ts: string | undefined) {
+//   try {
+//     const d = new Date(ts ?? '');
+//     if (Number.isNaN(d.getTime())) return '';
+//     return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+//   } catch {
+//     return '';
+//   }
+// }
 
 export default function MessageBubble({ message }: { message: TCreateMessageResponse }) {
   const isOutbound = message.direction === 'OUTBOUND';
-  const time = formatTime(message.created_at);
+  //const time = formatTime(message.created_at);
+  //const time = formatMessageTime(message.created_at);
+  //console.log('created_at', message.created_at, typeof message.created_at);
 
   return (
     <div className={`flex ${isOutbound ? 'justify-end' : 'justify-start'}`}>
@@ -70,7 +73,8 @@ export default function MessageBubble({ message }: { message: TCreateMessageResp
         )}
         {message.type === 'TEXT' && <div className='mb-1'>{message.content}</div>}
         <div className='flex items-center justify-end gap-2 text-xs text-slate-500 mt-2'>
-          <div>{time}</div>
+          {/* <div>{message.created_at}</div> */}
+          <div>{getLocalMessageTime(message.created_at)}</div>
           {isOutbound && <DeliveryIcon status={message.deliveryStatus} />}
         </div>
       </div>

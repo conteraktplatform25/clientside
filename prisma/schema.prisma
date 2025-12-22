@@ -487,7 +487,8 @@ model Message {
   rawPayload        Json? // Twilio full webhook or API response
   whatsappMessageId String?               @unique // Twilio SID or WhatsApp message_id (optional)
   deliveryStatus    MessageDeliveryStatus @default(PENDING)
-  created_at        DateTime              @default(now())
+  //created_at        DateTime              @default(now())
+  created_at        DateTime              @default(now()) @db.Timestamptz(6)
 
   // Relations
   businessProfile BusinessProfile @relation(fields: [businessProfileId], references: [id])

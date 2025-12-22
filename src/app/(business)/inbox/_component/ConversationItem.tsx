@@ -53,7 +53,7 @@ export function ConversationItem({ conversation, currentUser, isActive, onClick 
               {otherParticipant.name}
             </h3>
             {conversation.lastMessage && (
-              <span className='text-xs text-gray-500'>{formatTime(conversation.lastMessage.timestamp)}</span>
+              <span className='text-xs text-gray-500'>{formatTime(conversation.lastMessage.timestamp!)}</span>
             )}
           </div>
 

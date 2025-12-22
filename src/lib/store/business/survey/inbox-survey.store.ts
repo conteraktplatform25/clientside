@@ -41,7 +41,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
       return conv;
     });
 
-    set({ conversations: updatedConversations });
+    //set({ conversations: updatedConversations });
   },
 
   setMessages: (conversationId: string, messages: Message[]) => {

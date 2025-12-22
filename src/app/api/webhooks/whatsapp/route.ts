@@ -2,6 +2,7 @@
 import prisma from '@/lib/prisma';
 import { mapWhatsAppStatus } from '@/lib/whatsapp/whatsapp-status.mapper';
 import { WhatsAppWebhookSchema } from '@/lib/whatsapp/whatsapp.validator';
+import { metaTimestampToDate } from '@/utils/defaults.util';
 import { getErrorMessage } from '@/utils/errors';
 import { failure, success } from '@/utils/response';
 import { MessageDeliveryStatus, MessageType } from '@prisma/client';
@@ -12,6 +13,7 @@ type TInboundMessageParams = {
   from: string;
   whatsappMessageId: string;
   content: string;
+  timestamp: string;
 };
 
 type TStatusUpdateParams = {
@@ -55,6 +57,7 @@ export async function POST(req: NextRequest) {
         from: msg.from,
         whatsappMessageId: msg.id,
         content: msg.text?.body ?? '',
+        timestamp: msg.timestamp,
       });
     }
   }
@@ -88,6 +91,7 @@ async function handleInboundWhatsAppMessage(params: TInboundMessageParams) {
     return success(true, 'Unknown business. Acknowledged to Twilio.', 200);
   }
   const businessProfileId = businessProfile.id;
+  const eventTime = metaTimestampToDate(params.timestamp);
 
   try {
     await prisma.$transaction(async (tx) => {
@@ -128,7 +132,7 @@ async function handleInboundWhatsAppMessage(params: TInboundMessageParams) {
             businessProfileId,
             contactId: contact.id,
             channel: 'WHATSAPP',
-            lastMessageAt: new Date(),
+            lastMessageAt: eventTime,
             lastMessagePreview: params.content.slice(0, 120),
           },
           select: {
@@ -139,7 +143,7 @@ async function handleInboundWhatsAppMessage(params: TInboundMessageParams) {
         await tx.conversation.update({
           where: { id: conversation.id },
           data: {
-            lastMessageAt: new Date(),
+            lastMessageAt: eventTime,
             lastMessagePreview: params.content.slice(0, 120),
           },
           select: {
@@ -161,6 +165,7 @@ async function handleInboundWhatsAppMessage(params: TInboundMessageParams) {
           content: params.content,
           whatsappMessageId: params.whatsappMessageId,
           deliveryStatus: 'SENT',
+          created_at: eventTime,
         },
         select: {
           id: true,

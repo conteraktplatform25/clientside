@@ -13,7 +13,7 @@ export interface Message {
   senderId: string;
   receiverId: string;
   conversationId: string;
-  timestamp: Date;
+  timestamp?: Date;
   isRead: boolean;
   messageType: 'text' | 'image' | 'file';
 }

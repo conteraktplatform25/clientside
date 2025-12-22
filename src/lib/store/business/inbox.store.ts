@@ -60,6 +60,32 @@ export const useInboxStore = create<InboxState>((set, get) => ({
 
   setBusinessProfileId: (id) => set({ businessProfileId: id }),
 
+  // setMessages: (conversationId, messages) =>
+  //   set((s) => {
+  //     const existing = s.messagesByConversation[conversationId] ?? [];
+
+  //     const map = new Map<string, TInboxMessage>();
+
+  //     // existing first
+  //     for (const m of existing) {
+  //       map.set(m.whatsappMessageId ?? m.id, m);
+  //     }
+
+  //     // server messages overwrite stale copies
+  //     for (const m of messages) {
+  //       map.set(m.whatsappMessageId ?? m.id, m);
+  //     }
+
+  //     return {
+  //       messagesByConversation: {
+  //         ...s.messagesByConversation,
+  //         [conversationId]: Array.from(map.values()).sort(
+  //           (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+  //         ),
+  //       },
+  //     };
+  //   }),
+
   setMessages: (conversationId, messages) =>
     set((s) => ({
       messagesByConversation: {
@@ -113,9 +139,13 @@ export const useInboxStore = create<InboxState>((set, get) => ({
       company_name: 'General Name',
       business_number: 'General Number',
     };
+    if (!raw.id || !raw.created_at) {
+      console.warn('[realtime] missing business profile or created_at', raw);
+      return;
+    }
     // Normalize timestamp and conversation id
     const message: TMessageDataResponse = {
-      id: raw.id ?? `temp-${Date.now()}`,
+      id: raw.id,
       conversationId: raw.conversationId ?? raw.whatsappMessageId ?? 'unknown-convo',
       businessProfile: raw.businessProfile ?? fakeBusinessProfile,
       senderContact: raw.senderContact ?? null,
@@ -129,7 +159,7 @@ export const useInboxStore = create<InboxState>((set, get) => ({
       mediaType: raw.mediaType ?? null,
       rawPayload: raw.rawPayload ?? null,
       whatsappMessageId: raw.whatsappMessageId ?? null,
-      created_at: raw.created_at ?? new Date().toISOString(),
+      created_at: raw.created_at,
     };
 
     const convoId = message.conversationId;
