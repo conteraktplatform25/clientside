@@ -87,7 +87,9 @@ const ProductCardTest: React.FC<ProductCardProps> = ({ product }) => {
             </span>
           </div>
         </div>
-        <ProductPreviewModal open={isPreviewOpen} onClose={() => setIsPreviewOpen(false)} product={product} />
+        {product.media && product.media.length > 0 && (
+          <ProductPreviewModal open={isPreviewOpen} onClose={() => setIsPreviewOpen(false)} product={product} />
+        )}
       </CardContent>
       <CardFooter className='p-4 pt-0'>
         <Button variant='outline' className='w-full' onClick={() => setOpenDetails(true)}>

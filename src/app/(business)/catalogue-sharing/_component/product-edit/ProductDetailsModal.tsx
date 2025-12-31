@@ -19,7 +19,7 @@ export default function ProductDetailsModal({ openProductDetails, onOpenChange, 
 
   return (
     <Dialog open={openProductDetails} onOpenChange={onOpenChange}>
-      <DialogContent className='max-w-5xl'>
+      <DialogContent className='max-w-6xl'>
         <DialogHeader className='flex flex-row items-center justify-between'>
           <DialogTitle>Product Details</DialogTitle>
 

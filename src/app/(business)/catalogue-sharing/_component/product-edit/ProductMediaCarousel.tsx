@@ -29,7 +29,7 @@ export default function ProductMediaCarousel({ media }: { media: TUploadedMedia[
 
   return (
     <div>
-      <div className='relative h-64 w-full rounded-md flex items-center justify-center overflow-hidden'>
+      <div className='relative h-60 w-full rounded-md flex items-center justify-center overflow-hidden'>
         <Image
           src={images[activeIndex].url}
           alt={images[activeIndex].altText ?? `Product image ${activeIndex + 1}`}
