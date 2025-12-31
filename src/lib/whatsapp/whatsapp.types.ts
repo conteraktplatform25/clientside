@@ -1,3 +1,5 @@
+export type WhatsappAvailability = 'in stock' | 'out of stock';
+
 export type WhatsAppTextMessagePayload = {
   messaging_product: 'whatsapp';
   to: string;
@@ -81,3 +83,29 @@ export type TSendWhatsAppMessageInput =
       templateName: string;
       language?: string;
     };
+
+export interface WhatsappCatalogProductPayload {
+  retailer_id: string;
+  name: string;
+  description?: string;
+  price: string; // "1000 NGN"
+  availability: WhatsappAvailability;
+  image_url: string;
+  category?: string;
+}
+
+export interface WhatsappCatalogSuccessResponse {
+  id: string;
+}
+
+export interface WhatsappCatalogErrorResponse {
+  error: {
+    message: string;
+    type: string;
+    code: number;
+    error_subcode?: number;
+    fbtrace_id: string;
+  };
+}
+
+export type WhatsappCatalogResponse = WhatsappCatalogSuccessResponse | WhatsappCatalogErrorResponse;

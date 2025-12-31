@@ -50,13 +50,16 @@ export const CategoryDetailsResponseSchema = z
 export const CategoryResponseListSchema = z.array(CategoryResponseSchema);
 
 export const CreateProductSchema = z.object({
+  id: z.uuid(),
   categoryId: z.uuid(),
+  category: CategoryResponseSchema.optional(),
   name: z.string().min(2),
   description: z.string().optional(),
   currency: z.enum(Object.values(CurrencyType)).default(CurrencyType.NAIRA),
   price: z.number().positive(),
   stock: z.number().min(0).default(0),
   sku: z.string().optional(),
+  status: z.enum(Object.values(ProductStatus)).default(ProductStatus.DRAFT).optional(),
   media: z
     .array(
       z.object({
@@ -68,7 +71,25 @@ export const CreateProductSchema = z.object({
     .optional(),
 });
 
-export const UpdateProductSchema = CreateProductSchema.partial();
+export const UpdateProductSchema = z.object({
+  id: z.uuid().optional(),
+  categoryId: z.uuid().optional(),
+  name: z.string().optional(),
+  description: z.string().optional(),
+  currency: z.enum(Object.values(CurrencyType)).default(CurrencyType.NAIRA).optional(),
+  price: z.number().positive().optional(),
+  stock: z.number().min(0).default(0).optional(),
+  sku: z.string().nullable().optional(),
+  media: z
+    .array(
+      z.object({
+        url: z.url(),
+        altText: z.string().optional(),
+        order: z.number().optional(),
+      })
+    )
+    .optional(),
+});
 
 // Zod schema for status or soft-delete actions
 export const UpdateProductStatusSchema = z.object({
@@ -116,6 +137,7 @@ export const ProductResponseSchema = z
     sku: z.string().optional(),
     stock: z.coerce.number().positive(),
     currency: z.string(),
+    status: z.enum(Object.values(ProductStatus)).default(ProductStatus.DRAFT),
     category: z
       .object({
         id: z.uuid(),
@@ -127,6 +149,7 @@ export const ProductResponseSchema = z
         z.object({
           id: z.uuid(),
           url: z.url(),
+          altText: z.string().nullable().optional(),
         })
       )
       .optional(),

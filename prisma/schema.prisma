@@ -267,6 +267,10 @@ model Product {
   created_at        DateTime      @default(now())
   updated_at        DateTime      @updatedAt
 
+  whatsappCatalogId  String?
+  whatsappSyncStatus WhatsappSyncStatus @default(PENDING)
+  whatsappLastError  String?
+
   businessProfile BusinessProfile  @relation(fields: [businessProfileId], references: [id])
   category        Category         @relation(fields: [categoryId], references: [id])
   media           ProductMedia[]
@@ -687,6 +691,7 @@ enum AppNotificationType {
 enum ProductStatus {
   DRAFT
   ACTIVE
+  PUBLISHED
   ARCHIVED
 }
 
@@ -734,4 +739,10 @@ enum BusinessRole {
   CONTACTHUB
   INBOX
   ORDER
+}
+
+enum WhatsappSyncStatus {
+  PENDING
+  SYNCED
+  FAILED
 }

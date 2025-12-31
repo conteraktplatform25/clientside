@@ -1,28 +1,34 @@
-import React from 'react';
+// src/app/(business)/catalogue-sharing/_component/ProductCardTest.tsx
+import React, { useState } from 'react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
-import { TCreateProductRequest } from '@/lib/hooks/business/catalogue-sharing.hook';
+import { Eye, UploadCloud } from 'lucide-react';
+import { TProductResponse, usePublishProduct } from '@/lib/hooks/business/catalogue-sharing.hook';
 import { getCurrencySymbol } from '@/lib/helpers/string-manipulator.helper';
+import { ProductPreviewModal } from './ProductPreviewModal';
+import { CurrencyType } from '@prisma/client';
+import ProductDetailsModal from './product-edit/ProductDetailsModal';
 
 interface ProductCardProps {
-  product: TCreateProductRequest;
+  product: TProductResponse;
 }
 
 const ProductCardTest: React.FC<ProductCardProps> = ({ product }) => {
-  console.log(product);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [openDetails, setOpenDetails] = useState(false);
+
+  const { mutate: publishProduct, isPending } = usePublishProduct();
   return (
-    <Card className='p-0 w-full max-w-md rounded-lg overflow-hidden shadow-none transition-shadow duration-200'>
+    <Card className='group p-0 w-full max-w-md rounded-lg overflow-hidden shadow-none transition-shadow duration-200'>
       <CardContent className='p-0'>
-        <div className='relative w-full h-48 bg-gray-100 flex items-center justify-center'>
+        <div className='relative w-full h-48 bg-gray-100 flex items-center justify-center overflow-hidden'>
           {product.media && product.media.length > 0 ? (
             <Image
-              height={48}
-              width={48}
               src={product.media?.[0]?.url}
               alt={product.name}
-              unoptimized
-              className='object-cover w-full h-full rounded-t-lg'
+              fill
+              className='object-cover transition-transform duration-300 group-hover:scale-105'
             />
           ) : (
             <svg width='144' height='117' viewBox='0 0 144 117' fill='none' xmlns='http://www.w3.org/2000/svg'>
@@ -37,11 +43,37 @@ const ProductCardTest: React.FC<ProductCardProps> = ({ product }) => {
               />
             </svg>
           )}
-          {/* <span className='absolute top-2 left-2 font-medium bg-white text-neutral-800 text-xs px-2 py-1 rounded-full'>
-            {product.category?.name}
-          </span> */}
+          {/* Gradient Overlay */}
+          {product.media && product.media.length > 0 && (
+            <div>
+              <div className='absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300' />
+
+              <div className='absolute inset-0 flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300'>
+                <Button size='sm' variant='secondary' onClick={() => setIsPreviewOpen(true)}>
+                  <Eye className='h-4 w-4' />
+                  View
+                </Button>
+                <Button
+                  size='sm'
+                  variant='secondary'
+                  className='gap-1'
+                  disabled={['PUBLISHED', 'ARCHIVED'].includes(product.status!) || isPending}
+                  onClick={() => publishProduct({ productId: product.id })}
+                >
+                  {isPending ? (
+                    <div className='w-4 h-4 border-2 border-gray-300 border-t-gray-800 rounded-full animate-spin' />
+                  ) : (
+                    <div className='flex items-start gap-2'>
+                      <UploadCloud className='h-4 w-4' />
+                      {product.status === 'PUBLISHED' ? 'Published' : 'Publish'}
+                    </div>
+                  )}
+                </Button>
+              </div>
+            </div>
+          )}
           <span className='absolute top-2 left-2 font-medium bg-white text-neutral-800 text-xs px-2 py-1 rounded-full'>
-            {product.categoryId}
+            {product.category?.name}
           </span>
         </div>
         <div className='p-3'>
@@ -51,16 +83,18 @@ const ProductCardTest: React.FC<ProductCardProps> = ({ product }) => {
           </p>
           <div className='flex items-center justify-between'>
             <span className='text-base font-semibold text-neutral-900'>
-              {getCurrencySymbol(product.currency)} {product.price.toLocaleString()}
+              {getCurrencySymbol(product.currency as CurrencyType)} {product.price.toLocaleString()}
             </span>
           </div>
         </div>
+        <ProductPreviewModal open={isPreviewOpen} onClose={() => setIsPreviewOpen(false)} product={product} />
       </CardContent>
       <CardFooter className='p-4 pt-0'>
-        <Button variant='outline' className='w-full'>
+        <Button variant='outline' className='w-full' onClick={() => setOpenDetails(true)}>
           View Details
         </Button>
       </CardFooter>
+      <ProductDetailsModal product={product} openProductDetails={openDetails} onOpenChange={setOpenDetails} />
     </Card>
   );
 };

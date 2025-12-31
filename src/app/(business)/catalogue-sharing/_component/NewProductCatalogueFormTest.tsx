@@ -46,7 +46,6 @@ const NewProductCatalogueFormTest: React.FC = () => {
   const { data: productsData, isLoading: isLoadingProducts } = useGetDesktopProducts();
 
   useEffect(() => {
-    console.log(productsData);
     if (productsData && productsData.products.length > 0) {
       setDesktopProduct(productsData.products);
     }
@@ -65,30 +64,33 @@ const NewProductCatalogueFormTest: React.FC = () => {
     },
   });
 
-  const {
-    handleSubmit,
-    control,
-    //formState: { errors },
-    getValues,
-    reset,
-  } = form;
+  const { handleSubmit, control, reset } = form;
+
+  useEffect(() => {
+    return () => {
+      imagePreviews.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [imagePreviews]);
 
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = event.target.files ? Array.from(event.target.files) : [];
-    if (selectedFiles.length === 0) return;
+    if (!selectedFiles.length) return;
 
-    const newPreviews = selectedFiles.map((file) => URL.createObjectURL(file));
-    setImagePreviews((prev) => [...prev, ...newPreviews]);
     setFiles((prev) => [...prev, ...selectedFiles]);
+    setImagePreviews((prev) => prev.concat(selectedFiles.map((f) => URL.createObjectURL(f))));
 
-    // Update form media field
-    const mediaEntries = selectedFiles.map((file, index) => ({
-      url: '', // will be populated after upload
-      altText: file.name,
-      order: (getValues('media')?.length ?? 0) + index + 1,
-    }));
+    // const newPreviews = selectedFiles.map((file) => URL.createObjectURL(file));
+    // setImagePreviews((prev) => [...prev, ...newPreviews]);
+    // setFiles((prev) => [...prev, ...selectedFiles]);
 
-    form.setValue('media', [...(form.getValues('media') ?? []), ...mediaEntries]);
+    // // Update form media field
+    // const mediaEntries = selectedFiles.map((file, index) => ({
+    //   url: '', // will be populated after upload
+    //   altText: file.name,
+    //   order: (getValues('media')?.length ?? 0) + index + 1,
+    // }));
+
+    // form.setValue('media', [...(form.getValues('media') ?? []), ...mediaEntries]);
   };
 
   const handleRemoveImage = (index: number) => {
@@ -104,21 +106,23 @@ const NewProductCatalogueFormTest: React.FC = () => {
   };
 
   const onSubmit = async (data: TCreateProductRequest) => {
-    console.log('✅ Product Submitted:', data);
-    // Example: handle uploads here if needed
-    // e.g., upload to S3 or your API before POSTing product
-    // const uploadedMedia = await uploadFiles(files);
-    // data.media = uploadedMedia.map((file, index) => ({
-    //   url: file.url,
-    //   altText: files[index].name,
-    //   order: index + 1,
-    // }));
+    const formData = new FormData();
 
-    // Then call your /api/products POST route
-    // await fetch("/api/products", { method: "POST", body: JSON.stringify(data) });
-    data.media = undefined;
-    await createProductMutation.mutateAsync(data);
+    formData.append(
+      'payload',
+      JSON.stringify({
+        ...data,
+        media: undefined, // server handles media
+      })
+    );
+    files.forEach((file) => {
+      formData.append('images', file);
+    });
+    console.log('✅ Product Submitted:', formData);
+    await createProductMutation.mutateAsync(formData);
     reset();
+    setFiles([]);
+    setImagePreviews([]);
   };
 
   if (isLoadingProducts) {

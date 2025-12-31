@@ -18,7 +18,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   },
 
   addMessage: (message: Message) => {
-    const { messages, conversations } = get();
+    const { messages } = get();
     const conversationMessages = messages[message.conversationId] || [];
 
     set({
@@ -29,17 +29,17 @@ export const useChatStore = create<ChatState>((set, get) => ({
     });
 
     // Update conversation last message
-    const updatedConversations = conversations.map((conv) => {
-      if (conv.id === message.conversationId) {
-        return {
-          ...conv,
-          lastMessage: message,
-          updatedAt: message.timestamp,
-          unreadCount: message.senderId === get().currentUser?.id ? 0 : conv.unreadCount + 1,
-        };
-      }
-      return conv;
-    });
+    // const updatedConversations = conversations.map((conv) => {
+    //   if (conv.id === message.conversationId) {
+    //     return {
+    //       ...conv,
+    //       lastMessage: message,
+    //       updatedAt: message.timestamp,
+    //       unreadCount: message.senderId === get().currentUser?.id ? 0 : conv.unreadCount + 1,
+    //     };
+    //   }
+    //   return conv;
+    // });
 
     //set({ conversations: updatedConversations });
   },

@@ -1,5 +1,5 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
-import { $Enums, Prisma } from '@prisma/client';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { $Enums, Prisma, ProductStatus } from '@prisma/client';
 import { z } from 'zod';
 import {
   CategoryDetailsResponseSchema,
@@ -9,10 +9,13 @@ import {
   CreateProductSchema,
   CategoryResponseListSchema,
   ProductDesktopResponseListSchema,
+  CreateMediaSchema,
+  ProductResponseSchema,
+  UpdateProductSchema,
   //CategoryResponseListSchema,
 } from '@/lib/schemas/business/server/catalogue.schema';
-import { fetchJSON } from '@/utils/response';
-import { useCategoryCatalogueStore, useProductCatalogueStore } from '@/lib/store/business/catalogue-sharing.store';
+import { fetchJSON, fetchMultipartJSON } from '@/utils/response';
+import { useCategoryCatalogueStore } from '@/lib/store/business/catalogue-sharing.store';
 import { getErrorMessage } from '@/utils/errors';
 import { toast } from 'sonner';
 
@@ -23,7 +26,11 @@ export type TCategoryResponseList = z.infer<typeof CategoryResponseListSchema>;
 export type TCategoryDetailsResponse = z.infer<typeof CategoryDetailsResponseSchema>;
 
 export type TCreateProductRequest = z.infer<typeof CreateProductSchema>;
+export type TUpdateProduct = z.infer<typeof UpdateProductSchema>;
 export type TProductDestopResponse = z.infer<typeof ProductDesktopResponseListSchema>;
+
+export type TUploadedMedia = z.infer<typeof CreateMediaSchema>;
+export type TProductResponse = z.infer<typeof ProductResponseSchema>;
 
 /* -----------------------------
    🧱 Types
@@ -34,6 +41,13 @@ interface PaginationMeta {
   total: number;
   totalPages: number;
 }
+
+type TUpdateProductInput = {
+  id: TUpdateProduct['id'];
+  data: Partial<Pick<TUpdateProduct, 'name' | 'description' | 'price' | 'stock' | 'currency' | 'categoryId' | 'sku'>>;
+};
+
+const PRODUCTS_QUERY_KEY = ['products'] as const;
 
 export interface IProductProps {
   description: string | null;
@@ -52,9 +66,19 @@ export interface IProductProps {
 }
 
 interface ProductResponse {
-  products: TCreateProductRequest[];
+  //products: TCreateProductRequest[];
+  products: TProductResponse[];
   pagination: PaginationMeta;
 }
+
+type PublishParams = {
+  productId: TProductResponse['id'];
+};
+
+type PublishResponse = {
+  id: TProductResponse['id'];
+  status: ProductStatus;
+};
 
 /* ===============================
    🟢 Get Categories (Simple)
@@ -136,7 +160,7 @@ export const useCreateCategory = () => {
 ----------------------------- */
 export const useGetDesktopProducts = () =>
   useQuery({
-    queryKey: ['desktop_products'],
+    queryKey: [PRODUCTS_QUERY_KEY],
     queryFn: () =>
       fetchJSON<{
         products: TProductDestopResponse;
@@ -150,7 +174,7 @@ export const useGetDesktopProducts = () =>
 
 export const useGetProducts = (categoryId?: string, search?: string, page: number = 1, limit: number = 6) =>
   useQuery<ProductResponse>({
-    queryKey: ['products', { categoryId, search, page, limit }],
+    queryKey: [PRODUCTS_QUERY_KEY, { categoryId, search, page, limit }],
     queryFn: async () => {
       const params = new URLSearchParams({
         page: String(page),
@@ -171,29 +195,152 @@ export const useGetProducts = (categoryId?: string, search?: string, page: numbe
   });
 
 export const useCreateProduct = () => {
-  const clearDesktopProducts = useProductCatalogueStore((state) => state.clearDesktopProducts);
-  const setDesktopProducts = useProductCatalogueStore((state) => state.setDesktopProducts);
+  // const clearDesktopProducts = useProductCatalogueStore((state) => state.clearDesktopProducts);
+  // const setDesktopProducts = useProductCatalogueStore((state) => state.setDesktopProducts);
+
+  const queryClient = useQueryClient();
 
   return useMutation({
     // 🟢 Send POST request to your backend
-    mutationFn: async (payload: TCreateProductRequest) =>
-      fetchJSON<{ products: TProductDestopResponse }>('/api/catalogue/products/desktop', {
+    mutationFn: async (formData: FormData) =>
+      fetchMultipartJSON<{ products: TProductDestopResponse }, FormData>('/api/catalogue/products/desktop', {
         method: 'POST',
-        body: JSON.stringify(payload),
+        body: formData,
       }),
 
     // 🟢 On successful creation
     onSuccess: (response) => {
       const newProductList = response.products;
       // ✅ Update Zustand store immediately
-      clearDesktopProducts();
-      setDesktopProducts(newProductList);
+      queryClient.invalidateQueries({
+        queryKey: [PRODUCTS_QUERY_KEY],
+      });
       toast.success(`Product "${newProductList[0].name}" created successfully`);
     },
 
     // 🟠 Handle errors gracefully
     onError: (error) => {
       console.error('Product creation failed:', getErrorMessage(error));
+    },
+  });
+};
+
+export const usePublishProduct = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    PublishResponse, // response
+    Error, // error
+    PublishParams, // variables
+    { previous?: ProductResponse } // context
+  >({
+    mutationFn: ({ productId }) =>
+      fetchJSON(`/api/catalogue/products/${productId}/publish`, {
+        method: 'PATCH',
+      }),
+    onMutate: async ({ productId }) => {
+      await queryClient.cancelQueries({ queryKey: PRODUCTS_QUERY_KEY });
+
+      const previous = queryClient.getQueryData<ProductResponse>([PRODUCTS_QUERY_KEY]);
+
+      queryClient.setQueryData<ProductResponse>([PRODUCTS_QUERY_KEY], (old) =>
+        old
+          ? {
+              ...old,
+              products: old.products.map((p) => (p.id === productId ? { ...p, status: ProductStatus.PUBLISHED } : p)),
+            }
+          : old
+      );
+      return { previous };
+    },
+
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.previous) {
+        queryClient.setQueryData([PRODUCTS_QUERY_KEY], ctx.previous);
+      }
+      toast.error('Failed to publish product');
+    },
+
+    onSuccess: () => {
+      toast.success('Product published successfully');
+    },
+
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: [PRODUCTS_QUERY_KEY] });
+    },
+  });
+};
+
+// export const usePublishProduct = () => {
+//   const queryClient = useQueryClient();
+
+//   return useMutation({
+//     mutationFn: (productId: string) =>
+//       fetchJSON(`/api/catalogue/products/${productId}/publish`, {
+//         method: 'PATCH',
+//       }),
+
+//     onSuccess: () => {
+//       queryClient.invalidateQueries({ queryKey: [PRODUCTS_QUERY_KEY[0]] });
+//       toast.success(`Product has been published.`);
+//     },
+//     // 🟠 Handle errors gracefully
+//     onError: (error) => {
+//       const errorMessage = getErrorMessage(error);
+//       console.error('Product creation failed:', errorMessage);
+//       toast.error(`Product publishing failed ${errorMessage}`);
+//     },
+//   });
+// };
+
+export const useUpdateProduct = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<TProductResponse, Error, TUpdateProductInput, { previous?: TProductResponse }>({
+    mutationFn: ({ id, data }) =>
+      fetchJSON<TProductResponse>(`/api/catalogue/products/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      }),
+
+    onMutate: async ({ id, data }) => {
+      await queryClient.cancelQueries({ queryKey: [PRODUCTS_QUERY_KEY] });
+      const previous = queryClient.getQueryData<TProductResponse>([PRODUCTS_QUERY_KEY]);
+
+      queryClient.setQueryData<ProductResponse>([PRODUCTS_QUERY_KEY], (old) =>
+        old
+          ? {
+              ...old,
+              products: old.products.map((p) =>
+                p.id === id
+                  ? {
+                      ...p,
+                      name: data.name ?? p.name,
+                      price: data.price ?? p.price,
+                      description: data.description ?? p.description,
+                      stock: data.stock ?? p.stock,
+                      sku: data.sku ?? p.sku,
+                    }
+                  : p
+              ),
+            }
+          : old
+      );
+      return { previous };
+    },
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.previous) {
+        queryClient.setQueryData(PRODUCTS_QUERY_KEY, ctx.previous);
+      }
+      toast.error('Failed to update product');
+    },
+
+    onSuccess: () => {
+      toast.success('Product updated');
+    },
+
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: PRODUCTS_QUERY_KEY });
     },
   });
 };

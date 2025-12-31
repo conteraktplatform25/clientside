@@ -1,3 +1,4 @@
+// src/app/(business)/catalogue-sharing/ProductCatalogueGalleryTest.tsx
 'use client';
 import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
@@ -93,8 +94,6 @@ const ProductCatalogueGalleryTest: React.FC = () => {
   };
 
   if (!hasCategories || !hasProducts) return <EmptyProductTest categories={categories} />;
-
-  console.log('PRODUCT INFORMATION TABLE: ', allProducts);
 
   return (
     <div className='w-full px-4 flex flex-col gap-2'>

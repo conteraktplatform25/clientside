@@ -1,5 +1,5 @@
 import { authenticateRequest, authorizeRole } from '@/lib/auth';
-import { validateRequest } from '@/lib/helpers/validation-request.helper';
+import { TUploadedMedia } from '@/lib/hooks/business/catalogue-sharing.hook';
 import prisma from '@/lib/prisma';
 import {
   CreateProductSchema,
@@ -7,6 +7,7 @@ import {
   ProductQuerySchema,
   ProductResponseListSchema,
 } from '@/lib/schemas/business/server/catalogue.schema';
+import { supabase } from '@/lib/supabaseClient';
 import { getErrorMessage } from '@/utils/errors';
 import { failure, success } from '@/utils/response';
 import { Prisma } from '@prisma/client';
@@ -68,6 +69,7 @@ export async function GET(req: NextRequest) {
           sku: true,
           stock: true,
           currency: true,
+          status: true,
           category: {
             select: {
               id: true,
@@ -76,11 +78,6 @@ export async function GET(req: NextRequest) {
           },
           media: true,
         },
-        // include: {
-        //   category: { select: { name: true } },
-        //   media: true,
-        //   variants: true,
-        // },
         skip,
         take: limit,
         orderBy: { [sortBy]: sortOrder },
@@ -116,10 +113,16 @@ export async function POST(req: NextRequest) {
 
     const businessProfileId = user.businessProfile[0].id;
 
-    const validation = await validateRequest(CreateProductSchema, req);
-    if (!validation.success) return failure(validation.response, 401);
+    const formData = await req.formData();
 
-    const { name, price, media, categoryId, ...data } = validation.data;
+    const payload = JSON.parse(formData.get('payload') as string);
+    const files = formData.getAll('images') as File[];
+
+    //const validation = await validateRequest(CreateProductSchema, req);
+    const validation = CreateProductSchema.omit({ media: true }).safeParse(payload);
+    if (!validation.success) return failure(getErrorMessage(validation.error.flatten()), 401);
+
+    const { name, price, categoryId, ...data } = validation.data;
 
     //Verify if product name previously exist
     const productExist = await prisma.product.findFirst({
@@ -141,6 +144,30 @@ export async function POST(req: NextRequest) {
     });
     if (!category) return failure('Invalid category: not found or not in your business.', 400);
 
+    // 🔼 Upload images to Supabase
+    const uploadedMedia: TUploadedMedia[] = [];
+    if (files && files.length > 0) {
+      const generatedCryptoValue = crypto.randomUUID();
+      for (let i = 0; i < files.length; i++) {
+        const order = i + 1;
+        const file = files[i];
+        const ext = file.name.split('.').pop();
+        const filePath = `uploads/products/${businessProfileId}/${generatedCryptoValue}_${order}.${ext}`;
+
+        const { error } = await supabase.storage.from('contakt_assets').upload(filePath, file);
+        if (error) {
+          throw new Error(`Image upload failed: ${error.message}`);
+        }
+
+        const { data } = supabase.storage.from('contakt_assets').getPublicUrl(filePath);
+        uploadedMedia.push({
+          url: data.publicUrl,
+          altText: name,
+          order,
+        });
+      }
+    }
+
     const product = await prisma.product.create({
       data: {
         name,
@@ -148,17 +175,20 @@ export async function POST(req: NextRequest) {
         businessProfileId,
         categoryId,
         price: new Prisma.Decimal(price),
+        description: data.description ?? null,
+        sku: data.sku ?? null,
+        stock: data.stock ?? 0,
+        currency: data.currency,
         media:
-          media && media.length > 0
+          uploadedMedia.length > 0
             ? {
-                create: media.map((m) => ({
-                  url: m.url,
-                  altText: m.altText ?? null,
+                create: uploadedMedia.map((m) => ({
+                  url: m!.url,
+                  altText: m!.altText ?? null,
                   order: m.order ?? 0,
                 })),
               }
             : undefined,
-        ...data,
       },
       include: {
         media: true,

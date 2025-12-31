@@ -2,8 +2,8 @@ import { create } from 'zustand';
 import {
   TCategoryResponse,
   TCategoryResponseList,
-  TCreateProductRequest,
   TProductDestopResponse,
+  TProductResponse,
 } from '@/lib/hooks/business/catalogue-sharing.hook';
 import { TCategoryDropDown } from '@/lib/schemas/business/client/client-catalogue.schema';
 
@@ -32,9 +32,9 @@ export const useCategoryCatalogueStore = create<CategoryCatalogueState>((set) =>
 
 interface ProductCatalogueState {
   desktopProducts: TProductDestopResponse;
-  catalogueProducts: TCreateProductRequest[]; // New state for the main catalogue
+  catalogueProducts: TProductResponse[]; // New state for the main catalogue
   clearDesktopProducts: () => void;
-  addedProductsToCatalogue: (products: TCreateProductRequest[]) => void; // New action to move products
+  addedProductsToCatalogue: (products: TProductResponse[]) => void; // New action to move products
   setDesktopProducts: (products: TProductDestopResponse) => void;
 }
 

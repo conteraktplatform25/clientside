@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
 import { authenticateRequest, authorizeRole } from '@/lib/auth';
 import slugify from 'slugify';
-import { UpdateProductSchema } from '@/lib/schemas/business/server/catalogue.schema';
+import { ProductResponseSchema, UpdateProductSchema } from '@/lib/schemas/business/server/catalogue.schema';
 import { getErrorMessage } from '@/utils/errors';
 import { failure, success } from '@/utils/response';
 import { Prisma } from '@prisma/client';
@@ -85,7 +85,7 @@ export async function PATCH(req: NextRequest, context: { params: Promise<{ id: s
     }
 
     // 6️⃣ Handle ProductMedia updates
-    if (media) {
+    if (media && media.length > 0) {
       // delete existing and recreate (simpler and safe)
       await prisma.productMedia.deleteMany({ where: { productId: id } });
 
@@ -104,10 +104,27 @@ export async function PATCH(req: NextRequest, context: { params: Promise<{ id: s
     const updatedProduct = await prisma.product.update({
       where: { id },
       data: updateData,
-      include: { media: true, category: true },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        price: true,
+        sku: true,
+        stock: true,
+        currency: true,
+        status: true,
+        category: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        media: true,
+      },
     });
+    const productData = ProductResponseSchema.parse(updatedProduct);
 
-    return success({ updatedProduct }, 'Product updated successfully', 200);
+    return success({ productData }, 'Product updated successfully', 200);
   } catch (err) {
     return failure(getErrorMessage(err), 500);
   }
