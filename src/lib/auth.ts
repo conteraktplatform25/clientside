@@ -4,7 +4,7 @@ import { hash } from 'bcryptjs';
 import { getServerSession, UserObject } from 'next-auth';
 //import authOptions from '@/app/api/auth/[...nextauth]/authOption';
 import { authOptions } from '@/app/api/auth/[...nextauth]/authOption';
-import { AuthenticatedUser } from '@/type/server/authentication.type';
+import { AdminAuthenticatedUser, AuthenticatedUser } from '@/type/server/authentication.type';
 import { verifyAccessToken } from '@/actions/mobile-auth';
 
 export async function registerUser({
@@ -41,7 +41,7 @@ export function requireServiceKey(req: Request) {
 export async function authenticateRequest(req: NextRequest): Promise<AuthenticatedUser | null> {
   // 1️⃣ Try NextAuth
   const session = await getServerSession(authOptions);
-  if (session?.user?.email) {
+  if (session && session.user && session.user.email) {
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
       include: { role: true, businessProfile: true },
@@ -73,6 +73,37 @@ export async function authenticateRequest(req: NextRequest): Promise<Authenticat
   return null;
 }
 
+export async function authenticateAdminRequest(): Promise<AdminAuthenticatedUser | null> {
+  // 1️⃣ Try NextAuth
+  const session = await getServerSession(authOptions);
+  if (session && session.user && session.user.email) {
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email, is_deleted: false },
+      select: {
+        id: true,
+        email: true,
+        email_verified_date: true,
+        phone: true,
+        first_name: true,
+        last_name: true,
+        is_activated: true,
+        is_deleted: true,
+        admin_onboarding_status: true,
+        created_at: true,
+        role: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+    return user as AdminAuthenticatedUser | null;
+  }
+
+  // 3️⃣ No valid auth
+  return null;
+}
 export function authorizeRole(user: AuthenticatedUser | null, allowed: string[]): boolean {
   const user_role = user && user.role && user.role.name;
   return !!user && allowed.includes(user_role!);

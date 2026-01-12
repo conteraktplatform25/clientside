@@ -108,4 +108,32 @@ export interface WhatsappCatalogErrorResponse {
   };
 }
 
+export type TMetaTokenResponse = {
+  access_token: string;
+  token_type: 'bearer';
+  expires_in: number;
+};
+
+export type TMetaBusiness = {
+  id: string;
+  name: string;
+};
+
+export type TMetaWABA = {
+  id: string;
+  name: string;
+};
+
+export type TMetaPhoneNumber = {
+  id: string;
+  display_phone_number: string;
+  verified_name?: string;
+};
+
+export type TWhatsAppDiscoveryResult = {
+  metaBusinessId: string;
+  wabaId: string;
+  phoneNumbers: TMetaPhoneNumber[];
+};
+
 export type WhatsappCatalogResponse = WhatsappCatalogSuccessResponse | WhatsappCatalogErrorResponse;

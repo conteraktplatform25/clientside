@@ -12,14 +12,14 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination';
-import { Search, Plus, Share2 } from 'lucide-react';
+import { Search, Plus, Share2, PlusCircle } from 'lucide-react';
 import { FaGreaterThan } from 'react-icons/fa6';
 import Link from 'next/link';
-import Image from 'next/image';
 import UILoaderIndicator from '@/components/custom/UILoaderIndicator';
 import CategoryProfileDialog from './CategoryProfileDialog';
 import { useCategoryCatalogueStore, useProductCatalogueStore } from '@/lib/store/business/catalogue-sharing.store';
 import { TCategoryResponse, useGetProducts } from '@/lib/hooks/business/catalogue-sharing.hook';
+import { useRouter } from 'next/navigation';
 import ProductCardTest from './ProductCardTest';
 
 const PRODUCTS_PER_PAGE = 6;
@@ -197,6 +197,7 @@ const ProductCatalogueGalleryTest: React.FC = () => {
 const EmptyProductTest = ({ categories }: { categories: TCategoryResponse[] }) => {
   //const { clearAddedCategories, addedCategories } = useCategoryCatalogueStore();
   //const categories = useCategoryCatalogueStore((state) => state.addedCategories);
+  const router = useRouter();
   const [isCategoriesDialogOpen, setIsCategoriesDialogOpen] = useState(false);
 
   const handleCloseCategoryDialog = () => {
@@ -231,14 +232,31 @@ const EmptyProductTest = ({ categories }: { categories: TCategoryResponse[] }) =
         )}
       </div>
 
-      <Image
+      {/* <Image
         src='/images/img-empty-data.png'
         alt='Empty catalogue'
         width={120}
         height={120}
         className='mb-4 opacity-80'
       />
-      <p className='text-gray-500 text-base'>You don’t have any catalogue items yet.</p>
+      <p className='text-gray-500 text-base'>You don’t have any catalogue items yet.</p> */}
+      <div className='flex flex-col items-center justify-center py-16 text-center space-y-4'>
+        <div className='text-6xl text-gray-300'>{'📭'}</div>
+        <h3 className='text-lg font-semibold text-neutral-800'>
+          {categories.length > 0 ? 'No Product Catalogue Item found' : 'No Category listed yet.'}
+        </h3>
+        <p className='text-sm text-neutral-500'>
+          {categories.length > 0 ? 'Create your first product item' : 'List your categories now!'}
+        </p>
+        <Button
+          onClick={() =>
+            categories.length > 0 ? router.push('/catalogue-sharing/new-product') : setIsCategoriesDialogOpen(true)
+          }
+          className='mt-2 bg-primary-base text-white rounded-md flex items-center gap-2'
+        >
+          <PlusCircle size={16} /> {categories.length > 0 ? 'Add Product Item' : 'Create Category'}
+        </Button>
+      </div>
 
       <CategoryProfileDialog
         listedCategories={categories}

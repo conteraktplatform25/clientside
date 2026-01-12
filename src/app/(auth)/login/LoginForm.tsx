@@ -39,10 +39,15 @@ const LoginForm = () => {
     if (response?.ok) {
       const session = await getSession();
       const user = session?.user;
+
+      console.log('Login Form hit Admin page', user);
       if (callbackUrl) router.push(`${callbackUrl}`);
-      else if (user?.role === 'Admin') router.push('/admin');
-      else if (user?.role === 'Agent') router.push('/agent');
-      else router.push(`/`);
+      else if (user?.role === 'Admin' || user?.role === 'Super_Admin') {
+        router.push('/admin');
+      } else if (user?.role === 'Agent') router.push('/agent');
+      else {
+        router.push(`/`);
+      }
     } else
       toast('Invalid Username and Password', {
         description: 'Failed Login',

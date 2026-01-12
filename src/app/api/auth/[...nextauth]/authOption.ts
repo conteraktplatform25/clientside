@@ -1,5 +1,4 @@
 // src/app/api/[...nextauth]/authOption.ts
-//import { PrismaAdapter } from '@next-auth/prisma-adapter';
 import prisma from '@/lib/prisma';
 import GoogleProvider from 'next-auth/providers/google';
 import CredentialsProvider from 'next-auth/providers/credentials';
@@ -28,6 +27,7 @@ interface GoogleProfile {
 }
 
 const ROLE_REDIRECTS: Record<string, string> = {
+  Super_Admin: '/admin',
   Admin: '/admin',
   Business: '/',
   Agent: '/agent',
@@ -170,10 +170,21 @@ export const authOptions: NextAuthOptions = {
         const accessDecoded = jwtDecode<DecodedJWT>(tokens.access);
         const refreshDecoded = jwtDecode<DecodedJWT>(tokens.refresh!);
 
+        let waba_phone_number = '';
         const profile = await prisma.businessProfile.findFirst({
           where: { userId: accessDecoded.id },
           select: { id: true, business_number: true, phone_number: true },
         });
+        const whatsapp_conn = await prisma.whatsAppAccount.findUnique({
+          where: { businessProfileId: profile?.id, status: 'META_AUTHORIZED' },
+          select: {
+            id: true,
+            whatsAppPhoneNumbers: true,
+          },
+        });
+        if (whatsapp_conn) {
+          waba_phone_number = whatsapp_conn.whatsAppPhoneNumbers?.[0].phoneNumber.trim();
+        }
 
         const user: UserObject = {
           id: accessDecoded.id,
@@ -183,7 +194,10 @@ export const authOptions: NextAuthOptions = {
           role: accessDecoded.role,
           phone_number: profile?.phone_number,
           businessProfileId: profile?.id,
-          registered_number: profile?.business_number ?? '',
+          registered_number:
+            accessDecoded.role === 'Admin' || accessDecoded.role === 'Super_Admin'
+              ? undefined
+              : (waba_phone_number ?? ''),
           is_activated: accessDecoded.is_activated,
         };
 
@@ -229,7 +243,15 @@ export const authOptions: NextAuthOptions = {
           // Find the DB user (the adapter may have already created them)
           const dbUser = await prisma.user.findUnique({
             where: { email },
+            include: { role: true },
           });
+          if (dbUser?.role.is_admin) {
+            if (!dbUser.is_activated) {
+              // invited but not accepted
+              return false;
+            }
+            return true; // go straight to /admin
+          }
 
           const full_name = (profile as GoogleProfile)?.name;
 
@@ -296,6 +318,9 @@ export const authOptions: NextAuthOptions = {
           where: { id: oauthUser.id as string },
           include: { role: true },
         });
+        if (dbUser?.role?.is_admin && !dbUser.is_activated) {
+          throw new Error('Admin not activated');
+        }
 
         const appUser: Partial<UserObject> = {
           id: dbUser?.id ?? (oauthUser.id as string),

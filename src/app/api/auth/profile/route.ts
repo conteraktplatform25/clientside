@@ -8,7 +8,6 @@ export async function POST(req: NextRequest) {
     const email = req.nextUrl.searchParams.get('email');
     const {
       password,
-      phone_country_code,
       phone_number,
       company_name,
       company_website,
@@ -22,19 +21,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false, error: 'Missing fields' }, { status: 400 });
     }
 
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await prisma.user.findUnique({ where: { email }, include: { role: true } });
     if (!user) {
       return NextResponse.json({ ok: false, error: 'Email does not exist' }, { status: 409 });
     }
 
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    // Create user (not activated yet)
     const businessProfile = await prisma.businessProfile.create({
       data: {
         userId: user.id,
         company_name,
-        phone_number: `(${phone_country_code})${phone_number}`,
+        phone_number,
         company_location,
         company_website,
         business_industry,
@@ -43,11 +41,22 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Update user profile
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { email_verified_date: new Date(), is_activated: true, phone: phone_number, password: hashedPassword },
+    await prisma.$transaction(async (tx) => {
+      await tx.businessTeamProfile.create({
+        data: {
+          businessProfileId: businessProfile.id,
+          userId: user.id,
+          roleId: user.role.id,
+          joined_at: new Date(),
+        },
+      });
+      await tx.user.update({
+        where: { id: user.id },
+        data: { email_verified_date: new Date(), is_activated: true, phone: phone_number, password: hashedPassword },
+      });
     });
+
+    // Update user profile
 
     return NextResponse.json(
       {

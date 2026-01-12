@@ -64,3 +64,17 @@ export function formatVariables(text: string) {
 export function normalizePhoneNumber(phone: string): string {
   return phone.replace(/[^\d]/g, '');
 }
+
+export function formatRoleProfile(role: string): string {
+  return role
+    .toLowerCase()
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+export const formatEnumLabel = (value: string): string =>
+  value
+    .toLowerCase()
+    .split('_')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');

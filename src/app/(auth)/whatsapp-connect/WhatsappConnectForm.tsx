@@ -1,3 +1,4 @@
+// src/app/(auth)/whatsapp-connect/WhatsappConnectForm.tsx
 'use client';
 import React, { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -66,20 +67,21 @@ const WhatsappConnetForm = () => {
     const business_number = {
       phone_number: validatePhoneNumber.normalized,
     };
-    const response = await fetchWithIndicatorHook(`/api/auth/profile/business-number?email=${email}`, {
-      method: 'PATCH',
+
+    const response = await fetchWithIndicatorHook(`/api/whatsapp/onboarding/init?email=${email}`, {
+      method: 'POST',
       body: JSON.stringify({ ...business_number }),
       headers: { 'Content-Type': 'application/json' },
     });
     const json = await response.json();
-    if (json?.ok) {
+    if (json?.ok && json.redirectUrl) {
       reset();
       setAlert({
         type: 'success',
         title: 'Business Profile Successful',
         description: json.message || '',
       });
-      //router.push('/login');
+      window.location.href = json.redirectUrl; // 🚀 OAuth starts <here> </here>
     } else {
       setAlert({
         type: 'error',
@@ -114,15 +116,15 @@ const WhatsappConnetForm = () => {
                       description={alert.description}
                       onClose={() => setAlert({ type: null, description: '', title: '' })}
                     />
-                    <Button
-                      onClick={() => router.push('/login')}
-                      variant={'default'}
-                      className='bg-white border rounded-lg border-neutral-800 text-neutral-700 hover:bg-neutral-100 font-medium w-fit'
-                    >
-                      Back to Login
-                    </Button>
                   </div>
                 )}
+                <Button
+                  onClick={() => router.push('/login')}
+                  variant={'default'}
+                  className='bg-white border rounded-lg border-neutral-800 text-neutral-700 hover:bg-neutral-100 font-medium w-fit'
+                >
+                  Back to Login
+                </Button>
                 <form onSubmit={handleSubmit(handleConnectPhoneSubmit)} className='flex flex-col gap-6 w-full'>
                   <div className='w-[100%] mt-12'>
                     <div className='block space-y-0.5'>
@@ -147,27 +149,6 @@ const WhatsappConnetForm = () => {
                           </FormItem>
                         )}
                       />
-                      {/* <Card className='w-full p-0 shadow-none rounded-sm'>
-                        <div className='max-w-[80%] grid grid-cols-[100px_1fr]'>
-                          <SelectField<TConnectPhoneSchema>
-                            control={control}
-                            name={'phone_country_code'}
-                            label=''
-                            options={ConstCountryCodeOptions}
-                            className='border-none shadow-none rounded-none focus-visible:ring-0'
-                          />
-                          <div className='flex flex-item gap-0.5'>
-                            <Separator orientation='vertical' className='bg-neutral-100' />
-                            <InputField<TConnectPhoneSchema>
-                              name={'phone_number'}
-                              control={control}
-                              type='text'
-                              placeholder='Enter Phone Number'
-                              className='mt-1 border-none shadow-none rounded-none focus-visible:border-none focus-visible:ring-0'
-                            />
-                          </div>
-                        </div>
-                      </Card> */}
                     </div>
                   </div>
                   <div className='mt-10 w-full flex items-end justify-end gap-2'>
@@ -184,7 +165,7 @@ const WhatsappConnetForm = () => {
                       type='submit'
                       disabled={isSubmitting}
                     >
-                      Connect
+                      Connect to Whatsapp Business
                     </Button>
                   </div>
                 </form>

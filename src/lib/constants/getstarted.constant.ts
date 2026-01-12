@@ -22,7 +22,7 @@ export const ConstUserTask: IGettingStartedOption[] = [
   {
     value: 'contactInformation',
     label: 'Add contacts',
-    href: '/profile/contact-info',
+    href: '/contacts',
   },
   {
     value: 'productCatalogue',

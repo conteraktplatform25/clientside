@@ -42,7 +42,7 @@ const ContactManagementPage: React.FC = () => {
   const [page, setPage] = useState<number>(1);
   const [limit, setLimit] = useState<number>(10);
   const [isCreateContactDialogOpen, setIsCreateContactDialogOpen] = useState<boolean>(false);
-  const [openDrawer, setOpenDrawer] = useState(false);
+  //const [openDrawer, setOpenDrawer] = useState(false);
   const [pageInput, setPageInput] = useState('1');
 
   /** Add Tag Implementation code is activated here */
@@ -61,8 +61,7 @@ const ContactManagementPage: React.FC = () => {
 
   useEffect(() => {
     setLimit(10);
-    console.log(openDrawer);
-  }, [setLimit, openDrawer]);
+  }, [setLimit]);
 
   // when new data arrives from server, update the store once
   useEffect(() => {
@@ -335,7 +334,6 @@ const ContactManagementPage: React.FC = () => {
             title='No contacts found'
             description='Create your first contact to get started.'
             actionText='Create Contact'
-            onAction={() => setOpenDrawer(true)}
           />
         ) : (
           <>

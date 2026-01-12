@@ -6,7 +6,7 @@ import ContaktGetStarted from '../component/ContaktGetStarted';
 import { usePageTitleStore } from '@/lib/store/defaults/usePageTitleStore';
 import { useEffect } from 'react';
 
-export default function Dashboard() {
+export default function DashboardPage() {
   const { status } = useSession();
   const { setTitle } = usePageTitleStore();
 

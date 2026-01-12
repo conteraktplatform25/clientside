@@ -28,6 +28,8 @@ model Role {
   permissions RolePermission[]
 
   businessTeamProfiles BusinessTeamProfile[]
+
+  adminInvitations AdminInvitation[]
 }
 
 model Permission {
@@ -67,20 +69,20 @@ model NotificationTemplate {
 }
 
 model User {
-  id                  String    @id @default(uuid())
-  supabaseId          String?   @unique // Link to Supabase auth.users.id (UUID)
-  email               String    @unique
-  email_verified_date DateTime?
-  phone               String?   @unique
-  password            String?
-  first_name          String?
-  last_name           String?
-  image               String?
-  is_activated        Boolean   @default(false)
-  is_deleted          Boolean   @default(false)
-  roleId              Int
-  created_at          DateTime  @default(now())
-  updated_at          DateTime  @updatedAt
+  id                      String                 @id @default(uuid())
+  email                   String                 @unique
+  email_verified_date     DateTime?
+  phone                   String?                @unique
+  password                String?
+  first_name              String?
+  last_name               String?
+  image                   String?
+  is_activated            Boolean                @default(false)
+  is_deleted              Boolean                @default(false)
+  roleId                  Int
+  created_at              DateTime               @default(now())
+  updated_at              DateTime               @updatedAt
+  admin_onboarding_status AdminOnboardingStatus?
 
   // Relations
   role              Role                      @relation(fields: [roleId], references: [id], onDelete: Restrict)
@@ -101,11 +103,13 @@ model User {
 }
 
 model BusinessProfile {
-  id                String   @id @default(uuid())
+  id                String                @id @default(uuid())
   userId            String
-  company_name      String   @unique
+  company_name      String                @unique
   phone_number      String
-  business_number   String?  @unique // Business WhatsApp phone number
+  business_number   String?               @unique // Business WhatsApp phone number
+  metaBusinessId    String? // Facebook Business Manager ID
+  wabaId            String? // WhatsApp Business Account ID
   company_location  String?
   company_website   String?
   business_industry String?
@@ -115,14 +119,16 @@ model BusinessProfile {
   business_logo_url String?
   business_bio      String?
   business_hour     Json?
-  created_at        DateTime @default(now())
-  updated_at        DateTime @updatedAt
+  created_at        DateTime              @default(now())
+  updated_at        DateTime              @updatedAt
+  account_status    BusinessAccountStatus @default(INACTIVE)
 
-  user       User       @relation(fields: [userId], references: [id])
-  Categories Category[]
-  Products   Product[]
-  Contact    Contact[]
-  Order      Order[]
+  user         User                  @relation(fields: [userId], references: [id])
+  phoneNumbers WhatsAppPhoneNumber[]
+  Categories   Category[]
+  Products     Product[]
+  Contact      Contact[]
+  Order        Order[]
 
   tags Tag[]
 
@@ -137,6 +143,8 @@ model BusinessProfile {
   messages Message[]
 
   businessUserProfiles BusinessTeamProfile[]
+
+  whatsAppAccounts WhatsAppAccount[]
 }
 
 model BusinessTeamProfile {
@@ -158,6 +166,24 @@ model BusinessTeamProfile {
   @@unique([businessProfileId, userId])
 }
 
+model WhatsAppPhoneNumber {
+  id                String  @id @default(uuid())
+  businessProfileId String
+  whatsappAccountId String
+  phoneNumber       String
+  phoneNumberId     String? // Meta phone_number_id
+  displayName       String?
+
+  status WhatsAppNumberStatus @default(PENDING)
+
+  created_at DateTime @default(now())
+
+  businessProfile BusinessProfile @relation(fields: [businessProfileId], references: [id])
+  whatsappAccount WhatsAppAccount @relation(fields: [whatsappAccountId], references: [id])
+
+  @@unique([phoneNumberId])
+}
+
 model Account {
   id                String  @id @default(uuid())
   userId            String
@@ -175,6 +201,30 @@ model Account {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
+}
+
+model WhatsAppAccount {
+  id                String  @id @default(uuid())
+  businessProfileId String  @unique
+  metaBusinessId    String? // Facebook Business Manager ID
+  wabaId            String?
+  phoneNumberId     String?
+  displayPhone      String?
+  verifiedName      String?
+
+  accessToken    String?
+  tokenExpiresAt DateTime?
+
+  status WhatsAppOnboardingStatus @default(PENDING)
+
+  webhookSubscribed Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  businessProfile BusinessProfile @relation(fields: [businessProfileId], references: [id])
+
+  whatsAppPhoneNumbers WhatsAppPhoneNumber[]
 }
 
 model Session {
@@ -574,6 +624,41 @@ model BroadcastRecipient {
   @@index([contactId])
 }
 
+model AdminInvitation {
+  id        String   @id @default(uuid())
+  email     String
+  roleId    Int
+  token     String   @unique
+  expiresAt DateTime
+  invitedBy String
+  accepted  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  role Role @relation(fields: [roleId], references: [id])
+}
+
+enum WhatsAppOnboardingStatus {
+  PENDING
+  META_AUTHORIZED
+  NUMBER_ATTACHED
+  WEBHOOK_SUBSCRIBED
+  ACTIVE
+  FAILED
+}
+
+enum BusinessAccountStatus {
+  INACTIVE
+  ACTIVE
+  SUPENDED
+}
+
+enum WhatsAppNumberStatus {
+  PENDING
+  VERIFIED
+  ACTIVE
+  DISABLED
+}
+
 enum TeamMemberStatus {
   PENDING
   ACTIVE
@@ -608,6 +693,14 @@ enum OrderStatus {
   SHIPPED
   DELIVERED
   CANCELLED
+}
+
+enum PaymentChannel {
+  STRIPE
+  PAYSTACK
+  FLUTTERWAVE
+  PAYPAL
+  CASH
 }
 
 enum PaymentStatus {
@@ -745,4 +838,17 @@ enum WhatsappSyncStatus {
   PENDING
   SYNCED
   FAILED
+}
+
+enum AdminOnboardingStatus {
+  INVITED
+  ACCOUNT_CREATED
+  PROFILE_COMPLETED
+  ACTIVE
+  SUSPENDED
+}
+
+enum SystemAdminRole {
+  SUPER_ADMIN
+  ADMIN
 }

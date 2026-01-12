@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { DateRange } from 'react-day-picker';
-import { format } from 'date-fns';
+import { endOfQuarter, endOfWeek, format, startOfQuarter, startOfWeek, subWeeks } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import { Calendar } from '@/components/ui/calendar';
@@ -78,22 +78,22 @@ export function DateRangePickerPremium({
     setOpen(false);
   };
 
+  const today = new Date();
+
   const presets = [
     {
       id: 'today',
       label: 'Today',
       getRange: () => {
-        const d = new Date();
-        return { from: d, to: d };
+        return { from: today, to: today };
       },
     },
     {
-      id: '7days',
-      label: 'Last 7 days',
+      id: 'current_week',
+      label: 'This week',
       getRange: () => {
-        const to = new Date();
-        const from = new Date(to);
-        from.setDate(to.getDate() - 6);
+        const from = startOfWeek(today, { weekStartsOn: 1 });
+        const to = endOfWeek(today, { weekStartsOn: 1 });
         return { from, to };
       },
     },
@@ -103,6 +103,24 @@ export function DateRangePickerPremium({
       getRange: () => {
         const to = new Date();
         const from = new Date(to.getFullYear(), to.getMonth(), 1);
+        return { from, to };
+      },
+    },
+    {
+      id: 'quarter',
+      label: 'This quarter',
+      getRange: () => {
+        const from = startOfQuarter(today);
+        const to = endOfQuarter(today);
+        return { from, to };
+      },
+    },
+    {
+      id: 'last_7days',
+      label: 'Last week',
+      getRange: () => {
+        const from = startOfWeek(subWeeks(today, 1), { weekStartsOn: 1 });
+        const to = endOfWeek(subWeeks(today, 1), { weekStartsOn: 1 });
         return { from, to };
       },
     },
@@ -124,12 +142,12 @@ export function DateRangePickerPremium({
       <PopoverTrigger asChild>
         <Button
           variant='outline'
-          className='h-10 w-[320px] justify-start text-left px-3 py-2 rounded-md shadow-sm hover:shadow-md transition-shadow duration-150'
+          className='h-10 w-[240px] justify-start text-left px-3 py-2 rounded-md shadow-sm hover:shadow-md transition-shadow duration-150'
         >
           <CalendarIcon className='mr-3 h-4 w-4 text-muted-foreground' />
           <div className='flex-1 text-sm text-muted-foreground truncate'>{renderTriggerLabel()}</div>
           {internalRange.from || internalRange.to ? (
-            <button
+            <div
               aria-label='clear dates'
               onClick={(e) => {
                 e.stopPropagation();
@@ -138,7 +156,7 @@ export function DateRangePickerPremium({
               className='ml-2 inline-flex items-center justify-center rounded-md p-1 hover:bg-muted'
             >
               <X className='h-4 w-4 text-muted-foreground' />
-            </button>
+            </div>
           ) : null}
         </Button>
       </PopoverTrigger>

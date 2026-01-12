@@ -17,10 +17,17 @@ import { Copy, LucidePencil, MoreHorizontal } from 'lucide-react';
 import { FaRegTrashAlt } from 'react-icons/fa';
 import { formatDateField } from '@/lib/helpers/date-manipulator.helper';
 import UILoaderIndicator from '@/components/custom/UILoaderIndicator';
-import { EmptyTable } from '@/components/custom/Emptyable';
 import { formatVariables, highlightText, stripHtml } from '@/lib/helpers/string-manipulator.helper';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { ReplyPreviewModal } from '../ReplyPreviewModal';
+import { EmptyQuickReplyProps } from '../EmptyQuickReply';
+
+export interface IVariable {
+  id: number;
+  placeholder: string;
+  value: string | null;
+  fallback: string;
+}
 
 interface IQuickReplyTableProps {
   data: TQuickReplyResponse[];
@@ -170,10 +177,9 @@ const QuickReplyTestTable: React.FC<IQuickReplyTableProps> = ({
       {loading ? (
         <UILoaderIndicator label='Fetching your quick reply list...' />
       ) : data.length === 0 ? (
-        <EmptyTable
+        <EmptyQuickReplyProps
           title='No quick reply found'
           description='Create your first quick reply to get started.'
-          actionText='Create Quick Reply'
         />
       ) : (
         <Table>

@@ -225,7 +225,7 @@ const ContactTableProfile = () => {
             title='No contacts found'
             description='Create your first contact to get started.'
             actionText='Create Contact'
-            onAction={() => setOpenDrawer(true)}
+            //onAction={() => setOpenDrawer(true)}
           />
         ) : (
           <>

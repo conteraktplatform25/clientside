@@ -29,7 +29,9 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
       select: {
         id: true,
         businessProfileId: true,
-        businessProfile: { select: { company_name: true, business_number: true } },
+        businessProfile: {
+          select: { company_name: true, business_number: true, whatsAppAccounts: { select: { phoneNumberId: true } } },
+        },
         contact: { select: { name: true, phone_number: true, whatsapp_opt_in: true } },
         channel: true,
       },
@@ -86,12 +88,13 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
     });
 
     if (conv.contact && conv.contact.whatsapp_opt_in && conv.channel === 'WHATSAPP') {
+      const whatsapp_phone_ID = conv.businessProfile.whatsAppAccounts[0].phoneNumberId;
       const ACCESS_TOKEN = process.env.META_AI_WHATSAPP_ACCESS_TOKEN!;
-      const PHONE_NUMBER_ID = process.env.META_AI_WHATSAPP_PHONE_NUMBER_ID!;
+      //const PHONE_NUMBER_ID = process.env.META_AI_WHATSAPP_PHONE_NUMBER_ID!;
       const API_VERSION = process.env.META_AI_WHATSAPP_API_VERSION!;
       const BASE_URL = process.env.META_AI_WHATSAPP_BASEURL;
 
-      const WHATSAPP_ENDPOINT = `${BASE_URL}/${API_VERSION}/${PHONE_NUMBER_ID}/messages`;
+      const WHATSAPP_ENDPOINT = `${BASE_URL}/${API_VERSION}/${whatsapp_phone_ID}/messages`;
       await processMetaAIOutboundWhatsAppMessage(
         normalizedMessage,
         conv.contact.phone_number,

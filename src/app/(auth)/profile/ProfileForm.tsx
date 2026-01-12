@@ -8,7 +8,6 @@ import {
   ConstBusinessCategories as categories,
   ConstAnnualRevenue as revenues,
   ConstBusinessIndustries as industries,
-  ConstCountryCodeOptions,
 } from '@/lib/constants/auth.constant';
 import { fetchWithIndicatorHook } from '@/lib/hooks/fetch-with-indicator.hook';
 import { profileFormSchema, TProfileFormSchema } from '@/lib/schemas/auth/profile.schema';
@@ -18,9 +17,10 @@ import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { IoPersonCircle } from 'react-icons/io5';
-import { Card } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
 import AlertDisplayField, { IAlertProps } from '@/components/custom/AlertMessageField';
+import PhoneInput from 'react-phone-number-input';
+import 'react-phone-number-input/style.css';
+import { validateAndNormalizePhone } from '@/lib/phone/phone.util';
 
 const ProfileForm = ({ email, full_name }: { email?: string; full_name?: string }) => {
   const router = useRouter();
@@ -38,12 +38,31 @@ const ProfileForm = ({ email, full_name }: { email?: string; full_name?: string 
     formState: { isSubmitting },
     watch,
     reset,
+    clearErrors,
   } = profileForm;
 
   // Watch the checkbox value
   const isTermsAccepted = watch('term_of_service');
 
   const handleProfileSubmit = async (data: TProfileFormSchema) => {
+    const validatePhoneNumber = validateAndNormalizePhone(data.phone_number, 'NG');
+    if (!validatePhoneNumber.isValid) {
+      setAlert({
+        type: 'error',
+        title: 'Failed to validate phone number',
+        description: validatePhoneNumber.error,
+      });
+      return;
+    }
+    if (!validatePhoneNumber.normalized) {
+      setAlert({
+        type: 'error',
+        title: 'Failed!!!',
+        description: 'Phone number cannot be empty',
+      });
+      return;
+    }
+    data.phone_number = validatePhoneNumber.normalized;
     const response = await fetchWithIndicatorHook(`/api/auth/profile?email=${email}`, {
       method: 'POST',
       body: JSON.stringify({ ...data }),
@@ -87,8 +106,30 @@ const ProfileForm = ({ email, full_name }: { email?: string; full_name?: string 
         </div>
         <div className='w-full grid grid-cols-2 gap-3'>
           <div className='block space-y-0.5'>
-            <p className='text-base leading-[150%]'>Phone Number</p>
-            <Card className='w-full p-0 shadow-none rounded-sm'>
+            <div className='block space-y-0.5'>
+              <FormField
+                control={control}
+                name='phone_number'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className='text-base leading-[150%]'>Phone Number</FormLabel>
+                    <FormControl>
+                      <PhoneInput
+                        defaultCountry='NG'
+                        value={field.value!}
+                        onChange={async (val) => {
+                          field.onChange(val);
+                          if (val) {
+                            clearErrors('phone_number');
+                          }
+                        }}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            </div>
+            {/* <Card className='w-full p-0 shadow-none rounded-sm'>
               <div className='grid grid-cols-3'>
                 <div className='col-span-1'>
                   <SelectField<TProfileFormSchema>
@@ -110,7 +151,7 @@ const ProfileForm = ({ email, full_name }: { email?: string; full_name?: string 
                   />
                 </div>
               </div>
-            </Card>
+            </Card> */}
           </div>
           <div className='mt-1.5'>
             <InputField<TProfileFormSchema>

@@ -4,16 +4,6 @@ import slugify from 'slugify';
 
 const prisma = new PrismaClient();
 
-// Simple slugify helper (no external dependency)
-// function slugify(text: string): string {
-//   return text
-//     .toLowerCase()
-//     .trim()
-//     .replace(/[\s_]+/g, '-')
-//     .replace(/[^\w-]+/g, '')
-//     .replace(/--+/g, '-');
-// }
-
 export const ProductCategorySeeder = async () => {
   const businessProfileId = 'f71b3ce2-ba52-4cbe-b32d-651bfbdbe076';
   for (const category of categories) {

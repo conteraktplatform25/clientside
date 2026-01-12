@@ -10,14 +10,29 @@ import type { DecodedJWT } from 'next-auth';
 
 // find user by email and validate password (you had this)
 const RequestLogin = async (email: string, password: string): Promise<UserObject> => {
+  let waba_phone_number = '';
   const user = await prisma.user.findUnique({
     where: { email },
     include: { role: true, businessProfile: true },
   });
   if (!user || !user.password) throw new Error('Invalid credentials');
+
+  const businessProfileId = user.businessProfile[0].id;
+
   const ok = await bcrypt.compare(password, user.password);
   if (!ok) throw new Error('Invalid credentials');
   if (!user.is_activated) throw new Error('Account not verified.');
+
+  const whatsapp_conn = await prisma.whatsAppAccount.findUnique({
+    where: { businessProfileId, status: 'META_AUTHORIZED' },
+    select: {
+      id: true,
+      whatsAppPhoneNumbers: true,
+    },
+  });
+  if (whatsapp_conn) {
+    waba_phone_number = whatsapp_conn.whatsAppPhoneNumbers?.[0].phoneNumber.trim();
+  }
 
   const profile: UserObject = {
     id: user.id,
@@ -26,8 +41,10 @@ const RequestLogin = async (email: string, password: string): Promise<UserObject
     last_name: user.last_name,
     role: user.role.name,
     is_activated: user.is_activated,
-    registered_number: user.businessProfile[0].business_number ?? undefined,
+    registered_number: user.role.is_admin ? undefined : waba_phone_number,
   };
+
+  console.log('Actions User-Auth: ', profile);
   return profile;
 };
 
@@ -69,7 +86,8 @@ export async function refresh(token: string): Promise<Response> {
     last_name: decoded.last_name ?? null,
     is_activated: decoded.is_activated,
     role: decoded.role ?? 'Business',
-    registered_number: decoded.registered_number,
+    registered_number:
+      decoded.role === 'Admin' || decoded.role === 'Super_Admin' ? undefined : decoded.registered_number,
   };
 
   const new_access: BackendJWT = {
@@ -81,6 +99,10 @@ export async function refresh(token: string): Promise<Response> {
     status: 200,
     headers: { 'Content-Type': 'application/json' },
   });
+}
+
+export function isAdminRole(role?: string) {
+  return role === 'Admin' || role === 'Super_Admin';
 }
 
 const create_access_token = (profile: UserObject): string =>

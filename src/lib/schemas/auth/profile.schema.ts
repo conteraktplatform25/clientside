@@ -10,7 +10,6 @@ extendZodWithOpenApi(z);
 
 export const profileFormSchema = z
   .object({
-    phone_country_code: z.string().min(1, 'Country code is required'),
     phone_number: z.string().min(5, 'Invalid Phone Number'),
     company_name: z.string().min(5),
     company_website: z.string().nullable(),

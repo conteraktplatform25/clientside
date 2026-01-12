@@ -8,15 +8,21 @@ import { useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import { getErrorMessage } from '@/utils/errors';
 import { useSupabaseInboxRealtime } from '@/lib/hooks/business/bridge/useSupabaseInboxRealtime';
+import { usePageTitleStore } from '@/lib/store/defaults/usePageTitleStore';
 
 export default function InboxPage() {
   const params = useSearchParams();
   const { data: session } = useSession();
   const setSelectedConversation = useInboxStore((s) => s.setSelectedConversation);
+  const { setTitle } = usePageTitleStore();
 
   const [initialized, setInitialized] = useState(false);
 
   const businessId = session?.user.businessProfileId ?? null;
+
+  useEffect(() => {
+    setTitle('Inbox');
+  }, [setTitle]);
 
   // set business id in store once session loaded
   useEffect(() => {

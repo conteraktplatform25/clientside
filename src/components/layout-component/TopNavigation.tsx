@@ -78,7 +78,7 @@ const TopNavigation = ({ session }: { session: Session | null }) => {
                 <DropdownMenuItem className='hover:bg-transparent'>
                   <div className='inline-flex space-x-1'>
                     <Phone className='mt-0.5 text-primary-base' />
-                    <p className='text-sm text-neutral-base leading-[150%]'>{`Whatsapp Number: ${session?.user?.registered_number}`}</p>
+                    <p className='text-sm text-neutral-base leading-[150%]'>{`Whatsapp Number: ${profileName?.registered_number}`}</p>
                   </div>
                 </DropdownMenuItem>
                 <DropdownMenuItem className='p-0 cursor-pointer'>
@@ -90,7 +90,7 @@ const TopNavigation = ({ session }: { session: Session | null }) => {
                   >
                     <div className='inline-flex space-x-1'>
                       <UserRound className='text-primary-base' />
-                      <p className='text-sm text-neutral-base leading-[150%]'>{`${session?.user?.role} profile`}</p>
+                      <p className='text-sm text-neutral-base leading-[150%]'>{`${profileName?.role} profile`}</p>
                     </div>
                   </Button>
                 </DropdownMenuItem>

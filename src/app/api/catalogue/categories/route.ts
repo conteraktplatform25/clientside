@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
     const user = await authenticateRequest(req);
     if (!user) return failure('Unauthorized', 404);
 
-    if (user.businessProfile.length === 0 || !user.businessProfile[0].id)
+    if (!user.businessProfile || user.businessProfile.length === 0 || !user.businessProfile[0].id)
       return failure('Whatsapp Profile has not been configured.', 404);
 
     const businessProfileId = user.businessProfile?.[0]?.id;
@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
 
     if (!authorizeRole(user, ['Business', 'Admin'])) return failure('Forbidden: Insufficient permissions', 403);
 
-    if (user.businessProfile.length === 0 || !user.businessProfile[0].id)
+    if (!user.businessProfile || user.businessProfile.length === 0 || !user.businessProfile[0].id)
       return failure('Whatsapp Profile has not been configured.', 404);
 
     const businessProfileId = user.businessProfile[0].id;

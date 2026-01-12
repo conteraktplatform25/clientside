@@ -1,3 +1,4 @@
+// src/app/api/auth/profile/business-number/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getErrorMessage } from '@/utils/errors';
@@ -20,6 +21,13 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ ok: false, error: 'User not found' }, { status: 404 });
     }
 
+    const businessProfile = await prisma.businessProfile.findFirst({
+      where: { userId: user.id },
+    });
+    if (!businessProfile) {
+      return NextResponse.json({ ok: false, message: 'Business profile not found' }, { status: 404 });
+    }
+
     // Update BusinessProfile linked to this user
     const updatedProfile = await prisma.businessProfile.updateMany({
       where: { userId: user.id },
@@ -29,6 +37,7 @@ export async function PATCH(req: NextRequest) {
     if (updatedProfile.count === 0) {
       return NextResponse.json({ ok: false, error: 'No business profile found for this user' }, { status: 404 });
     }
+
     // ✅ create welcome notification
     await createAppNotification({
       recipientId: user.id,
