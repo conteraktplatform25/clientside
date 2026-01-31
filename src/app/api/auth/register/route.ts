@@ -75,7 +75,7 @@ export async function POST(req: NextRequest) {
       await resend.emails.send({
         // from: 'Concakt Platform Signup <yourname@resend.dev>',
         from: 'onboarding@resend.dev',
-        to: ['conteraktplatform25@gmail.com'],
+        to: [email],
         subject: subject,
         html: `<p>Hi ${full_name},</p>
          <p>Your verification code is <strong>${otp}</strong>.</p>
@@ -83,7 +83,7 @@ export async function POST(req: NextRequest) {
       });
       return NextResponse.json(
         { ok: true, profile: user, message: 'Successful registration. Check email for OTP Code.' },
-        { status: 201 }
+        { status: 201 },
       );
     }
 
@@ -93,7 +93,7 @@ export async function POST(req: NextRequest) {
         profile: user,
         message: 'Registration was successful but mail failed to reach client. Contact Contakt Support.',
       },
-      { status: 201 }
+      { status: 201 },
     );
   } catch (error) {
     console.log(getErrorMessage(error));

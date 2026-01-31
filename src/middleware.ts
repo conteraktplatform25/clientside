@@ -10,6 +10,7 @@ const PUBLIC_PATHS = [
   'signup-otp-verification',
   '/verification',
   '/profile',
+  '/invited-member',
   '/forgot-password',
   '/otp-verification',
   '/reset-password',
@@ -71,6 +72,6 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!api|login|register|signup-otp-verification|verification|forgot-password|otp-verification|profile|reset-password|_next|.*\\.(?:png|jpg|jpeg|svg|css|js|ico)$).*)',
+    '/((?!api|login|register|signup-otp-verification|verification|forgot-password|otp-verification|profile|invited-member|reset-password|_next|.*\\.(?:png|jpg|jpeg|svg|css|js|ico)$).*)',
   ],
 };

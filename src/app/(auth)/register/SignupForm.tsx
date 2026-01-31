@@ -43,6 +43,8 @@ const SignupForm = () => {
       body: JSON.stringify({ ...data }),
       headers: { 'Content-Type': 'application/json' },
     });
+
+    console.log('AUthentication Register:', response);
     const json = await response.json();
     if (response?.ok) {
       reset();

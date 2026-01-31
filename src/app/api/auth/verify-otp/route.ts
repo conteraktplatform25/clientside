@@ -48,9 +48,6 @@ export async function POST(req: NextRequest) {
 
     // Activate user
     if (request_type === 'signup') {
-    }
-
-    if (request_type === 'signup') {
       const userProfile = await prisma.user.update({
         where: { email },
         data: { email_verified_date: new Date(), updated_at: new Date() },
@@ -63,7 +60,7 @@ export async function POST(req: NextRequest) {
       });
       return NextResponse.json(
         { ok: true, message: 'Email verified successfully.', profile: userProfile },
-        { status: 200 }
+        { status: 200 },
       );
     }
     return NextResponse.json({ ok: true, message: 'One time Password verified successfully.', flow }, { status: 200 });

@@ -5,7 +5,7 @@ import { getErrorMessage } from '@/utils/errors';
 import { User } from '@prisma/client';
 import { generateOTP } from '@/lib/helpers/generate-otp.helper';
 import bcrypt from 'bcryptjs';
-import { success } from '@/utils/response';
+import { failure, success } from '@/utils/response';
 import OtpVerificationEmail from '@/emails/OtpVerificationEmail';
 
 const resend = new Resend(process.env.RESEND_API_KEY!);
@@ -29,7 +29,9 @@ export async function POST(req: NextRequest) {
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
       if (existingUser.is_activated) {
-        return NextResponse.json({ ok: false, error: 'Email already exists and active' }, { status: 409 });
+        console.log('Auth Signup 2', existingUser);
+        //return NextResponse.json({ ok: false, error: 'Email already exists and active' }, { status: 409 });
+        return failure('Email already exists and active', 409);
       } else {
         user = await prisma.user.update({
           where: { email },
@@ -79,7 +81,7 @@ export async function POST(req: NextRequest) {
       // Send email verification
       await resend.emails.send({
         from: 'Contakt <onboarding@resend.dev>',
-        to: ['conteraktplatform25@gmail.com'],
+        to: [email],
         subject: subject,
         react: OtpVerificationEmail({
           fullName: full_name,

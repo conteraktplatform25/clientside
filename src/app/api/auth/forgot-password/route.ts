@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
       // Send email verification
       await resend.emails.send({
         from: 'onboarding@resend.dev',
-        to: ['conteraktplatform25@gmail.com'],
+        to: [email],
         subject: subject,
         html: content,
       });

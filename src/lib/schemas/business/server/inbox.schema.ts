@@ -2,7 +2,7 @@
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 import { ContactStatus } from '@prisma/client';
 import { z } from 'zod';
-import { PaginationResponsechema } from '../pagination.schema';
+import { PaginationResponSchema } from '../pagination.schema';
 import { InfiniteData } from '@tanstack/react-query';
 
 extendZodWithOpenApi(z);
@@ -105,7 +105,7 @@ export const ConversationResponseSchema = z
 
 export const ConversationListResponseSchema = z
   .object({
-    pagination: PaginationResponsechema,
+    pagination: PaginationResponSchema,
     conversations: z.array(ConversationResponseSchema),
   })
   .openapi('ConversationListResponse');

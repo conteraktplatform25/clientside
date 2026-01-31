@@ -55,13 +55,13 @@ export async function POST(req: NextRequest) {
         // Send email verification
         await resend.emails.send({
           from: 'onboarding@resend.dev',
-          to: ['conteraktplatform25@gmail.com'],
+          to: [email],
           subject: subject,
           html: content,
         });
         return NextResponse.json(
           { ok: true, message: 'If an account exists, an email will be sent.' },
-          { status: 200 }
+          { status: 200 },
         );
       }
     } else {
@@ -87,7 +87,7 @@ export async function POST(req: NextRequest) {
         });
         return NextResponse.json(
           { ok: true, profile: user, message: 'Successful registration. Check email for OTP Code.' },
-          { status: 201 }
+          { status: 201 },
         );
       }
     }

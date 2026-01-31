@@ -1,6 +1,6 @@
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 import { z } from 'zod';
-import { PaginationResponsechema } from '../pagination.schema';
+import { PaginationResponSchema } from '../pagination.schema';
 import { QuickReplyCategory } from '@prisma/client';
 
 extendZodWithOpenApi(z);
@@ -63,7 +63,7 @@ export const QuickReplyResponseSchema = z.object({
 
 export const QuickReplyListResponseSchema = z
   .object({
-    pagination: PaginationResponsechema,
+    pagination: PaginationResponSchema,
     replies: z.array(QuickReplyResponseSchema),
   })
   .openapi('QuickReplyListResponse');

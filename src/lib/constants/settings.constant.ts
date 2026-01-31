@@ -92,3 +92,10 @@ export const ConstUserProfile: IUserProfileTableHeaderProps[] = [
     created_date: new Date(),
   },
 ];
+
+export const ActivityType = {
+  TEAM_INVITE_SENT: 'team_invite_sent',
+  TEAM_INVITE_ACCEPTED: 'team_invite_accepted',
+  TEAM_MEMBER_REMOVED: 'team_member_removed',
+  TEAM_ROLE_CHANGED: 'team_role_changed',
+} as const;

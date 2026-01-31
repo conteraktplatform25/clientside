@@ -8,6 +8,7 @@ import { useGettingStartedStore } from '@/lib/store/business/index.store';
 import { useCategoryCatalogueStore } from '@/lib/store/business/catalogue-sharing.store';
 import { Session } from 'next-auth';
 import UILoaderIndicator from '@/components/custom/UILoaderIndicator';
+import { useTeamMemberStore } from '@/lib/store/business/settings.store';
 
 interface IClientDashboardLayoutProps {
   children: ReactNode;
@@ -22,6 +23,7 @@ export default function ClientDashboardLayout({ children, defaultOpen, session }
   const setOnboardingStatus = useGettingStartedStore((state) => state.setOnboardingStatus);
   const setProgressBar = useGettingStartedStore((state) => state.setProgressBar);
   const setAllCategories = useCategoryCatalogueStore((state) => state.setAllCategories);
+  const setAllApplicationRoles = useTeamMemberStore((state) => state.setAllApplicationRoles);
 
   useEffect(() => {
     async function fetchOnboarding() {
@@ -47,6 +49,7 @@ export default function ClientDashboardLayout({ children, defaultOpen, session }
         setOnboardingStatus(onboardingStatusData);
         setProgressBar(progressBarData);
         setAllCategories(profile.dependentField.productCategoryList);
+        setAllApplicationRoles(profile.dependentField.applicationRoleList);
       } catch (err) {
         console.error('Error fetching onboarding status:', err);
         setHasError(true);
@@ -56,7 +59,7 @@ export default function ClientDashboardLayout({ children, defaultOpen, session }
     }
 
     fetchOnboarding();
-  }, [setOnboardingStatus, setProgressBar, setAllCategories]);
+  }, [setOnboardingStatus, setProgressBar, setAllCategories, setAllApplicationRoles]);
 
   if (isLoading) {
     //return

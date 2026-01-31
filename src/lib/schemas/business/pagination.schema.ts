@@ -3,7 +3,7 @@ import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 
 extendZodWithOpenApi(z);
 
-export const PaginationResponsechema = z
+export const PaginationResponSchema = z
   .object({
     page: z.number().int().min(1).openapi({
       example: 1,
@@ -25,4 +25,4 @@ export const PaginationResponsechema = z
   .openapi('PaginationResponse');
 
 // TypeScript type inference
-export type TPaginationResponse = z.infer<typeof PaginationResponsechema>;
+export type TPaginationResponse = z.infer<typeof PaginationResponSchema>;

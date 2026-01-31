@@ -12,12 +12,12 @@ import {
   CreateMediaSchema,
   ProductResponseSchema,
   UpdateProductSchema,
-  //CategoryResponseListSchema,
 } from '@/lib/schemas/business/server/catalogue.schema';
 import { fetchJSON, fetchMultipartJSON } from '@/utils/response';
 import { useCategoryCatalogueStore } from '@/lib/store/business/catalogue-sharing.store';
 import { getErrorMessage } from '@/utils/errors';
 import { toast } from 'sonner';
+import { PaginationMeta } from '@/type/client/default.type';
 
 export type TCreateCategoryRequest = z.infer<typeof CreateCategoryRequestSchema>;
 export type TUpdateCategoryRequest = z.infer<typeof UpdateCategoryRequestSchema>;
@@ -35,13 +35,6 @@ export type TProductResponse = z.infer<typeof ProductResponseSchema>;
 /* -----------------------------
    🧱 Types
 ----------------------------- */
-interface PaginationMeta {
-  page: number;
-  limit: number;
-  total: number;
-  totalPages: number;
-}
-
 type TUpdateProductInput = {
   id: TUpdateProduct['id'];
   data: Partial<Pick<TUpdateProduct, 'name' | 'description' | 'price' | 'stock' | 'currency' | 'categoryId' | 'sku'>>;
@@ -66,7 +59,6 @@ export interface IProductProps {
 }
 
 interface ProductResponse {
-  //products: TCreateProductRequest[];
   products: TProductResponse[];
   pagination: PaginationMeta;
 }

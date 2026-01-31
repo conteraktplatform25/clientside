@@ -6,6 +6,7 @@ import { NextResponse } from 'next/server';
 import { CategoryResponseListSchema } from '@/lib/schemas/business/server/catalogue.schema';
 import { getErrorMessage } from '@/utils/errors';
 import { failure } from '@/utils/response';
+import { ApplicationRoleListSchema } from '@/lib/schemas/business/server/settings.schema';
 
 export async function GET() {
   try {
@@ -61,8 +62,18 @@ export async function GET() {
     });
     const categories = CategoryResponseListSchema.parse(getCategories);
 
+    const getRoles = await prisma.role.findMany({
+      where: { is_admin: false },
+      select: {
+        id: true,
+        name: true,
+      },
+    });
+    const roles = ApplicationRoleListSchema.parse(getRoles);
+
     const products = await prisma.product.findMany({
       where: { businessProfileId, deleted: false },
+      orderBy: { name: 'asc' },
       select: { id: true },
     });
 
@@ -80,6 +91,7 @@ export async function GET() {
     };
     const dependentField = {
       productCategoryList: categories,
+      applicationRoleList: roles,
     };
 
     const progress =

@@ -21,6 +21,10 @@ export async function GET() {
         },
         { name: 'User Settings', description: 'Endpoints related to the authenticated user' },
         { name: 'Business Owner Settings', description: 'Endpoints related to the authenticated business owner' },
+        {
+          name: 'Business Team Settings',
+          description: 'Endpoints related to the authenticated business owner and the team members',
+        },
         { name: 'Product Categories', description: 'Endpoints related to product categories' },
         { name: 'Products', description: 'Endpoints related to products implementation' },
         { name: 'Tags', description: 'Endpoints related to business owner tag' },

@@ -30,6 +30,8 @@ model Role {
   businessTeamProfiles BusinessTeamProfile[]
 
   adminInvitations AdminInvitation[]
+
+  businessTeamMemberInvitations BusinessTeamMemberInvitation[]
 }
 
 model Permission {
@@ -100,6 +102,8 @@ model User {
   businessTeamProfiles BusinessTeamProfile[]
 
   conversations Conversation[]
+
+  businessTeamMemberInvitations BusinessTeamMemberInvitation[]
 }
 
 model BusinessProfile {
@@ -145,6 +149,8 @@ model BusinessProfile {
   businessUserProfiles BusinessTeamProfile[]
 
   whatsAppAccounts WhatsAppAccount[]
+
+  businessTeamMemberInvitations BusinessTeamMemberInvitation[]
 }
 
 model BusinessTeamProfile {
@@ -622,6 +628,24 @@ model BroadcastRecipient {
 
   @@index([broadcastId])
   @@index([contactId])
+}
+
+model BusinessTeamMemberInvitation {
+  id                String   @id @default(uuid())
+  businessProfileId String
+  email             String
+  roleId            Int
+  token             String   @unique
+  expiresAt         DateTime
+  invitedBy         String
+  accepted          Boolean  @default(false)
+  createdAt         DateTime @default(now())
+
+  role     Role            @relation(fields: [roleId], references: [id])
+  business BusinessProfile @relation(fields: [businessProfileId], references: [id])
+  invitee  User            @relation(fields: [invitedBy], references: [id])
+
+  @@unique([businessProfileId, email])
 }
 
 model AdminInvitation {

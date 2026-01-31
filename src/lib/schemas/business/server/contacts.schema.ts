@@ -1,7 +1,8 @@
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 import { ContactSource, ContactStatus } from '@prisma/client';
 import { z } from 'zod';
-import { PaginationResponsechema } from '../pagination.schema';
+import { PaginationResponSchema } from '../pagination.schema';
+//import { PaginationResponsechema } from '../pagination.schema';
 
 extendZodWithOpenApi(z);
 
@@ -128,7 +129,7 @@ export const ContactResponseSchema = z
 
 export const ContactListResponseSchema = z
   .object({
-    pagination: PaginationResponsechema,
+    pagination: PaginationResponSchema,
     contacts: z.array(ContactResponseSchema),
   })
   .openapi('ContactListResponse');
@@ -167,7 +168,7 @@ export const ContactDesktopResponseSchema = z
 
 export const ContactDesktopListResponseSchema = z
   .object({
-    pagination: PaginationResponsechema,
+    pagination: PaginationResponSchema,
     contacts: z.array(ContactDesktopResponseSchema),
   })
   .openapi('ContactDesktopListResponse');

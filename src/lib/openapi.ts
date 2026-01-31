@@ -37,30 +37,22 @@ import {
 import {
   ContactDesktopListResponseSchema,
   ContactDetailsResponseSchema,
-  //ContactDetailsResponseSchema,
   ContactListResponseSchema,
   ContactQuerySchema,
   ContactResponseSchema,
   ContactTagListResponseSchema,
-  //ContactTagResponseScheme,
-  //ContactTagResponse,
   CreateContactSchema,
   CreateContactTagSchema,
   CreateTagSchema,
   TagDetailedResponseSchema,
   TagListResponseSchema,
-  //TagResponseSchema,
   UpdateContactSchema,
-  //UpdateContactTagSchema,
 } from './schemas/business/server/contacts.schema';
 import {
   CreateOrderRequestSchema,
-  //CreateOrderSchema,
   OrderDetailsResponseSchema,
   OrderListResponseSchema,
   OrderQuerySchema,
-  // OrderListResponseSchema,
-  // OrderQuerySchema,
   UpdateOrderSchema,
   UpdateOrderStatusRequestSchema,
   UpdateOrderStatusResponseSchema,
@@ -71,8 +63,16 @@ import {
   UpdateOrderItemSchema,
 } from './schemas/business/server/order-item.schema';
 import {
+  ApplicationRoleSchema,
   BusinessSettingsResponseSchema,
+  BusinessTeamListResponseSchema,
+  BusinessTeamQuerySchema,
   CreateBusinessSettingsSchema,
+  InvitedTeamMemberListResponseSchema,
+  InviteTeamMemberRequestSchema,
+  InviteTeamMemberResponseSchema,
+  MemberRegistrationFormSchema,
+  MemberRegistrationResponseSchema,
   UpdateBusinessSettingsSchema,
   UpdateUserSettingsSchema,
   UserSettingsResponseSchema,
@@ -146,6 +146,31 @@ registry.register('ResetPasswordResponse', ResetPasswordResponseSchema);
 
 registry.register('VerifyOtpRequest', VerifyOtpRequestSchema);
 registry.register('VerifyOtpResponse', VerifyOtpResponseSchema);
+
+/*************  *************************************************
+ * Authentication Module Open API Generation *******************
+ * ***************************************************************/
+//Get Application Role
+registry.registerPath({
+  method: 'get',
+  path: '/api/auth/role/application',
+  tags: ['Authentication'],
+  summary: 'Get application role for the platform',
+  responses: {
+    200: {
+      description: 'Successful retrieved the application role.',
+      content: {
+        'application/json': {
+          schema: z.object({
+            ok: z.boolean(),
+            message: z.string(),
+            profile: ApplicationRoleSchema,
+          }),
+        },
+      },
+    },
+  },
+});
 
 //Login Implementation
 registry.registerPath({
@@ -433,7 +458,49 @@ registry.registerPath({
   },
 });
 
-/** User Setting Open API documentation */
+// register Team member profile
+registry.registerPath({
+  method: 'post',
+  path: '/api/auth/business-member/{businessProfileId}/team-member',
+  tags: ['Business Team Settings'],
+  summary: 'Invited Team Member onboarding endpoint',
+  request: {
+    params: z.object({
+      businessProfileId: z.uuid().openapi({
+        example: 'b8d43f9e-cc8b-4b84-a20d-8e85acb8a654',
+        description: 'The UUID of the business that invited the member.',
+      }),
+    }),
+    body: {
+      content: {
+        'application/json': {
+          schema: MemberRegistrationFormSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    201: {
+      description: 'Team Member registration was successful.',
+      content: {
+        'application/json': {
+          schema: z.object({
+            ok: z.boolean(),
+            message: z.string(),
+            profile: MemberRegistrationResponseSchema,
+          }),
+        },
+      },
+    },
+    401: { description: 'Unauthorized' },
+    404: { description: 'Reply not found' },
+  },
+});
+/*************  ********************************************************************************/
+
+/*************  *************************************************
+ * Business Profile Setting Module Open API Generation *******************
+ * ***************************************************************/
 registry.registerPath({
   method: 'get',
   path: '/api/settings/user',
@@ -493,9 +560,6 @@ registry.registerPath({
   },
 });
 
-/*************  *************************************************
- * Business Profile Setting Module Open API Generation *******************
- * ***************************************************************/
 registry.registerPath({
   method: 'get',
   path: '/api/settings/business-profile',
@@ -612,6 +676,93 @@ registry.registerPath({
     400: { description: 'Business profile not configured.' },
     401: { description: 'Unauthorized' },
     404: { description: 'Business profile not found' },
+  },
+});
+
+registry.registerPath({
+  method: 'get',
+  path: '/api/settings/business-team',
+  tags: ['Business Team Settings'],
+  summary: 'Get all business team information for the authenticated business',
+  security: [{ bearerAuth: [] }],
+  request: {
+    query: BusinessTeamQuerySchema,
+  },
+  responses: {
+    200: {
+      description: 'List of business team retrieved successfully',
+      content: {
+        'application/json': {
+          schema: z.object({
+            ok: z.boolean(),
+            message: z.string(),
+            profile: BusinessTeamListResponseSchema,
+          }),
+        },
+      },
+    },
+    401: { description: 'Unauthorized' },
+    404: { description: 'Reply not found' },
+  },
+});
+
+registry.registerPath({
+  method: 'get',
+  path: '/api/settings/business-team/invite',
+  tags: ['Business Team Settings'],
+  summary: 'Get all invited team member invited by an authenticated business',
+  security: [{ bearerAuth: [] }],
+  request: {
+    query: BusinessTeamQuerySchema,
+  },
+  responses: {
+    200: {
+      description: 'List of invited members successfully retrieved.',
+      content: {
+        'application/json': {
+          schema: z.object({
+            ok: z.boolean(),
+            message: z.string(),
+            profile: InvitedTeamMemberListResponseSchema,
+          }),
+        },
+      },
+    },
+    401: { description: 'Unauthorized' },
+    404: { description: 'Reply not found' },
+  },
+});
+
+registry.registerPath({
+  method: 'post',
+  path: '/api/settings/business-team/invite',
+  tags: ['Business Team Settings'],
+  summary: 'Invite a team member to be part of the business for the authenticated business',
+  security: [{ bearerAuth: [] }],
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: InviteTeamMemberRequestSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: 'Invitation sent successfully',
+      content: {
+        'application/json': {
+          schema: z.object({
+            ok: z.boolean(),
+            message: z.string(),
+            profile: InviteTeamMemberResponseSchema,
+          }),
+        },
+      },
+    },
+    401: { description: 'Unauthorized' },
+    404: { description: 'Reply not found' },
   },
 });
 /*************  ********************************************************************************/
@@ -1044,7 +1195,9 @@ registry.registerPath({
 });
 /*************  ********************************************************************************/
 
-/***Product Media here... */
+/*************  *************************************************
+ ********** Product Media and Variants Module Open API Generation *******************
+ * **************************************************************************/
 registry.registerPath({
   method: 'get',
   path: '/api/catalogue/products/{id}/media',
@@ -1189,8 +1342,11 @@ registry.registerPath({
     403: { description: 'Forbidden: Insufficient permissions' },
   },
 });
+/*************  ********************************************************************************/
 
-/** Tag Open API Generation */
+/*************  *************************************************
+ ********** Tags Module Open API Generation *******************
+ * **************************************************************************/
 registry.registerPath({
   method: 'get',
   path: '/api/tags',
@@ -1249,6 +1405,7 @@ registry.registerPath({
     404: { description: 'Business profile not configured' },
   },
 });
+/*************  ********************************************************************************/
 
 /*************  *************************************************
  * Contact Open API Generation *******************
@@ -1483,7 +1640,7 @@ registry.registerPath({
 //           schema: z.object({
 //             ok: z.boolean().openapi({ example: true }),
 //             message: z.string().openapi({ example: 'Successful updated Category' }),
-//             profile: ContactTagResponse,
+//             profile: ContactTagRespo,
 //           }),
 //         },
 //       },
@@ -1494,33 +1651,33 @@ registry.registerPath({
 //   },
 // });
 
-// /** Client Order Open API Generation */
-// registry.registerPath({
-//   method: 'get',
-//   path: '/api/orders',
-//   tags: ['Product Orders'],
-//   summary: 'Get all client order for the authenticated business',
-//   security: [{ bearerAuth: [] }],
-//   request: {
-//     query: OrderQuerySchema,
-//   },
-//   responses: {
-//     200: {
-//       description: 'List of orders retrieved successfully',
-//       content: {
-//         'application/json': {
-//           schema: z.object({
-//             ok: z.boolean(),
-//             message: z.string(),
-//             profile: OrderListResponseSchema,
-//           }),
-//         },
-//       },
-//     },
-//     401: { description: 'Unauthorized' },
-//     404: { description: 'Business profile not found' },
-//   },
-// });
+/** Client Order Open API Generation */
+registry.registerPath({
+  method: 'get',
+  path: '/api/orders',
+  tags: ['Product Orders'],
+  summary: 'Get all client order for the authenticated business',
+  security: [{ bearerAuth: [] }],
+  request: {
+    query: OrderQuerySchema,
+  },
+  responses: {
+    200: {
+      description: 'List of orders retrieved successfully',
+      content: {
+        'application/json': {
+          schema: z.object({
+            ok: z.boolean(),
+            message: z.string(),
+            profile: OrderListResponseSchema,
+          }),
+        },
+      },
+    },
+    401: { description: 'Unauthorized' },
+    404: { description: 'Business profile not found' },
+  },
+});
 
 /*************  ********************************************************************************/
 

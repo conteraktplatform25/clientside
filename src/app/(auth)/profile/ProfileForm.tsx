@@ -129,29 +129,6 @@ const ProfileForm = ({ email, full_name }: { email?: string; full_name?: string 
                 )}
               />
             </div>
-            {/* <Card className='w-full p-0 shadow-none rounded-sm'>
-              <div className='grid grid-cols-3'>
-                <div className='col-span-1'>
-                  <SelectField<TProfileFormSchema>
-                    control={control}
-                    name={'phone_country_code'}
-                    label=''
-                    options={ConstCountryCodeOptions}
-                    className='border-none shadow-none rounded-none focus-visible:ring-0'
-                  />
-                </div>
-                <div className='col-span-2 flex flex-item gap-0.5'>
-                  <Separator orientation='vertical' className='bg-neutral-100' />
-                  <InputField<TProfileFormSchema>
-                    name={'phone_number'}
-                    control={control}
-                    type='text'
-                    placeholder='Enter Phone Number'
-                    className='mt-1 border-none shadow-none rounded-none focus-visible:border-none focus-visible:ring-0'
-                  />
-                </div>
-              </div>
-            </Card> */}
           </div>
           <div className='mt-1.5'>
             <InputField<TProfileFormSchema>

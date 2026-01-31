@@ -2,10 +2,10 @@ import { ITabItem } from '@/type/client/default.type';
 import React from 'react';
 import TabSettings from './_component/TabSettings';
 import BusinessProfileForm from './_component/BusinessProfileForm';
-import ManageUserProfile from './_component/ManageUserProfile';
 import ManageTags from './_component/ManageTags';
 import RolesAndPermissions from './_component/RolesAndPermissions';
 import UserProfileForm from './_component/UserProfileForm';
+import BusinessTeamManager from './_component/team/BusinessTeamManager';
 
 const BusinessSettingsPage = () => {
   const tabs: ITabItem[] = [
@@ -22,7 +22,7 @@ const BusinessSettingsPage = () => {
     {
       value: 'user_role',
       label: 'User roles',
-      content: <ManageUserProfile />,
+      content: <BusinessTeamManager />,
     },
     {
       value: 'manage_tags',

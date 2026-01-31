@@ -82,3 +82,10 @@ export interface IDataTableProps<TData, TValue> {
   title?: string;
   children?: ReactNode;
 }
+
+export interface PaginationMeta {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
