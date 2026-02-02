@@ -7,6 +7,7 @@ import { generateOTP } from '@/lib/helpers/generate-otp.helper';
 import bcrypt from 'bcryptjs';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
+const from_email = process.env.RESEND_FROM_EMAIL;
 
 export async function POST(req: NextRequest) {
   try {
@@ -77,9 +78,8 @@ export async function POST(req: NextRequest) {
 
         // Send email verification
         await resend.emails.send({
-          // from: 'Concakt Platform Signup <yourname@resend.dev>',
-          from: 'onboarding@resend.dev',
-          to: ['conteraktplatform25@gmail.com'],
+          from: from_email ?? 'onboarding@resend.dev',
+          to: [email],
           subject: subject,
           html: `<p>Hi ${full_name},</p>
                <p>Your verification code is <strong>${otp}</strong>.</p>

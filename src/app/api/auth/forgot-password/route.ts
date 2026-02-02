@@ -2,12 +2,13 @@ import { NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
 import { Resend } from 'resend';
 import { getErrorMessage } from '@/utils/errors';
-import { renderTemplate } from '@/lib/helpers/render-template.helper';
 import { generateOTP } from '@/lib/helpers/generate-otp.helper';
 import bcrypt from 'bcryptjs';
 import { failure, success } from '@/utils/response';
+import ResetPasswordEmail from '@/emails/ResetPasswordEmail';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
+const from_email = process.env.RESEND_FROM_EMAIL;
 
 export async function POST(req: NextRequest) {
   try {
@@ -44,23 +45,30 @@ export async function POST(req: NextRequest) {
       //const resetLink = `${process.env.NEXT_PUBLIC_APP_URL}/reset-password?token=${token}&email=${user.email}`;
       const full_name = user.first_name + ' ' + user.last_name;
       let subject = '';
-      let content = '';
+      //let content = '';
       const expiry_minutes = Math.round((expires.getTime() - new Date().getTime()) / (1000 * 60));
 
       subject = template.subject || 'Reset your password';
-      content = renderTemplate(template.custom_content || template.default_content || '', {
-        full_name: full_name,
-        email: email || '',
-        expiry_minutes: expiry_minutes.toString(),
-        otp_code: otp,
-        support_email: 'conteraktplatform25@gmail.com',
-      });
+      // content = renderTemplate(template.custom_content || template.default_content || '', {
+      //   full_name: full_name,
+      //   email: email || '',
+      //   expiry_minutes: expiry_minutes.toString(),
+      //   otp_code: otp,
+      //   support_email: 'conteraktplatform25@gmail.com',
+      // });
       // Send email verification
       await resend.emails.send({
-        from: 'onboarding@resend.dev',
-        to: [email],
+        from: from_email ?? 'onboarding@resend.dev',
+        to: from_email ? [email] : ['conteraktplatform25@gmail.com'],
         subject: subject,
-        html: content,
+        react: ResetPasswordEmail({
+          fullName: full_name,
+          email,
+          otpCode: otp,
+          expiryMinutes: expiry_minutes,
+          supportEmail: 'conteraktplatform25@gmail.com',
+        }),
+        // html: content,
       });
       return success(true, 'If an account exists, an email will be sent.');
     }

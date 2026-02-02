@@ -12,7 +12,6 @@ import PhoneInput from 'react-phone-number-input';
 import 'react-phone-number-input/style.css';
 import { validateAndNormalizePhone } from '@/lib/phone/phone.util';
 import { MemberRegistrationFormSchema } from '@/lib/schemas/business/server/settings.schema';
-//import { useMemberRegistrationFormStore } from '@/lib/store/business/settings.store';
 import { TMemberRegistrationForm } from '@/lib/hooks/business/userprofile-settings.hook';
 import { useTeamMemberStore } from '@/lib/store/business/settings.store';
 

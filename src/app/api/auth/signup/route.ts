@@ -9,6 +9,7 @@ import { failure, success } from '@/utils/response';
 import OtpVerificationEmail from '@/emails/OtpVerificationEmail';
 
 const resend = new Resend(process.env.RESEND_API_KEY!);
+const from_email = process.env.RESEND_FROM_EMAIL;
 
 export async function POST(req: NextRequest) {
   try {
@@ -80,8 +81,8 @@ export async function POST(req: NextRequest) {
       subject = 'Contact Signup Verification';
       // Send email verification
       await resend.emails.send({
-        from: 'Contakt <onboarding@resend.dev>',
-        to: [email],
+        from: from_email ?? 'Contakt <onboarding@resend.dev>',
+        to: from_email ? [email] : ['conteraktplatform25@gmail.com'],
         subject: subject,
         react: OtpVerificationEmail({
           fullName: full_name,
