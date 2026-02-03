@@ -7,6 +7,8 @@ import {
   InviteTeamMemberResponseSchema,
   MemberRegistrationFormSchema,
   RoleResponseSchema,
+  SettingsPasswordChangeRequestSchema,
+  SettingsPasswordChangeResponseSchema,
   UserSettingsResponseSchema,
 } from '@/lib/schemas/business/server/settings.schema';
 import { PaginationMeta } from '@/type/client/default.type';
@@ -25,9 +27,8 @@ export type TBusinessTeamSettingResponse = z.infer<typeof BusinessTeamSettingRes
 export type TInviteTeamMemberRequest = z.infer<typeof InviteTeamMemberRequestSchema>;
 export type TInviteTeamMemberResponse = z.infer<typeof InviteTeamMemberResponseSchema>;
 export type TMemberRegistrationForm = z.infer<typeof MemberRegistrationFormSchema>;
-// export type TCreateBusinessSettings = z.infer<typeof CreateBusinessSettingsSchema>;
-//export type TUpdateBusinessSettings = z.infer<typeof UpdateBusinessSettingsSchema>;
-// export type TBusinessHourRecord = z.infer<typeof BusinessHoursSchema>;
+export type TSettingsPasswordChangeRequest = z.infer<typeof SettingsPasswordChangeRequestSchema>;
+export type TSettingsPasswordChangeResponse = z.infer<typeof SettingsPasswordChangeResponseSchema>;
 
 /* --------------------------------------------------
    🧱 Types
@@ -86,10 +87,34 @@ export const useGetUserProfile = () =>
 //     },
 //   });
 // };
+/* =========================================================
+   ========== 🟢 Security Setup of the Settings ============
+   ======================================================== */
+export const useChangeMyPassword = () => {
+  return useMutation({
+    mutationFn: async (payload: TSettingsPasswordChangeRequest) => {
+      const res = await fetchJSON<TSettingsPasswordChangeResponse>('/api/settings/user/password-change', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
 
-/* ===============================
+      return res;
+    },
+    onSuccess: () => {
+      toast.success('Password change was successful.');
+    },
+    onError: (error) => {
+      toast.error(`Password change failed with message: ${getErrorMessage(error)}`);
+    },
+  });
+};
+
+/* =========================================================
    🟢 Get All Team Member Profile
-   =============================== */
+   ======================================================== */
 export const useGetTeamMember = (params: TBusinessTeamQueryRequest) => {
   return useQuery({
     queryKey: ['team_memebers', params],
@@ -115,7 +140,7 @@ export const useGetTeamMember = (params: TBusinessTeamQueryRequest) => {
    =============================== */
 export const useGetPendingInvitedMember = (params: TBusinessTeamQueryRequest) => {
   return useQuery({
-    queryKey: ['invited_team_memebers', params],
+    queryKey: ['invited_team_members', params],
     queryFn: async () => {
       const url = new URL('/api/settings/business-team/invite', window.location.origin);
       url.searchParams.set('page', params.page.toString());
@@ -157,12 +182,12 @@ export const useInviteTeamMember = () => {
     onSuccess: () => {
       // Refresh contact list
       queryClient.invalidateQueries({
-        queryKey: ['team_memebers'],
+        queryKey: ['invited_team_members'],
       });
-      toast.success(`Contact information for "${member_email}" created successfully`);
+      toast.success(`Invite has been sent to you team member with the email "${member_email}".`);
     },
     onError: (error) => {
-      console.error('Category creation failed:', getErrorMessage(error));
+      console.error('Team member invite failed:', getErrorMessage(error));
     },
   });
 };

@@ -68,7 +68,7 @@ const SidebarComponent = () => {
                       href={'/'}
                       className={cn(
                         'flex items-center gap-3 rounded-md px-3 py-2 font-medium text-base text-neutral-700 transition-all hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
-                        pathname === '/' ? 'bg-[#F7FAFF] text-primary-base' : 'text-neutral-700 hover:bg-transparent'
+                        pathname === '/' ? 'bg-[#F7FAFF] text-primary-base' : 'text-neutral-700 hover:bg-transparent',
                       )}
                     >
                       <House />
@@ -84,7 +84,7 @@ const SidebarComponent = () => {
                         'flex items-center gap-3 rounded-md px-3 py-2 font-medium text-base text-neutral-700 transition-all hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
                         pathname === '/inbox'
                           ? 'bg-[#F7FAFF] text-primary-base'
-                          : 'text-neutral-700 hover:bg-transparent'
+                          : 'text-neutral-700 hover:bg-transparent',
                       )}
                     >
                       <Mail />
@@ -100,7 +100,7 @@ const SidebarComponent = () => {
                         'flex items-center gap-3 rounded-md px-3 py-2 font-medium text-base text-neutral-700 transition-all hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
                         pathname === '/orders'
                           ? 'bg-[#F7FAFF] text-primary-base'
-                          : 'text-neutral-700 hover:bg-transparent'
+                          : 'text-neutral-700 hover:bg-transparent',
                       )}
                     >
                       <ShoppingCart />
@@ -124,7 +124,7 @@ const SidebarComponent = () => {
                               type='button'
                               className={clsx(
                                 'w-full flex items-center justify-between rounded-md px-3 py-2 font-medium text-sm text-neutral-700 transition-all hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
-                                pathname.startsWith('/messaging') ? 'bg-[#F7FAFF] text-primary-base' : ''
+                                pathname.startsWith('/messaging') ? 'bg-[#F7FAFF] text-primary-base' : '',
                               )}
                               aria-expanded={isAutomatedMessagingOpen}
                             >
@@ -138,7 +138,7 @@ const SidebarComponent = () => {
                                 className={clsx(
                                   'ml-2 transition-transform',
                                   // Radix-like state class (if your Collapsible sets data-state)
-                                  'group-data-[state=open]/collapsible:rotate-180'
+                                  'group-data-[state=open]/collapsible:rotate-180',
                                 )}
                                 style={{ transform: isAutomatedMessagingOpen ? 'rotate(180deg)' : 'none' }}
                               />
@@ -155,9 +155,9 @@ const SidebarComponent = () => {
                                     href='/messaging/quick-reply'
                                     className={clsx(
                                       'font-medium text-base rounded-md px-2 py-1 transition-colors block',
-                                      pathname === '/messaging/quick-reply'
+                                      pathname.includes('/quick-reply')
                                         ? 'bg-[#F7FAFF] text-primary-base'
-                                        : 'text-neutral-700 hover:bg-transparent'
+                                        : 'text-neutral-700 hover:bg-transparent',
                                     )}
                                   >
                                     Quick reply
@@ -171,9 +171,9 @@ const SidebarComponent = () => {
                                     href='/messaging/broadcast'
                                     className={clsx(
                                       'font-medium text-base rounded-md px-2 py-1 transition-colors block',
-                                      pathname === '/messaging/broadcast'
+                                      pathname.includes('/broadcast')
                                         ? 'bg-[#F7FAFF] text-primary-base'
-                                        : 'text-neutral-700 hover:bg-transparent'
+                                        : 'text-neutral-700 hover:bg-transparent',
                                     )}
                                   >
                                     Broadcast messages
@@ -192,7 +192,7 @@ const SidebarComponent = () => {
                         type='button'
                         className={clsx(
                           'flex items-center justify-center w-10 h-10 rounded-md hover:bg-sidebar-accent focus:outline-none',
-                          pathname.startsWith('/messaging') ? 'bg-[#F7FAFF] text-primary-base' : 'text-neutral-700'
+                          pathname.startsWith('/messaging') ? 'bg-[#F7FAFF] text-primary-base' : 'text-neutral-700',
                         )}
                         onClick={() => setCollapsedPopoverOpen((s) => !s)}
                         aria-expanded={collapsedPopoverOpen}
@@ -218,7 +218,7 @@ const SidebarComponent = () => {
                                 'block rounded-md px-2 py-2 text-sm font-medium',
                                 pathname === '/messaging/quick-reply'
                                   ? 'bg-[#F7FAFF] text-primary-base'
-                                  : 'text-neutral-700 hover:bg-sidebar-accent'
+                                  : 'text-neutral-700 hover:bg-sidebar-accent',
                               )}
                             >
                               Quick reply
@@ -230,7 +230,7 @@ const SidebarComponent = () => {
                                 'block rounded-md px-2 py-2 text-sm font-medium mt-1',
                                 pathname === '/messaging/broadcast'
                                   ? 'bg-[#F7FAFF] text-primary-base'
-                                  : 'text-neutral-700 hover:bg-sidebar-accent'
+                                  : 'text-neutral-700 hover:bg-sidebar-accent',
                               )}
                             >
                               Broadcast messages
@@ -247,9 +247,9 @@ const SidebarComponent = () => {
                       href={'/contacts'}
                       className={cn(
                         'flex items-center gap-3 rounded-md px-3 py-2 font-medium text-base text-neutral-700 transition-all hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
-                        pathname === '/contacts'
+                        pathname.includes('/contacts')
                           ? 'bg-[#F7FAFF] text-primary-base'
-                          : 'text-neutral-700 hover:bg-transparent'
+                          : 'text-neutral-700 hover:bg-transparent',
                       )}
                     >
                       <UserRound />
@@ -265,7 +265,7 @@ const SidebarComponent = () => {
                         'flex items-center gap-3 rounded-md px-3 py-2 font-medium text-base text-neutral-700 transition-all hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
                         pathname === '/Integration'
                           ? 'bg-[#F7FAFF] text-primary-base'
-                          : 'text-neutral-700 hover:bg-transparent'
+                          : 'text-neutral-700 hover:bg-transparent',
                       )}
                     >
                       <Bolt />
@@ -286,9 +286,9 @@ const SidebarComponent = () => {
                         href={'/catalogue-sharing'}
                         className={cn(
                           'flex items-center gap-3 rounded-md px-3 py-2 font-medium text-base text-neutral-700 transition-all hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
-                          pathname === '/catalogue-sharing'
+                          pathname.includes('/catalogue-sharing')
                             ? 'bg-[#F7FAFF] text-primary-base'
-                            : 'text-neutral-700 hover:bg-transparent'
+                            : 'text-neutral-700 hover:bg-transparent',
                         )}
                       >
                         <NotepadText />
@@ -299,12 +299,12 @@ const SidebarComponent = () => {
                   <SidebarMenuItem>
                     <SidebarMenuButton asChild>
                       <Link
-                        href={'/settings'}
+                        href={'/settings/user-profile'}
                         className={cn(
                           'flex items-center gap-3 rounded-md px-3 py-2 font-medium text-base text-neutral-700 transition-all hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
-                          pathname === '/settings'
+                          pathname.includes('/settings')
                             ? 'bg-[#F7FAFF] text-primary-base'
-                            : 'text-neutral-700 hover:bg-transparent'
+                            : 'text-neutral-700 hover:bg-transparent',
                         )}
                       >
                         <Settings />

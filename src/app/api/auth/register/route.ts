@@ -74,7 +74,6 @@ export async function POST(req: NextRequest) {
 
       // Send email verification
       await resend.emails.send({
-        // from: 'Concakt Platform Signup <yourname@resend.dev>',
         from: from_email ?? 'onboarding@resend.dev',
         to: from_email ? [email] : ['conteraktplatform25@gmail.com'],
         subject: subject,

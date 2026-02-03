@@ -7,6 +7,7 @@ import { CategoryResponseListSchema } from '@/lib/schemas/business/server/catalo
 import { getErrorMessage } from '@/utils/errors';
 import { failure } from '@/utils/response';
 import { ApplicationRoleListSchema } from '@/lib/schemas/business/server/settings.schema';
+import { serviceLoadApplicationRoles } from '../../auth/role/serviceLoadRoles';
 
 export async function GET() {
   try {
@@ -62,13 +63,7 @@ export async function GET() {
     });
     const categories = CategoryResponseListSchema.parse(getCategories);
 
-    const getRoles = await prisma.role.findMany({
-      where: { is_admin: false },
-      select: {
-        id: true,
-        name: true,
-      },
-    });
+    const getRoles = await serviceLoadApplicationRoles();
     const roles = ApplicationRoleListSchema.parse(getRoles);
 
     const products = await prisma.product.findMany({

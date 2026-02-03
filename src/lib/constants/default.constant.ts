@@ -52,3 +52,9 @@ export const ConstAdminSideMenu: ISideMenuProps[] = [
     icon: Settings,
   },
 ] as const;
+
+export const ROLE_LABEL_MAP: Record<string, string> = {
+  Agent: 'Business Agent',
+  Business: 'Business Owner',
+  Managers: 'Manager',
+};

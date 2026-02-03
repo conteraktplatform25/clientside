@@ -1,11 +1,21 @@
 import { PlusCircle, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import InviteTeamMemberDialog from './InviteTeamMemberDialog';
+import { TInvitedTeamMemberResponse } from '@/lib/hooks/business/userprofile-settings.hook';
 
 interface IEmptyTeamMemberStateProps {
-  onInvite: () => void;
+  invitedMembers: TInvitedTeamMemberResponse[];
+  isInviteDialog: boolean;
+  onInviteDialog: () => void;
+  closeInviteDialog: () => void;
 }
 
-const EmptyTeamMemberState: React.FC<IEmptyTeamMemberStateProps> = ({ onInvite }) => {
+const EmptyTeamMemberState: React.FC<IEmptyTeamMemberStateProps> = ({
+  invitedMembers,
+  isInviteDialog,
+  onInviteDialog,
+  closeInviteDialog,
+}) => {
   return (
     <div className='flex min-h-[80vh] items-center justify-center bg-white px-4'>
       <div className='max-w-md text-center'>
@@ -25,7 +35,7 @@ const EmptyTeamMemberState: React.FC<IEmptyTeamMemberStateProps> = ({ onInvite }
         <p className='mt-2 text-sm text-neutral-500'>Invite colleagues to collaborate with your organization.</p>
 
         <Button
-          onClick={onInvite}
+          onClick={onInviteDialog}
           className='
             mt-6
             bg-[var(--color-primary-base)]
@@ -37,6 +47,12 @@ const EmptyTeamMemberState: React.FC<IEmptyTeamMemberStateProps> = ({ onInvite }
           Invite team member
         </Button>
       </div>
+      <InviteTeamMemberDialog
+        allInvitedMembers={invitedMembers}
+        // invitePagination={invitedMember_queryHook.data?.pagination}
+        isOpen={isInviteDialog}
+        onClose={closeInviteDialog}
+      />
     </div>
   );
 };

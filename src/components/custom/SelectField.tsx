@@ -13,6 +13,7 @@ interface SelectFieldProps<T extends FieldValues> {
   className?: string;
   important?: boolean;
   disabled?: boolean;
+  valueType?: 'string' | 'number';
 }
 
 export default function SelectField<T extends FieldValues>({
@@ -24,6 +25,7 @@ export default function SelectField<T extends FieldValues>({
   className,
   important,
   disabled = false,
+  valueType = 'string',
 }: SelectFieldProps<T>) {
   return (
     <div className='relative mb-1 w-full'>
@@ -36,42 +38,53 @@ export default function SelectField<T extends FieldValues>({
       <Controller
         name={name}
         control={control}
-        render={({ field, fieldState }) => (
-          <div key={field.value}>
-            <Select
-              value={field.value || undefined}
-              onValueChange={field.onChange}
-              defaultValue={field.value || undefined}
-            >
-              <SelectTrigger
-                id={name as string}
-                className={`text-left focus-visible:border-none rounded-sm focus-visible:ring-ring/10 bg-white hover:bg-gray-50 ${className}`}
-                disabled={disabled}
+        render={({ field, fieldState }) => {
+          const stringValue =
+            valueType === 'number' && typeof field.value === 'number'
+              ? field.value.toString()
+              : (field.value ?? undefined);
+
+          return (
+            <div>
+              <Select
+                value={stringValue}
+                onValueChange={(val) => {
+                  const parsedValue = valueType === 'number' ? Number(val) : val;
+
+                  field.onChange(parsedValue);
+                }}
               >
-                <SelectValue placeholder={placeholder || label} />
-              </SelectTrigger>
-              <SelectContent>
-                {options.map((opt) => {
-                  if (isSelectOption(opt)) {
-                    return (
-                      <SelectItem key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </SelectItem>
-                    );
-                  } else {
+                <SelectTrigger
+                  id={name as string}
+                  disabled={disabled}
+                  className={`text-left focus-visible:border-none rounded-sm focus-visible:ring-ring/10 bg-white hover:bg-gray-50 ${className}`}
+                >
+                  <SelectValue placeholder={placeholder || label} />
+                </SelectTrigger>
+
+                <SelectContent>
+                  {options.map((opt) => {
+                    if (isSelectOption(opt)) {
+                      return (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </SelectItem>
+                      );
+                    }
+
                     return (
                       <SelectItem key={opt} value={opt}>
                         {opt}
                       </SelectItem>
                     );
-                  }
-                })}
-              </SelectContent>
-            </Select>
+                  })}
+                </SelectContent>
+              </Select>
 
-            {fieldState.error && <p className='text-sm text-red-500 mt-1'>{fieldState.error.message}</p>}
-          </div>
-        )}
+              {fieldState.error && <p className='text-sm text-red-500 mt-1'>{fieldState.error.message}</p>}
+            </div>
+          );
+        }}
       />
     </div>
   );

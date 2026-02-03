@@ -124,7 +124,7 @@ const User_TeamSchema = z.object({
   email: z.string(),
   first_name: z.string(),
   last_name: z.string(),
-  image: z.string(),
+  image: z.string().nullable().optional(),
   phone: z.string(),
   is_activated: z.boolean(),
 });
@@ -152,7 +152,7 @@ export const BusinessTeamListResponseSchema = z
 export const InviteTeamMemberRequestSchema = z
   .object({
     email: z.email(),
-    roleId: z.number(),
+    roleId: z.number().min(1, 'Role is required'),
   })
   .openapi('InviteTeamMemberRequest');
 
@@ -206,9 +206,9 @@ export const InvitedTeamMemberResponseSchema = z.object({
   id: z.string(),
   email: z.string(),
   role: ApplicationRoleSchema,
-  invitedBy: User_Team2Schema,
+  invitee: User_Team2Schema,
   accepted: z.boolean(),
-  createdAt: z.string().datetime(),
+  createdAt: z.coerce.date(),
   business: z.object({ id: z.string(), company_name: z.string() }),
 });
 
@@ -218,3 +218,16 @@ export const InvitedTeamMemberListResponseSchema = z
     invitedTeam: z.array(InvitedTeamMemberResponseSchema),
   })
   .openapi('InvitedTeamMemberListResponse');
+
+export const SettingsPasswordChangeRequestSchema = z
+  .object({
+    email: z.email({ message: 'Invalid email' }),
+    current_password: z.string().min(6, 'Password must be at least 6 characters'),
+    new_password: z.string().min(6, 'Password must be at least 6 characters'),
+    confirm_password: z.string(),
+  })
+  .refine((data) => data.new_password === data.confirm_password, {
+    message: "Passwords don't match",
+    path: ['confirm_password'],
+  });
+export const SettingsPasswordChangeResponseSchema = User_Team2Schema;

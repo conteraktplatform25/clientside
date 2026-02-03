@@ -12,7 +12,7 @@ const HeaderBusinessTeam = ({ search, onSearch, onInvite }: IHeaderBusinessTeamP
     <div className='flex flex-col md:flex-row justify-between gap-4'>
       <div className='flex flex-col gap-1'>
         <h4 className='text-xl font-semibold'>Manage Team Members</h4>
-        <p className='text-neutral-500'>Manage your team members and assign roles</p>
+        <p className='text-sm text-neutral-500'>Manage your team members and assign roles</p>
       </div>
       <div className='flex gap-3'>
         <div className='relative'>

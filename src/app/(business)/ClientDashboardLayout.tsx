@@ -9,6 +9,8 @@ import { useCategoryCatalogueStore } from '@/lib/store/business/catalogue-sharin
 import { Session } from 'next-auth';
 import UILoaderIndicator from '@/components/custom/UILoaderIndicator';
 import { useTeamMemberStore } from '@/lib/store/business/settings.store';
+import { useAuthStore } from '@/lib/store/auth/auth.store';
+import { useSession } from 'next-auth/react';
 
 interface IClientDashboardLayoutProps {
   children: ReactNode;
@@ -19,6 +21,21 @@ interface IClientDashboardLayoutProps {
 export default function ClientDashboardLayout({ children, defaultOpen, session }: IClientDashboardLayoutProps) {
   const [hasError, setHasError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+
+  const { status } = useSession();
+
+  const setUser = useAuthStore((s) => s.setUser);
+  const clearUser = useAuthStore((s) => s.clearUser);
+
+  useEffect(() => {
+    if (status === 'authenticated') {
+      setUser(session?.user ?? null);
+    }
+
+    if (status === 'unauthenticated') {
+      clearUser();
+    }
+  }, [status, session, setUser, clearUser]);
 
   const setOnboardingStatus = useGettingStartedStore((state) => state.setOnboardingStatus);
   const setProgressBar = useGettingStartedStore((state) => state.setProgressBar);

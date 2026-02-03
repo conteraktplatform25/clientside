@@ -46,6 +46,7 @@ export async function GET(req: NextRequest) {
               last_name: true,
               image: true,
               phone: true,
+              is_activated: true,
             },
           },
           role: {

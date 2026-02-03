@@ -1,20 +1,14 @@
-import prisma from '@/lib/prisma';
 import { ApplicationRoleListSchema } from '@/lib/schemas/business/server/settings.schema';
 import { getErrorMessage } from '@/utils/errors';
 import { failure, success } from '@/utils/response';
+import { serviceLoadApplicationRoles } from '../serviceLoadRoles';
 
 export async function GET() {
   try {
-    const getRoles = await prisma.role.findMany({
-      where: { is_admin: false },
-      select: {
-        id: true,
-        name: true,
-      },
-    });
-    const roles = ApplicationRoleListSchema.parse(getRoles);
+    const fetch_roles = await serviceLoadApplicationRoles();
+    const app_roles = ApplicationRoleListSchema.parse(fetch_roles);
 
-    return success({ roles }, 'Successful retrieved the application role.');
+    return success(app_roles, 'Successfully retrieved the application role.');
   } catch (err) {
     const message = getErrorMessage(err);
     console.error('POST /api/auth/role/application error:', message);

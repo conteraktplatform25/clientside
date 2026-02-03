@@ -66,6 +66,7 @@ export async function POST(req: NextRequest, context: { params: Promise<{ busine
             password: hashedPassword,
             roleId,
             is_activated: true,
+            email_verified_date: new Date(),
           },
         });
       }

@@ -17,6 +17,7 @@ import { ActivityType } from '@/lib/constants/settings.constant';
 import { Prisma } from '@prisma/client';
 
 const resend = new Resend(process.env.RESEND_API_KEY!);
+const from_email = process.env.RESEND_FROM_EMAIL;
 
 export async function GET(req: NextRequest) {
   try {
@@ -54,6 +55,7 @@ export async function GET(req: NextRequest) {
           createdAt: true,
           business: {
             select: {
+              id: true,
               company_name: true,
             },
           },
@@ -166,8 +168,9 @@ export async function POST(req: NextRequest) {
 
       // Send email verification
       await resend.emails.send({
-        from: 'Contakt <onboarding@resend.dev>',
-        to: ['conteraktplatform25@gmail.com'],
+        //from: 'Contakt <onboarding@resend.dev>',
+        from: from_email ?? 'onboarding@resend.dev',
+        to: from_email ? [email] : ['conteraktplatform25@gmail.com'],
         subject: subject,
         react: TeamMemberInviteEmail({
           inviterName: invitee_name,
