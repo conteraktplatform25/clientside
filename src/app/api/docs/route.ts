@@ -19,6 +19,10 @@ export async function GET() {
           name: 'Authentication',
           description: 'Endpoints related to user authentication, OAuth, session management, and profile updates',
         },
+        {
+          name: 'Me',
+          description: 'Endpoint related to current authenticated user.',
+        },
         { name: 'User Settings', description: 'Endpoints related to the authenticated user' },
         { name: 'Business Owner Settings', description: 'Endpoints related to the authenticated business owner' },
         {

@@ -1,5 +1,6 @@
-import RolesAndPermissions from './_component/RolesAndPermissions';
+'use client';
+import RolePermissionsTest from './_component/RolePermissionsTest';
 
 export default function RolePermissionsManagerPage() {
-  return <RolesAndPermissions />;
+  return <RolePermissionsTest />;
 }

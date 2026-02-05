@@ -110,27 +110,45 @@ export function authorizeRole(user: AuthenticatedUser | null, allowed: string[])
 }
 
 // checks that a user is a member of businessProfileId (BusinessTeam)
-export async function checkBusinessMembership(userId: string, businessProfileId: string) {
+export async function userCan(userId: string, businessProfileId: string, permission_name: string): Promise<boolean> {
   // Replace with actual prisma query
-  const membership = await prisma.businessTeamProfile.findUnique({
+  const membership_profile = await prisma.businessTeamProfile.findUnique({
     where: { businessProfileId_userId: { businessProfileId, userId } },
     select: {
       id: true,
       status: true,
+      role: {
+        select: {
+          permissions: {
+            select: { permission: { select: { name: true } } },
+          },
+        },
+      },
     },
   });
-  return !!membership && membership.status === 'ACTIVE';
-}
-
-// placeholder permission gate
-export async function userCan(userId: string, businessProfileId: string, permission: string) {
-  // Implement your role->permission lookup
-  // For now, assume all business members have access
-  console.log(permission);
-  return await checkBusinessMembership(userId, businessProfileId);
+  if (!membership_profile || membership_profile.status !== 'ACTIVE') return false;
+  return membership_profile.role.permissions.some((rp) => rp.permission.name === permission_name);
 }
 
 export async function getBusinessProfileID() {
   const session = await getServerSession(authOptions);
   return session?.user?.businessProfileId || null;
+}
+
+export async function getUserPermissions(userId: string, businessId: string): Promise<string[]> {
+  const member_profile = await prisma.businessTeamProfile.findUnique({
+    where: { businessProfileId_userId: { businessProfileId: businessId, userId } },
+    select: {
+      status: true,
+      role: {
+        select: {
+          permissions: { select: { permission: { select: { name: true, group_name: true } } } },
+        },
+      },
+    },
+  });
+
+  if (!member_profile || member_profile.status !== 'ACTIVE') return [];
+
+  return member_profile.role.permissions.map((rp) => `${rp.permission.group_name}.${rp.permission.name}`);
 }

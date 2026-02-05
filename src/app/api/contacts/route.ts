@@ -1,4 +1,4 @@
-import { authenticateRequest, authorizeRole } from '@/lib/auth';
+import { authenticateRequest, userCan } from '@/lib/auth';
 import { validateRequest } from '@/lib/helpers/validation-request.helper';
 import prisma from '@/lib/prisma';
 import {
@@ -18,6 +18,8 @@ export async function GET(req: NextRequest) {
 
     const businessProfileId = user.businessProfile?.[0]?.id;
     if (!businessProfileId) return failure('Business profile not configured.', 400);
+    if (!(await userCan(user.id, businessProfileId, 'view_contacts')))
+      return failure('You dont have the access right.', 403);
 
     const { searchParams } = new URL(req.url);
     const parsed = ContactQuerySchema.safeParse(Object.fromEntries(searchParams));
@@ -89,11 +91,11 @@ export async function POST(req: NextRequest) {
     const user = await authenticateRequest(req);
     if (!user) return failure('Unauthorized', 404);
 
-    const isAuthorized = authorizeRole(user, ['Business', 'Admin']);
-    if (!isAuthorized) return failure('Forbidden: Insufficient permissions', 403);
-
     const businessProfileId = user.businessProfile?.[0]?.id;
     if (!businessProfileId) return failure('Business profile not configured.', 400);
+
+    if (!(await userCan(user.id, businessProfileId, 'add_contact')))
+      return failure('You dont have the access right.', 403);
 
     const validation = await validateRequest(CreateContactSchema, req);
     if (!validation.success) return failure(validation.response, 401);

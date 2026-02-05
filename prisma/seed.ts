@@ -1,5 +1,8 @@
 import { PrismaClient } from '@prisma/client';
 import { AdminUserSeeder } from './seeds/admin-user.seed';
+import { PermissionSeeder } from './seeds/permission.seed';
+import { RolePermissionSeeder } from './seeds/role-permission.seed';
+import { BusinessTeamMemberSeeder } from './seeds/business-team-member.seed';
 //import { ProductCategorySeeder } from './seeds/product-category.seed';
 // import { RoleSeeder } from './seeds/role.seed';
 // import { NotificationTypeSeeder } from './seeds/notification-type.seed';
@@ -14,7 +17,8 @@ async function main() {
   // await NotificationTypeSeeder();
   // await NotificationTemplateSeeder();
   //await ProductCategorySeeder();
-  await AdminUserSeeder();
+  //await AdminUserSeeder();
+  await BusinessTeamMemberSeeder();
 
   console.log('✅ Seeding completed');
 }

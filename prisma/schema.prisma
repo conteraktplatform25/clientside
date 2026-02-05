@@ -104,6 +104,8 @@ model User {
   conversations Conversation[]
 
   businessTeamMemberInvitations BusinessTeamMemberInvitation[]
+
+  permissionAudits PermissionAudit[]
 }
 
 model BusinessProfile {
@@ -151,6 +153,8 @@ model BusinessProfile {
   whatsAppAccounts WhatsAppAccount[]
 
   businessTeamMemberInvitations BusinessTeamMemberInvitation[]
+
+  permissionAudits PermissionAudit[]
 }
 
 model BusinessTeamProfile {
@@ -159,6 +163,7 @@ model BusinessTeamProfile {
   userId            String
   roleId            Int
   status            TeamMemberStatus @default(ACTIVE)
+  is_admin          Boolean          @default(false)
   invited_by        String? // User.id who invited them
   invited_at        DateTime?
   joined_at         DateTime?        @default(now())
@@ -659,6 +664,17 @@ model AdminInvitation {
   createdAt DateTime @default(now())
 
   role Role @relation(fields: [roleId], references: [id])
+}
+
+model PermissionAudit {
+  id             Int             @id @default(autoincrement())
+  userId         String
+  businessId     String
+  permissionName String
+  action         String // e.g., "granted", "denied"
+  timestamp      DateTime        @default(now())
+  user           User            @relation(fields: [userId], references: [id])
+  business       BusinessProfile @relation(fields: [businessId], references: [id])
 }
 
 enum WhatsAppOnboardingStatus {

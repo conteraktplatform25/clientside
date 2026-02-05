@@ -1,4 +1,4 @@
-import { authenticateRequest, authorizeRole } from '@/lib/auth';
+import { authenticateRequest, userCan } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { ContactResponseSchema, UpdateContactSchema } from '@/lib/schemas/business/server/contacts.schema';
 import { getErrorMessage } from '@/utils/errors';
@@ -48,11 +48,11 @@ export async function PATCH(req: NextRequest, context: { params: Promise<{ id: s
     const user = await authenticateRequest(req);
     if (!user) return failure('Unauthorized', 404);
 
-    const isAuthorized = authorizeRole(user, ['Business', 'Admin']);
-    if (!isAuthorized) return failure('Forbidden: Insufficient permissions', 403);
-
     const businessProfileId = user.businessProfile?.[0]?.id;
     if (!businessProfileId) return failure('Business profile not configured.', 400);
+
+    if (!(await userCan(user.id, businessProfileId, 'update_contact')))
+      return failure('You dont have the access right.', 403);
 
     // 2️⃣ Parse + Validate Input
     const body = await req.json();

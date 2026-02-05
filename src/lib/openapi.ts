@@ -499,6 +499,28 @@ registry.registerPath({
 /*************  ********************************************************************************/
 
 /*************  *************************************************
+ * Authenticated User details Module Open API Generation *******************
+ * ***************************************************************/
+registry.registerPath({
+  method: 'get',
+  path: '/api/me/permissions',
+  tags: ['Me'],
+  summary: 'Get permissions required for the platform',
+  security: [{ bearerAuth: [] }],
+  responses: {
+    200: {
+      description: 'Successful retrieved authenticated users platform permissions.',
+      content: {
+        'application/json': {
+          schema: z.array(z.string()),
+        },
+      },
+    },
+  },
+});
+/*************  ********************************************************************************/
+
+/*************  *************************************************
  * Business Profile Setting Module Open API Generation *******************
  * ***************************************************************/
 registry.registerPath({
