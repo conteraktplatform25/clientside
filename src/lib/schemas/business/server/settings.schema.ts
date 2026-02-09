@@ -250,4 +250,15 @@ export const RolePermissionResponseSchema = z
   })
   .openapi('RolePermissionResponse');
 
+export const UpdateRolePermissionsBodySchema = z.object({
+  permissionIds: z.array(z.number()).openapi({
+    example: [1, 2, 5],
+    description: 'List of permission IDs to assign to the role',
+  }),
+});
+
+export const UpdateRolePermissionsResponseSchema = z.object({
+  success: z.literal(true),
+});
+
 export type TRolePermissionResponse = z.infer<typeof RolePermissionResponseSchema>;

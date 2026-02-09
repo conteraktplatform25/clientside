@@ -75,6 +75,8 @@ import {
   MemberRegistrationResponseSchema,
   RolePermissionResponseSchema,
   UpdateBusinessSettingsSchema,
+  UpdateRolePermissionsBodySchema,
+  UpdateRolePermissionsResponseSchema,
   UpdateUserSettingsSchema,
   UserSettingsResponseSchema,
 } from './schemas/business/server/settings.schema';
@@ -821,6 +823,91 @@ registry.registerPath({
     },
     404: {
       description: 'Role not found',
+    },
+    500: {
+      description: 'Internal server error',
+    },
+  },
+});
+
+registry.registerPath({
+  method: 'get',
+  path: '/api/settings/role-permission/{roleId}/permissions',
+  tags: ['Role Permission Settings'],
+  summary: 'Get role permissions for a role in the authenticated business',
+  description: 'Returns all permissions, selected permission IDs for the role, and whether the role is editable.',
+  security: [{ bearerAuth: [] }],
+  request: {
+    params: z.object({
+      roleId: z.coerce.number().openapi({
+        example: 4,
+        description: 'Role ID',
+      }),
+    }),
+  },
+  responses: {
+    200: {
+      description: 'Role permissions retrieved successfully',
+      content: {
+        'application/json': {
+          schema: RolePermissionResponseSchema,
+        },
+      },
+    },
+    400: {
+      description: 'Invalid role id or business profile not configured',
+    },
+    401: {
+      description: 'Unauthorized',
+    },
+    404: {
+      description: 'Role not found',
+    },
+    500: {
+      description: 'Internal server error',
+    },
+  },
+});
+
+registry.registerPath({
+  method: 'put',
+  path: '/api/settings/role-permission/{roleId}/permissions',
+  tags: ['Role Permission Settings'],
+  summary: 'Update permissions for a role',
+  description: 'Replaces all permissions assigned to a role for the authenticated business.',
+  security: [{ bearerAuth: [] }],
+  request: {
+    params: z.object({
+      roleId: z.coerce.number().openapi({
+        example: 4,
+        description: 'Role ID',
+      }),
+    }),
+    body: {
+      content: {
+        'application/json': {
+          schema: UpdateRolePermissionsBodySchema,
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: 'Role permissions updated successfully',
+      content: {
+        'application/json': {
+          schema: UpdateRolePermissionsResponseSchema.openapi('UpdateRolePermissionsResponse'),
+        },
+      },
+    },
+    400: {
+      description: 'Invalid role id or business profile not configured',
+    },
+    401: {
+      description: 'Unauthorized',
+    },
+    403: {
+      description: 'Role not found or owner role is not editable',
     },
     500: {
       description: 'Internal server error',
