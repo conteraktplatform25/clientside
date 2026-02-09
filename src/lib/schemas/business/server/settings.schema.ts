@@ -231,3 +231,23 @@ export const SettingsPasswordChangeRequestSchema = z
     path: ['confirm_password'],
   });
 export const SettingsPasswordChangeResponseSchema = User_Team2Schema;
+
+export const PermissionsProfileSchema = z.array(
+  z.object({
+    roles: z.array(z.object({ roleId: z.number() })),
+    id: z.number(),
+    name: z.string(),
+    group_name: z.string().nullable().optional(),
+    created_at: z.coerce.date().nullable(),
+  }),
+);
+
+export const RolePermissionResponseSchema = z
+  .object({
+    permissions: PermissionsProfileSchema,
+    selected: z.array(z.number()),
+    isEditable: z.boolean(),
+  })
+  .openapi('RolePermissionResponse');
+
+export type TRolePermissionResponse = z.infer<typeof RolePermissionResponseSchema>;

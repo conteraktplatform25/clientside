@@ -73,6 +73,7 @@ import {
   InviteTeamMemberResponseSchema,
   MemberRegistrationFormSchema,
   MemberRegistrationResponseSchema,
+  RolePermissionResponseSchema,
   UpdateBusinessSettingsSchema,
   UpdateUserSettingsSchema,
   UserSettingsResponseSchema,
@@ -785,6 +786,45 @@ registry.registerPath({
     },
     401: { description: 'Unauthorized' },
     404: { description: 'Reply not found' },
+  },
+});
+
+registry.registerPath({
+  method: 'get',
+  path: '/api/settings/role-permission/{roleId}/permissions',
+  tags: ['Role Permission Settings'],
+  summary: 'Get role permissions for a role in the authenticated business',
+  description: 'Returns all permissions, selected permission IDs for the role, and whether the role is editable.',
+  security: [{ bearerAuth: [] }],
+  request: {
+    params: z.object({
+      roleId: z.coerce.number().openapi({
+        example: 4,
+        description: 'Role ID',
+      }),
+    }),
+  },
+  responses: {
+    200: {
+      description: 'Role permissions retrieved successfully',
+      content: {
+        'application/json': {
+          schema: RolePermissionResponseSchema,
+        },
+      },
+    },
+    400: {
+      description: 'Invalid role id or business profile not configured',
+    },
+    401: {
+      description: 'Unauthorized',
+    },
+    404: {
+      description: 'Role not found',
+    },
+    500: {
+      description: 'Internal server error',
+    },
   },
 });
 /*************  ********************************************************************************/

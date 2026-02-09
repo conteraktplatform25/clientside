@@ -6,7 +6,7 @@ export const BusinessTeamMemberSeeder = async () => {
   try {
     // Get Business Owner details
     const business_profile = await prisma.businessProfile.findFirst({
-      where: { userId: '2f15a65f-76e3-4e40-8b92-b62929edb37e' },
+      where: { userId: '414419ab-26e6-4429-8fdc-b823ef7da689' },
       include: {
         user: {
           include: { role: true },
@@ -21,13 +21,13 @@ export const BusinessTeamMemberSeeder = async () => {
       where: {
         businessProfileId_userId: {
           businessProfileId: business_profile.id,
-          userId: '2f15a65f-76e3-4e40-8b92-b62929edb37e',
+          userId: '414419ab-26e6-4429-8fdc-b823ef7da689',
         },
       },
       update: {},
       create: {
         businessProfileId: business_profile.id,
-        userId: '2f15a65f-76e3-4e40-8b92-b62929edb37e',
+        userId: '414419ab-26e6-4429-8fdc-b823ef7da689',
         roleId: business_profile.user.role.id,
         status: 'ACTIVE',
         joined_at: business_profile.created_at,

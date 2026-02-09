@@ -1,17 +1,20 @@
 // src/app/api/settings/role-permission/[roleId]/permissions/route.ts
 import { authenticateRequest } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import { RolePermissionResponseSchema, TRolePermissionResponse } from '@/lib/schemas/business/server/settings.schema';
 import { getErrorMessage } from '@/utils/errors';
 import { failure } from '@/utils/response';
 import { NextRequest, NextResponse } from 'next/server';
 
-export async function GET(req: NextRequest, context: { params: Promise<{ roleId: string }> }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ roleId: string }> }) {
   try {
-    const { roleId } = await context.params;
+    console.log('HIT ROLE PERMISSION ENDPOINT');
+
+    const { roleId } = await params;
     const role_id = Number(roleId);
 
     const user = await authenticateRequest(req);
-    if (!user) return failure('Unauthorized', 404);
+    if (!user) return failure('Unauthorized', 401);
 
     const businessProfileId = user.businessProfile?.[0]?.id;
     if (!businessProfileId) return failure('Business profile not configured.', 400);
@@ -29,7 +32,15 @@ export async function GET(req: NextRequest, context: { params: Promise<{ roleId:
 
     const selected = permissions.filter((p) => p.roles.length > 0).map((p) => p.id);
 
-    return NextResponse.json({ permissions, selected, isEditable });
+    const role_permission_response: TRolePermissionResponse = {
+      permissions: permissions,
+      selected,
+      isEditable,
+    };
+
+    const response = RolePermissionResponseSchema.parse(role_permission_response);
+
+    return NextResponse.json(response);
   } catch (err) {
     const message = getErrorMessage(err);
     console.error('GET /api/settings/business-team error:', message);

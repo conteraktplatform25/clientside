@@ -29,6 +29,10 @@ export async function GET() {
           name: 'Business Team Settings',
           description: 'Endpoints related to the authenticated business owner and the team members',
         },
+        {
+          name: 'Role Permission Settings',
+          description: 'Endpoints related to the authenticated business owner role and persission implementation',
+        },
         { name: 'Product Categories', description: 'Endpoints related to product categories' },
         { name: 'Products', description: 'Endpoints related to products implementation' },
         { name: 'Tags', description: 'Endpoints related to business owner tag' },
