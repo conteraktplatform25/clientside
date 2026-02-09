@@ -125,7 +125,7 @@ const User_TeamSchema = z.object({
   first_name: z.string(),
   last_name: z.string(),
   image: z.string().nullable().optional(),
-  phone: z.string(),
+  phone: z.string().nullable().optional(),
   is_activated: z.boolean(),
 });
 const User_Team2Schema = z.object({

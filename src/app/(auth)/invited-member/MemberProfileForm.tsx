@@ -108,7 +108,7 @@ const MemberProfileForm = ({
             <h6 className='font-semibold text-[18px] leading-[150%] text-neutral-800'>{businessName}</h6>
           </div>
         </div>
-        <div className='w-full flex items-start gap-6'>
+        <div className='w-full flex flex-col md:flex-row row items-start gap-6'>
           <InputField<TMemberRegistrationForm>
             name={'email'}
             control={control}
@@ -141,7 +141,7 @@ const MemberProfileForm = ({
           />
         </div>
 
-        <div className='w-full flex items-start gap-6'>
+        <div className='w-full flex flex-col md:flex-row items-start gap-6'>
           <InputField<TMemberRegistrationForm>
             name={'first_name'}
             control={control}
@@ -159,7 +159,7 @@ const MemberProfileForm = ({
             important
           />
         </div>
-        <div className='flex item-center justify-center gap-6 w-full'>
+        <div className='flex flex-col md:flex-row item-center justify-center gap-6 w-full'>
           <InputField<TMemberRegistrationForm>
             name={'password'}
             control={control}
@@ -175,7 +175,7 @@ const MemberProfileForm = ({
             important
           />
         </div>
-        <div className='block space-y-2'>
+        <div className='block space-y-2 max-w-xs w-full'>
           <Button
             variant={'default'}
             className='mt-4 w-full bg-primary-base hover:bg-primary-700 text-white hover:text-gray-100 text-[1.125rem]'
