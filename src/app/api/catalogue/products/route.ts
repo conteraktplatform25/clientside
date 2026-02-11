@@ -1,5 +1,5 @@
 import { authenticateRequest, authorizeRole } from '@/lib/auth';
-import { TUploadedMedia } from '@/lib/hooks/business/catalogue-sharing.hook';
+import { TCreateProductRequest, TUploadedMedia } from '@/lib/hooks/business/catalogue-sharing.hook';
 import prisma from '@/lib/prisma';
 import {
   CreateProductSchema,
@@ -10,7 +10,7 @@ import {
 import { supabase } from '@/lib/supabaseClient';
 import { getErrorMessage } from '@/utils/errors';
 import { failure, success } from '@/utils/response';
-import { Prisma } from '@prisma/client';
+import { CurrencyType, Prisma, ProductStatus } from '@prisma/client';
 import { NextRequest } from 'next/server';
 import slugify from 'slugify';
 
@@ -92,7 +92,7 @@ export async function GET(req: NextRequest) {
         pagination: { page, limit, total, totalPages },
         products,
       },
-      'Successful retrieval'
+      'Successful retrieval',
     );
   } catch (err) {
     const message = getErrorMessage(err);
@@ -115,8 +115,20 @@ export async function POST(req: NextRequest) {
 
     const formData = await req.formData();
 
-    const payload = JSON.parse(formData.get('payload') as string);
-    const files = formData.getAll('images') as File[];
+    // const payload = JSON.parse(formData.get('payload') as string);
+    const payload: TCreateProductRequest = {
+      categoryId: formData.get('categoryId') as string,
+      name: formData.get('name') as string,
+      description: formData.get('description') as string | undefined,
+      currency: formData.get('currency') as CurrencyType,
+      price: Number(formData.get('price')),
+      stock: Number(formData.get('stock')),
+      sku: formData.get('sku') as string | undefined,
+      status: formData.get('status') as ProductStatus,
+    };
+    const files = formData.getAll('media') as File[];
+
+    console.log('Product Catalogue POST: ', payload);
 
     //const validation = await validateRequest(CreateProductSchema, req);
     const validation = CreateProductSchema.omit({ media: true }).safeParse(payload);

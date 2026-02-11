@@ -49,10 +49,14 @@ export const CategoryDetailsResponseSchema = z
 
 export const CategoryResponseListSchema = z.array(CategoryResponseSchema);
 
+export const CreateMediaSchema = z.object({
+  url: z.url(),
+  altText: z.string().optional(),
+  order: z.number().optional(),
+});
+
 export const CreateProductSchema = z.object({
-  id: z.uuid(),
   categoryId: z.uuid(),
-  category: CategoryResponseSchema.optional(),
   name: z.string().min(2),
   description: z.string().optional(),
   currency: z.enum(Object.values(CurrencyType)).default(CurrencyType.NAIRA),
@@ -60,15 +64,42 @@ export const CreateProductSchema = z.object({
   stock: z.number().min(0).default(0),
   sku: z.string().optional(),
   status: z.enum(Object.values(ProductStatus)).default(ProductStatus.DRAFT).optional(),
+  media: z.array(CreateMediaSchema).optional(),
+});
+
+export const CreateProductPayloadSchema = CreateProductSchema.omit({ media: true }).openapi('CreateProductPayload');
+
+export const CreateProductMultipartSchema = z.object({
+  categoryId: z.uuid(),
+  name: z.string().min(2),
+  description: z.string().optional(),
+  currency: z.enum(Object.values(CurrencyType)).default(CurrencyType.NAIRA),
+  price: z.number().positive(),
+  stock: z.number().min(0).default(0),
+  sku: z.string().optional(),
+  status: z.enum(Object.values(ProductStatus)).default(ProductStatus.DRAFT).optional(),
+  // media: z.array(CreateMediaSchema).optional(),
+  // payload: z.string().openapi({
+  //   example: JSON.stringify({
+  //     categoryId: '9b5a2d1a-1d2b-4b3a-9d77-9b4dbe9a0b12',
+  //     name: 'iPhone 15 Pro',
+  //     description: 'Latest Apple smartphone',
+  //     currency: 'NAIRA',
+  //     price: 1500000,
+  //     stock: 10,
+  //     sku: 'IP15-PRO',
+  //     status: 'DRAFT',
+  //   }),
+  //   description: 'JSON stringified payload matching CreateProductSchema (without media)',
+  // }),
   media: z
-    .array(
-      z.object({
-        url: z.url(),
-        altText: z.string().optional(),
-        order: z.number().optional(),
-      })
-    )
-    .optional(),
+    .array(CreateMediaSchema)
+    .optional()
+    .openapi({
+      type: 'array',
+      items: { type: 'string', format: 'binary' },
+      description: 'Product images (multipart file upload)',
+    }),
 });
 
 export const UpdateProductSchema = z.object({
@@ -86,7 +117,7 @@ export const UpdateProductSchema = z.object({
         url: z.url(),
         altText: z.string().optional(),
         order: z.number().optional(),
-      })
+      }),
     )
     .optional(),
 });
@@ -103,12 +134,6 @@ export const CreateVariantSchema = z.object({
   price: z.number().positive(),
   stock: z.number().min(0).default(0),
   attributes: z.record(z.string(), z.string()).optional(), // e.g. { color: "Red", size: "M" }
-});
-
-export const CreateMediaSchema = z.object({
-  url: z.url(),
-  altText: z.string().optional(),
-  order: z.number().optional(),
 });
 
 // ✅ Query validation schema
@@ -150,7 +175,7 @@ export const ProductResponseSchema = z
           id: z.uuid(),
           url: z.url(),
           altText: z.string().nullable().optional(),
-        })
+        }),
       )
       .optional(),
     // variants: z
@@ -192,7 +217,7 @@ export const ProductDetailResponseSchema = z
         z.object({
           id: z.uuid(),
           url: z.url(),
-        })
+        }),
       )
       .optional(),
     variants: z
@@ -201,7 +226,7 @@ export const ProductDetailResponseSchema = z
           id: z.uuid(),
           name: z.string(),
           price: z.number(),
-        })
+        }),
       )
       .optional(),
   })

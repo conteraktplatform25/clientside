@@ -26,13 +26,14 @@ import {
   CategoryResponseSchema,
   UpdateCategoryRequestSchema,
   ProductResponseSchema,
-  CreateProductSchema,
   UpdateProductSchema,
   ProductMediaResponseSchema,
   CreateMediaSchema,
   ProductVariantsResponseSchema,
   CreateVariantSchema,
   ProductResponseListSchema,
+  ProductDetailResponseSchema,
+  CreateProductMultipartSchema,
 } from '@/lib/schemas/business/server/catalogue.schema';
 import {
   ContactDesktopListResponseSchema,
@@ -1208,35 +1209,78 @@ registry.registerPath({
   path: '/api/catalogue/products',
   tags: ['Products'],
   summary: 'Create a new product under the authenticated business profile',
+  description: 'Creates a product with optional images upload. Requires Business or Admin role.',
   security: [{ bearerAuth: [] }],
   request: {
     body: {
       content: {
-        'application/json': {
-          schema: CreateProductSchema,
+        'multipart/form-data': {
+          schema: CreateProductMultipartSchema,
         },
       },
     },
   },
   responses: {
     201: {
-      description: 'Product successfully created',
+      description: 'Product created successfully',
       content: {
         'application/json': {
-          schema: z.object({
-            ok: z.boolean(),
-            message: z.string(),
-            product: ProductResponseSchema,
-          }),
+          schema: ProductDetailResponseSchema,
         },
       },
     },
-    400: { description: 'Invalid input or missing fields' },
-    401: { description: 'Unauthorized' },
-    403: { description: 'Forbidden: Insufficient permissions' },
-    404: { description: 'Business profile not configured' },
+    400: {
+      description: 'Invalid category or business profile not configured',
+    },
+    401: {
+      description: 'Unauthorized or validation failed',
+    },
+    403: {
+      description: 'Forbidden: insufficient permissions',
+    },
+    409: {
+      description: 'Product already exists',
+    },
+    500: {
+      description: 'Internal server error',
+    },
   },
 });
+
+// registry.registerPath({
+//   method: 'post',
+//   path: '/api/catalogue/products',
+//   tags: ['Products'],
+//   summary: 'Create a new product under the authenticated business profile',
+//   security: [{ bearerAuth: [] }],
+//   request: {
+//     body: {
+//       content: {
+//         'application/json': {
+//           schema: CreateProductSchema,
+//         },
+//       },
+//     },
+//   },
+//   responses: {
+//     201: {
+//       description: 'Product successfully created',
+//       content: {
+//         'application/json': {
+//           schema: z.object({
+//             ok: z.boolean(),
+//             message: z.string(),
+//             product: ProductResponseSchema,
+//           }),
+//         },
+//       },
+//     },
+//     400: { description: 'Invalid input or missing fields' },
+//     401: { description: 'Unauthorized' },
+//     403: { description: 'Forbidden: Insufficient permissions' },
+//     404: { description: 'Business profile not configured' },
+//   },
+// });
 
 registry.registerPath({
   method: 'get',
