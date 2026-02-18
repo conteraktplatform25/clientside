@@ -1,12 +1,7 @@
-'use client';
-import { ReactNode, useState } from 'react';
-import { SessionProvider } from 'next-auth/react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ReactNode } from 'react';
 import './globals.css';
-import LoaderWrapper from '@/components/custom/LoaderWrapper';
-import { Toaster } from 'sonner';
-import { ServerIndicator } from '@/components/custom/ServerIndicator';
 import localFont from 'next/font/local';
+import ClientProviders from './ClientProviders';
 
 const sfProRounded = localFont({
   src: [
@@ -59,26 +54,21 @@ const sfProRounded = localFont({
   variable: '--font-sf-pro-rounded',
   display: 'swap',
 });
+export const metadata = {
+  other: {
+    'facebook-domain-verification': 'nrqwrvblvk7ayi96s7qih0339u9jdc',
+  },
+};
 
 export default function RootLayout({
   children,
 }: Readonly<{
   children: ReactNode;
 }>) {
-  const [queryClient] = useState(() => new QueryClient());
-
   return (
     <html lang='en'>
       <body className={`${sfProRounded.className} antialiased`}>
-        <LoaderWrapper>
-          <SessionProvider>
-            <QueryClientProvider client={queryClient}>
-              <ServerIndicator />
-              {children}
-              <Toaster position='top-right' />
-            </QueryClientProvider>
-          </SessionProvider>
-        </LoaderWrapper>
+        <ClientProviders>{children}</ClientProviders>
       </body>
     </html>
   );
