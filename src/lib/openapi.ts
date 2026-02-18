@@ -103,6 +103,11 @@ import {
   UpdateConversationResponseSchema,
   UpdateConversationSchema,
 } from './schemas/business/server/inbox.schema';
+import {
+  GetNotificationsResponseSchema,
+  MarkAllReadSuccessResponseSchema,
+  UnauthorizedResponseSchema,
+} from './schemas/shared/application-notification.schema';
 
 // ✅ Initialize zod-openapi
 extendZodWithOpenApi(z);
@@ -912,6 +917,76 @@ registry.registerPath({
     },
     500: {
       description: 'Internal server error',
+    },
+  },
+});
+/*************  ********************************************************************************/
+
+/*************  *************************************************
+ * Notification Module Open API Generation *******************
+ * ***************************************************************/
+registry.registerPath({
+  method: 'get',
+  path: '/api/notifications',
+  tags: ['Notifications'],
+  summary: 'Get user notifications',
+  description: 'Returns paginated notifications for the authenticated user with unread count.',
+  security: [{ bearerAuth: [] }],
+  request: {
+    query: z.object({
+      limit: z.coerce.number().int().optional().openapi({
+        example: 20,
+        description: 'Number of notifications to return',
+      }),
+      offset: z.coerce.number().int().optional().openapi({
+        example: 0,
+        description: 'Number of notifications to skip',
+      }),
+    }),
+  },
+  responses: {
+    200: {
+      description: 'Notifications fetched successfully',
+      content: {
+        'application/json': {
+          schema: GetNotificationsResponseSchema,
+        },
+      },
+    },
+    401: {
+      description: 'Unauthorized',
+      content: {
+        'application/json': {
+          schema: UnauthorizedResponseSchema,
+        },
+      },
+    },
+  },
+});
+
+registry.registerPath({
+  method: 'patch',
+  path: '/api/notifications/read',
+  tags: ['Notifications'],
+  summary: 'Mark all notifications as read',
+  description: 'Marks all unread notifications as read for the authenticated user.',
+  security: [{ bearerAuth: [] }],
+  responses: {
+    200: {
+      description: 'All notifications marked as read',
+      content: {
+        'application/json': {
+          schema: MarkAllReadSuccessResponseSchema,
+        },
+      },
+    },
+    401: {
+      description: 'Unauthorized',
+      content: {
+        'application/json': {
+          schema: UnauthorizedResponseSchema,
+        },
+      },
     },
   },
 });
