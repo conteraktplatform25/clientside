@@ -1,8 +1,8 @@
 'use client';
 
 import { signIn, useSession } from 'next-auth/react';
-import TopNotification from './custom/TopNotification';
-import ContaktGetStarted from '../component/ContaktGetStarted';
+import TopNotification from '../custom/TopNotification';
+import ContaktGetStarted from '@/app/component/ContaktGetStarted';
 import { usePageTitleStore } from '@/lib/store/defaults/usePageTitleStore';
 import { useEffect } from 'react';
 

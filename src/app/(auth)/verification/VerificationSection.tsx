@@ -1,12 +1,14 @@
 'use client';
 import SVGIcon from '@/components/custom/SVGIcons';
 import { Button } from '@/components/ui/button';
+import { useMediaQuery } from '@reactuses/core';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React from 'react';
 
 const VerificationSection = ({ email }: { email: string }) => {
   const router = useRouter();
+  const isMobile = useMediaQuery('(max-width: 768px)', false);
   const handleBackToApp = () => {
     router.push('/');
   };
@@ -14,8 +16,18 @@ const VerificationSection = ({ email }: { email: string }) => {
     <section className='w-full flex flex-col'>
       <div className='flex items-start justify-between px-4 sm:px-6 lg:px-8'>
         <div className='flex gap-0.5'>
-          <SVGIcon className=' mt-1.5' fileName='icon-logo.svg' alt='Concakt Logo' width={29.39} height={20.58} />
-          <div className='text-neutral-800 text-[1.801rem] font-semibold'>contakt</div>
+          <Link href={'/'}>
+            <div className='flex gap-2'>
+              <SVGIcon
+                className=' mt-1.5'
+                fileName='icon-logo.svg'
+                alt='Concakt Logo'
+                width={isMobile ? 29.39 : 45.89}
+                height={32.58}
+              />
+              <div className='mt-1 text-neutral-800 text-3xl font-semibold tracking-tight'>contakt</div>
+            </div>
+          </Link>
         </div>
         <div className='flex items-end mt-4 w-ful gap-1 text-sm md:text-base leading-4 md:leading-5'>
           <span className='font-normal text-neutral-base'>Already a user?</span>

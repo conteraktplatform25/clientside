@@ -6,6 +6,8 @@ import { FaArrowRightLong, FaRegCircleCheck } from 'react-icons/fa6';
 import { Button } from '@/components/ui/button';
 import SVGIcon from '@/components/custom/SVGIcons';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import Link from 'next/link';
+import { useMediaQuery } from '@reactuses/core';
 
 const ConnectNumberSection = () => {
   const searchParams = useSearchParams();
@@ -13,6 +15,8 @@ const ConnectNumberSection = () => {
   const decodedEmail = decodeURIComponent(email!);
   const full_name = searchParams.get('name');
   const router = useRouter();
+
+  const isMobile = useMediaQuery('(max-width: 768px)', false);
 
   const constProfileList: string[] = [
     'Send bulk messages and automated notifications.',
@@ -24,8 +28,18 @@ const ConnectNumberSection = () => {
     <section className='w-full flex flex-col gap-6'>
       <div className='flex items-start justify-between px-4 sm:px-6 lg:px-8'>
         <div className='flex gap-0.5'>
-          <SVGIcon className=' mt-1.5' fileName='icon-logo.svg' alt='Concakt Logo' width={29.39} height={20.58} />
-          <div className='text-neutral-800 text-[1.801rem] font-semibold'>contakt</div>
+          <Link href={'/'}>
+            <div className='flex gap-2'>
+              <SVGIcon
+                className=' mt-1.5'
+                fileName='icon-logo.svg'
+                alt='Concakt Logo'
+                width={isMobile ? 29.39 : 45.89}
+                height={32.58}
+              />
+              <div className='mt-1 text-neutral-800 text-3xl font-semibold tracking-tight'>contakt</div>
+            </div>
+          </Link>
         </div>
       </div>
       <ScrollArea className='h-[82vh]'>

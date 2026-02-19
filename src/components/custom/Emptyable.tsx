@@ -1,7 +1,7 @@
 import { ReactNode, useCallback, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
-import { CreateContactDrawer } from '@/app/(business)/contacts/custom/CreateContactDialog';
+import { CreateContactDrawer } from '@/app/apps/(business)/contacts/custom/CreateContactDialog';
 
 interface IEmptyTableProps {
   title: string;

@@ -6,6 +6,7 @@ import ProfileForm from './ProfileForm';
 import { useSearchParams } from 'next/navigation';
 import AlertDisplayField from '@/components/custom/AlertMessageField';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useMediaQuery } from '@reactuses/core';
 
 const ProfileSection = () => {
   const [isEmailVerified, setIsEmailVerified] = useState<boolean>(false);
@@ -14,6 +15,7 @@ const ProfileSection = () => {
   const email = searchParams.get('email');
   const decodedEmail = decodeURIComponent(email!);
   const full_name = searchParams.get('name');
+  const isMobile = useMediaQuery('(max-width: 768px)', false);
 
   useEffect(() => {
     if (verified === 'true') setIsEmailVerified(true);
@@ -22,8 +24,18 @@ const ProfileSection = () => {
     <section className='w-full flex flex-col gap-4'>
       <div className='flex items-start justify-between px-4 sm:px-6 lg:px-8'>
         <div className='flex gap-0.5'>
-          <SVGIcon className=' mt-1.5' fileName='icon-logo.svg' alt='Concakt Logo' width={29.39} height={20.58} />
-          <div className='text-neutral-800 text-[1.801rem] font-semibold'>contakt</div>
+          <Link href={'/'}>
+            <div className='flex gap-2'>
+              <SVGIcon
+                className=' mt-1.5'
+                fileName='icon-logo.svg'
+                alt='Concakt Logo'
+                width={isMobile ? 29.39 : 45.89}
+                height={32.58}
+              />
+              <div className='mt-1 text-neutral-800 text-3xl font-semibold tracking-tight'>contakt</div>
+            </div>
+          </Link>
         </div>
         <div className='flex items-end mt-4 w-ful gap-1 text-sm md:text-base leading-4 md:leading-5'>
           <span className='font-normal text-neutral-base'>Already a user?</span>

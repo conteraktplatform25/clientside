@@ -29,7 +29,7 @@ interface GoogleProfile {
 const ROLE_REDIRECTS: Record<string, string> = {
   Super_Admin: '/admin',
   Admin: '/admin',
-  Business: '/',
+  Business: '/apps',
   Agent: '/agent',
 };
 
@@ -304,7 +304,7 @@ export const authOptions: NextAuthOptions = {
             user: creds.user,
             validity: creds.validity,
             tokens: creds.tokens,
-            redirectTo: ROLE_REDIRECTS[creds.user.role] ?? '/',
+            redirectTo: ROLE_REDIRECTS[creds.user.role] ?? '/apps',
           };
           nextToken.error = undefined;
           return nextToken;

@@ -46,7 +46,7 @@ const LoginForm = () => {
         router.push('/admin');
       } else if (user?.role === 'Agent') router.push('/agent');
       else {
-        router.push(`/`);
+        router.push(`/apps/dashboard`);
       }
     } else
       toast('Invalid Username and Password', {

@@ -4,6 +4,7 @@ import { getToken } from 'next-auth/jwt';
 import { UserObject } from 'next-auth';
 
 const PUBLIC_PATHS = [
+  '/',
   '/swagger',
   '/login',
   '/register',
@@ -20,6 +21,12 @@ const PUBLIC_PATHS = [
   '/error',
 ];
 
+export const ROLE_HOME_ROUTES: Record<string, string> = {
+  Super_Admin: '/admin',
+  Admin: '/admin',
+  Business: '/apps',
+};
+
 // const roleBasedRoutes: Record<string, string[]> = {
 //   '/admin': ['Admin', 'Super_Admin'],
 //   '/': ['Business'],
@@ -30,8 +37,14 @@ const roleBasedRoutes: Array<{
   allowedRoles: string[];
 }> = [
   { prefix: '/admin', allowedRoles: ['Admin', 'Super_Admin'] },
+  { prefix: '/apps', allowedRoles: ['Business'] },
   { prefix: '/agent', allowedRoles: ['Agent'] },
 ];
+export function resolveUserHomeRoute(role?: string): string | null {
+  if (!role) return null;
+
+  return ROLE_HOME_ROUTES[role];
+}
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;

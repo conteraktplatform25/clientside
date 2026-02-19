@@ -31,6 +31,7 @@ import {
 import { usePathname } from 'next/navigation';
 import clsx from 'clsx';
 import { cn } from '@/lib/utils';
+import { useMediaQuery } from '@reactuses/core';
 
 const SidebarComponent = () => {
   const { open } = useSidebar();
@@ -38,6 +39,7 @@ const SidebarComponent = () => {
   const [isAutomatedMessagingOpen, setIsAutomatedMessagingOpen] = useState(false);
   const [collapsedPopoverOpen, setCollapsedPopoverOpen] = useState(false);
   const popoverRef = useRef<HTMLDivElement | null>(null);
+  const isMobile = useMediaQuery('(max-width: 768px)', false);
 
   // close the collapsed popover when clicking outside
   useEffect(() => {
@@ -54,8 +56,18 @@ const SidebarComponent = () => {
       <SidebarInset>
         <SidebarHeader>
           <div className='flex gap-2 px-1'>
-            <SVGIcon className='mt-1.5' fileName='icon-logo.svg' alt='Concakt Logo' width={29.39} height={20.58} />
-            {open && <div className='text-neutral-800 text-[1.801rem] font-semibold'>contakt</div>}
+            <Link href={'/'}>
+              <div className='flex gap-2'>
+                <SVGIcon
+                  className=' mt-1.5'
+                  fileName='icon-logo.svg'
+                  alt='Concakt Logo'
+                  width={isMobile ? 29.39 : 45.89}
+                  height={32.58}
+                />
+                {open && <div className='mt-1 text-neutral-800 text-3xl font-semibold tracking-tight'>contakt</div>}
+              </div>
+            </Link>
           </div>
         </SidebarHeader>
         <SidebarContent className='flex flex-col max-h-[85vh]'>
@@ -65,10 +77,12 @@ const SidebarComponent = () => {
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
                     <Link
-                      href={'/'}
+                      href={'/apps/dashboard'}
                       className={cn(
                         'flex items-center gap-3 rounded-md px-3 py-2 font-medium text-base text-neutral-700 transition-all hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
-                        pathname === '/' ? 'bg-[#F7FAFF] text-primary-base' : 'text-neutral-700 hover:bg-transparent',
+                        pathname.includes('/dashboard')
+                          ? 'bg-[#F7FAFF] text-primary-base'
+                          : 'text-neutral-700 hover:bg-transparent',
                       )}
                     >
                       <House />
@@ -79,10 +93,10 @@ const SidebarComponent = () => {
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
                     <Link
-                      href={'/inbox'}
+                      href={'/apps/inbox'}
                       className={cn(
                         'flex items-center gap-3 rounded-md px-3 py-2 font-medium text-base text-neutral-700 transition-all hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
-                        pathname === '/inbox'
+                        pathname.includes('/inbox')
                           ? 'bg-[#F7FAFF] text-primary-base'
                           : 'text-neutral-700 hover:bg-transparent',
                       )}
@@ -95,10 +109,10 @@ const SidebarComponent = () => {
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
                     <Link
-                      href={'/orders'}
+                      href={'/apps/orders'}
                       className={cn(
                         'flex items-center gap-3 rounded-md px-3 py-2 font-medium text-base text-neutral-700 transition-all hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
-                        pathname === '/orders'
+                        pathname.includes('/orders')
                           ? 'bg-[#F7FAFF] text-primary-base'
                           : 'text-neutral-700 hover:bg-transparent',
                       )}
@@ -124,7 +138,7 @@ const SidebarComponent = () => {
                               type='button'
                               className={clsx(
                                 'w-full flex items-center justify-between rounded-md px-3 py-2 font-medium text-sm text-neutral-700 transition-all hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
-                                pathname.startsWith('/messaging') ? 'bg-[#F7FAFF] text-primary-base' : '',
+                                pathname.startsWith('/apps/messaging') ? 'bg-[#F7FAFF] text-primary-base' : '',
                               )}
                               aria-expanded={isAutomatedMessagingOpen}
                             >
@@ -152,7 +166,7 @@ const SidebarComponent = () => {
                               <SidebarMenuItem>
                                 <SidebarMenuButton asChild>
                                   <Link
-                                    href='/messaging/quick-reply'
+                                    href='/apps/messaging/quick-reply'
                                     className={clsx(
                                       'font-medium text-base rounded-md px-2 py-1 transition-colors block',
                                       pathname.includes('/quick-reply')
@@ -168,7 +182,7 @@ const SidebarComponent = () => {
                               <SidebarMenuItem>
                                 <SidebarMenuButton asChild>
                                   <Link
-                                    href='/messaging/broadcast'
+                                    href='/apps/messaging/broadcast'
                                     className={clsx(
                                       'font-medium text-base rounded-md px-2 py-1 transition-colors block',
                                       pathname.includes('/broadcast')
@@ -192,7 +206,9 @@ const SidebarComponent = () => {
                         type='button'
                         className={clsx(
                           'flex items-center justify-center w-10 h-10 rounded-md hover:bg-sidebar-accent focus:outline-none',
-                          pathname.startsWith('/messaging') ? 'bg-[#F7FAFF] text-primary-base' : 'text-neutral-700',
+                          pathname.startsWith('/apps/messaging')
+                            ? 'bg-[#F7FAFF] text-primary-base'
+                            : 'text-neutral-700',
                         )}
                         onClick={() => setCollapsedPopoverOpen((s) => !s)}
                         aria-expanded={collapsedPopoverOpen}
@@ -212,11 +228,11 @@ const SidebarComponent = () => {
                           </div>
                           <div className='px-2 pb-2'>
                             <Link
-                              href='/messaging/quick-reply'
+                              href='/apps/messaging/quick-reply'
                               onClick={() => setCollapsedPopoverOpen(false)}
                               className={clsx(
                                 'block rounded-md px-2 py-2 text-sm font-medium',
-                                pathname === '/messaging/quick-reply'
+                                pathname.includes('/messaging/quick-reply')
                                   ? 'bg-[#F7FAFF] text-primary-base'
                                   : 'text-neutral-700 hover:bg-sidebar-accent',
                               )}
@@ -224,11 +240,11 @@ const SidebarComponent = () => {
                               Quick reply
                             </Link>
                             <Link
-                              href='/messaging/broadcast'
+                              href='/apps/messaging/broadcast'
                               onClick={() => setCollapsedPopoverOpen(false)}
                               className={clsx(
                                 'block rounded-md px-2 py-2 text-sm font-medium mt-1',
-                                pathname === '/messaging/broadcast'
+                                pathname.includes('/messaging/broadcast')
                                   ? 'bg-[#F7FAFF] text-primary-base'
                                   : 'text-neutral-700 hover:bg-sidebar-accent',
                               )}
@@ -244,7 +260,7 @@ const SidebarComponent = () => {
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
                     <Link
-                      href={'/contacts'}
+                      href={'/apps/contacts'}
                       className={cn(
                         'flex items-center gap-3 rounded-md px-3 py-2 font-medium text-base text-neutral-700 transition-all hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
                         pathname.includes('/contacts')
@@ -260,7 +276,7 @@ const SidebarComponent = () => {
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
                     <Link
-                      href={'/integration'}
+                      href={'/apps/integration'}
                       className={cn(
                         'flex items-center gap-3 rounded-md px-3 py-2 font-medium text-base text-neutral-700 transition-all hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
                         pathname === '/Integration'
@@ -283,7 +299,7 @@ const SidebarComponent = () => {
                   <SidebarMenuItem>
                     <SidebarMenuButton asChild>
                       <Link
-                        href={'/catalogue-sharing'}
+                        href={'/apps/catalogue-sharing'}
                         className={cn(
                           'flex items-center gap-3 rounded-md px-3 py-2 font-medium text-base text-neutral-700 transition-all hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
                           pathname.includes('/catalogue-sharing')
@@ -299,7 +315,7 @@ const SidebarComponent = () => {
                   <SidebarMenuItem>
                     <SidebarMenuButton asChild>
                       <Link
-                        href={'/settings/user-profile'}
+                        href={'/apps/settings/user-profile'}
                         className={cn(
                           'flex items-center gap-3 rounded-md px-3 py-2 font-medium text-base text-neutral-700 transition-all hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
                           pathname.includes('/settings')
@@ -321,92 +337,6 @@ const SidebarComponent = () => {
       </SidebarInset>
     </Sidebar>
   );
-  // return (
-  //   <Sidebar variant='inset' collapsible='icon'>
-  //     <SidebarInset>
-  //       <SidebarHeader>
-  //         <div className='flex gap-2 px-1'>
-  //           <SVGIcon className=' mt-1.5' fileName='icon-logo.svg' alt='Concakt Logo' width={29.39} height={20.58} />
-  //           {open && <div className='text-neutral-800 text-[1.801rem] font-semibold'>contakt</div>}
-  //         </div>
-  //       </SidebarHeader>
-  //       <SidebarContent>
-  //         <SidebarGroup>
-  //           <SidebarGroupContent>
-  //             <SidebarMenu className='gap-4'>
-  //               {admin_side_menu.map((item) => (
-  //                 <SidebarMenuItem key={item.title}>
-  //                   {item.submenu ? (
-  //                     <Collapsible className='group/collapsible'>
-  //                       <SidebarGroup className='p-0'>
-  //                         <SidebarGroupLabel asChild>
-  //                           <CollapsibleTrigger>
-  //                             <p className='flex items-start gap-1'>
-  //                               <item.icon className='mt-1' width={16} height={16} />
-  //                               <span className='font-medium text-sm text-neutral-700 leading-[150%]'>
-  //                                 {item.title}
-  //                               </span>
-  //                             </p>
-  //                             <ChevronDown className='ml-auto transition-transform group-data-[state=open]/collapsible:rotate-180' />
-  //                           </CollapsibleTrigger>
-  //                         </SidebarGroupLabel>
-  //                         <CollapsibleContent className='px-4'>
-  //                           <SidebarGroupContent>
-  //                             <SidebarMenu className='gap-1'>
-  //                               {item.submenu.map((sub_item) => {
-  //                                 const isActive = pathname === sub_item.url;
-  //                                 return (
-  //                                   <SidebarMenuItem key={sub_item.title}>
-  //                                     <SidebarMenuButton asChild>
-  //                                       <Link
-  //                                         href={sub_item.url}
-  //                                         className={clsx(
-  //                                           'font-medium text-base rounded-md px-2 py-1 transition-colors',
-  //                                           isActive
-  //                                             ? 'bg-[#F7FAFF] text-primary-base'
-  //                                             : 'text-neutral-700 hover:bg-transparent'
-  //                                         )}
-  //                                       >
-  //                                         <span>{sub_item.title}</span>
-  //                                       </Link>
-  //                                     </SidebarMenuButton>
-  //                                   </SidebarMenuItem>
-  //                                 );
-  //                               })}
-  //                             </SidebarMenu>
-  //                           </SidebarGroupContent>
-  //                         </CollapsibleContent>
-  //                       </SidebarGroup>
-  //                     </Collapsible>
-  //                   ) : (
-  //                     (() => {
-  //                       const isActive = pathname === item.url;
-  //                       return (
-  //                         <SidebarMenuButton asChild>
-  //                           <Link
-  //                             href={item.url!}
-  //                             className={clsx(
-  //                               'font-medium text-base rounded-md px-2 py-1 flex items-center gap-2 transition-colors',
-  //                               isActive ? 'bg-[#F7FAFF] text-primary-base' : 'text-neutral-700 hover:bg-transparent'
-  //                             )}
-  //                           >
-  //                             <item.icon />
-  //                             <span>{item.title}</span>
-  //                           </Link>
-  //                         </SidebarMenuButton>
-  //                       );
-  //                     })()
-  //                   )}
-  //                 </SidebarMenuItem>
-  //               ))}
-  //             </SidebarMenu>
-  //           </SidebarGroupContent>
-  //         </SidebarGroup>
-  //       </SidebarContent>
-  //       <SidebarFooter />
-  //     </SidebarInset>
-  //   </Sidebar>
-  // );
 };
 
 export default SidebarComponent;
