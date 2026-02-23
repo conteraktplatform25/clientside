@@ -152,13 +152,6 @@ const WhatsappConnetForm = () => {
                     </div>
                   </div>
                   <div className='mt-10 w-full flex items-end justify-end gap-2'>
-                    {/* <Button
-                      onClick={() => router.push('/login')}
-                      variant={'default'}
-                      className='bg-white border-[#EEEFF1] text-neutral-700 hover:bg-neutral-100 font-medium w-fit'
-                    >
-                      Back to Login
-                    </Button> */}
                     <Button
                       variant={'default'}
                       className='bg-primary-base text-white hover:bg-primary-700 font-medium w-fit'

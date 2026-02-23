@@ -28,6 +28,7 @@ export async function GET() {
     }
 
     const businessProfileId = user.businessProfile[0].id;
+    console.log('Onboarding status: ', businessProfileId);
 
     let connect_status = false;
     let phone_status = false;

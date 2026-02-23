@@ -38,7 +38,7 @@ const SignupVerificationSection = () => {
         </div>
         <div className='flex items-end mt-4 w-ful gap-1 text-sm md:text-base leading-4 md:leading-5'>
           <span className='font-normal text-neutral-base'>Already a user?</span>
-          <Link href={'/auth/login'}>
+          <Link href={'/login'}>
             <span className='font-semibold text-primary-base hover:text-primary-700'>Login</span>
           </Link>
         </div>

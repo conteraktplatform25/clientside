@@ -12,26 +12,26 @@ export const ConstUserTask: IGettingStartedOption[] = [
   {
     value: 'phoneNumber',
     label: 'Connect your number',
-    href: '/profile/settings',
+    href: '/apps/settings/manage-team',
   },
   {
     value: 'businessProfile',
     label: 'Setup whatsapp profile',
-    href: '/business/profile',
+    href: '/apps/settings/business-profile',
   },
   {
     value: 'contactInformation',
     label: 'Add contacts',
-    href: '/contacts',
+    href: '/apps/contacts',
   },
   {
     value: 'productCatalogue',
     label: 'Create product catalogue',
-    href: '/catalogue-sharing',
+    href: '/apps/catalogue-sharing',
   },
   {
     value: 'quickReplies',
     label: 'Setup quick replies',
-    href: '/messaging/quick-reply',
+    href: '/apps/messaging/quick-reply',
   },
 ];
