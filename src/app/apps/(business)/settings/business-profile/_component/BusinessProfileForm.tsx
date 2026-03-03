@@ -239,37 +239,6 @@ const BusinessProfileForm = ({ className }: BusinessProfileFormProps) => {
                       </FormItem>
                     )}
                   />
-                  {/* <Card className='w-full max-w-xs p-0 shadow-none rounded-sm'>
-                  <div className='grid grid-cols-3'>
-                    <div className='col-span-1'>
-                      <SelectField<TBusinessProfileForm>
-                        control={control}
-                        name={'phoneCountryCodeNumber'}
-                        label=''
-                        options={ConstCountryCodeOptions}
-                        className='border-none shadow-none rounded-none focus-visible:ring-0 w-[90px]'
-                        disabled
-                      />
-                    </div>
-                    <div className='col-span-2 flex flex-item gap-0.5'>
-                      <InputField<TBusinessProfileForm>
-                        name={'phoneNumber'}
-                        control={control}
-                        type='text'
-                        placeholder='Enter Phone Number'
-                        className='border-none shadow-none rounded-none focus-visible:border-none focus-visible:ring-0'
-                      />
-                    </div>
-                  </div>
-                </Card> */}
-                  {/* <InputField<TBusinessProfileForm>
-                  name='phoneNumber'
-                  control={control}
-                  type='text'
-                  placeholder='Enter Business Phone Number'
-                  className={`focus-visible:ring-0 ${cn(errors.phoneNumber && 'border-red-500 focus:border-red-500')}`}
-                />
-                {errors.phoneNumber && <p className='text-sm text-red-600'>{errors.phoneNumber.message}</p>} */}
                 </div>
               </div>
             </div>
@@ -346,7 +315,7 @@ const BusinessProfileForm = ({ className }: BusinessProfileFormProps) => {
                     placeholder='Tell customers about your business...'
                     className={cn(
                       'min-h-[100px] resize-none max-w-md',
-                      errors.bio && 'border-red-500 focus:border-red-500'
+                      errors.bio && 'border-red-500 focus:border-red-500',
                     )}
                     {...register('bio')}
                   />

@@ -144,7 +144,7 @@ const ProductCatalogueGalleryTest: React.FC = () => {
             </SelectContent>
           </Select>
           <Button variant='outline' className='w-full sm:w-auto'>
-            <Link href='/catalogue-sharing/new-product' className='inline-flex items-center space-x-1.5'>
+            <Link href='/apps/catalogue-sharing/new-product' className='inline-flex items-center space-x-1.5'>
               <Plus className='mr-2 h-4 w-4' /> Add more
             </Link>
           </Button>
@@ -225,7 +225,7 @@ const EmptyProductTest = ({ categories }: { categories: TCategoryResponse[] }) =
             >
               Add Categories
             </Button>
-            <Link href='/catalogue-sharing/new-product'>
+            <Link href='/apps/catalogue-sharing/new-product'>
               <Button className='bg-primary-base hover:bg-primary-700 text-white'>Create products</Button>
             </Link>
           </div>
@@ -250,7 +250,7 @@ const EmptyProductTest = ({ categories }: { categories: TCategoryResponse[] }) =
         </p>
         <Button
           onClick={() =>
-            categories.length > 0 ? router.push('/catalogue-sharing/new-product') : setIsCategoriesDialogOpen(true)
+            categories.length > 0 ? router.push('/apps/catalogue-sharing/new-product') : setIsCategoriesDialogOpen(true)
           }
           className='mt-2 bg-primary-base text-white rounded-md flex items-center gap-2'
         >

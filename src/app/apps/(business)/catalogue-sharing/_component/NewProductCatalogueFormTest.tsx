@@ -78,19 +78,6 @@ const NewProductCatalogueFormTest: React.FC = () => {
 
     setFiles((prev) => [...prev, ...selectedFiles]);
     setImagePreviews((prev) => prev.concat(selectedFiles.map((f) => URL.createObjectURL(f))));
-
-    // const newPreviews = selectedFiles.map((file) => URL.createObjectURL(file));
-    // setImagePreviews((prev) => [...prev, ...newPreviews]);
-    // setFiles((prev) => [...prev, ...selectedFiles]);
-
-    // // Update form media field
-    // const mediaEntries = selectedFiles.map((file, index) => ({
-    //   url: '', // will be populated after upload
-    //   altText: file.name,
-    //   order: (getValues('media')?.length ?? 0) + index + 1,
-    // }));
-
-    // form.setValue('media', [...(form.getValues('media') ?? []), ...mediaEntries]);
   };
 
   const handleRemoveImage = (index: number) => {
@@ -113,7 +100,7 @@ const NewProductCatalogueFormTest: React.FC = () => {
       JSON.stringify({
         ...data,
         media: undefined, // server handles media
-      })
+      }),
     );
     files.forEach((file) => {
       formData.append('images', file);

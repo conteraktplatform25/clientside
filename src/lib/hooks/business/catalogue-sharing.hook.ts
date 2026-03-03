@@ -187,9 +187,6 @@ export const useGetProducts = (categoryId?: string, search?: string, page: numbe
   });
 
 export const useCreateProduct = () => {
-  // const clearDesktopProducts = useProductCatalogueStore((state) => state.clearDesktopProducts);
-  // const setDesktopProducts = useProductCatalogueStore((state) => state.setDesktopProducts);
-
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -241,7 +238,7 @@ export const usePublishProduct = () => {
               ...old,
               products: old.products.map((p) => (p.id === productId ? { ...p, status: ProductStatus.PUBLISHED } : p)),
             }
-          : old
+          : old,
       );
       return { previous };
     },
@@ -313,10 +310,10 @@ export const useUpdateProduct = () => {
                       stock: data.stock ?? p.stock,
                       sku: data.sku ?? p.sku,
                     }
-                  : p
+                  : p,
               ),
             }
-          : old
+          : old,
       );
       return { previous };
     },

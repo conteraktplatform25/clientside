@@ -1,4 +1,4 @@
-import type { Profile, DefaultSession, DefaultUser } from 'next-auth';
+import type { DefaultSession, DefaultUser } from 'next-auth';
 
 declare module 'next-auth' {
   /**
@@ -61,8 +61,6 @@ declare module 'next-auth' {
     validity: AuthValidity | object;
     error?: 'RefreshTokenExpired' | 'RefreshAccessTokenError';
     redirectTo?: string;
-    accessToken: string;
-    refreshToken: string;
     accessToken: string;
     refreshToken: string;
   }

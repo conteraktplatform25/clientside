@@ -175,7 +175,7 @@ export function CreateContactDrawer({ open, onClose }: CreateContactDrawerProps)
       custom_fields: (data.custom_fields ?? {}) as Record<string, CustomField>,
     };
 
-    createContact.mutate(serverContact);
+    createContact.mutateAsync(serverContact);
     setAlert({
       type: 'success',
       title: 'Registration Successful',

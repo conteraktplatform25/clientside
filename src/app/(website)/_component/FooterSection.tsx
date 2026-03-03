@@ -1,6 +1,7 @@
 'use client';
 
 import React, { FC } from 'react';
+import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import SVGIcon from '@/components/custom/SVGIcons';
@@ -74,7 +75,22 @@ const FooterSection: FC = () => {
             viewport={{ once: true }}
             className=' pt-6 flex flex-col sm:flex-row justify-between items-center text-sm text-gray-500'
           >
-            <span>© Copyright 2025 Contakt platform. All Rights Reserved</span>
+            <span>© Copyright 2025 Contakt platform. All Rights Reserved&nbsp;</span>
+            <div className='flex items-center'>
+              <Link
+                href='/privacy-policy'
+                className='text-primary-base hover:text-primary-700 transition-colors duration-200 underline underline-offset-2'
+              >
+                Privacy Policy
+              </Link>
+              <span>&nbsp;and&nbsp;</span>
+              <Link
+                href='/terms-condition'
+                className='text-primary-base hover:text-primary-700 transition-colors duration-200 underline underline-offset-2'
+              >
+                Terms & Conditions
+              </Link>
+            </div>
           </motion.div>
         </div>
       </div>

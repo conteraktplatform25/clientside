@@ -5,6 +5,8 @@ import { UserObject } from 'next-auth';
 
 const PUBLIC_PATHS = [
   '/',
+  '/privacy-policy',
+  '/terms-condition',
   '/swagger',
   '/login',
   '/register',
@@ -85,6 +87,6 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!api|login|register|signup-otp-verification|verification|forgot-password|otp-verification|profile|invited-member|reset-password|_next|.*\\.(?:png|jpg|jpeg|svg|css|js|ico)$).*)',
+    '/((?!api|login|register|privacy-policy|terms-condition|signup-otp-verification|verification|forgot-password|otp-verification|profile|invited-member|reset-password|_next|.*\\.(?:png|jpg|jpeg|svg|css|js|ico)$).*)',
   ],
 };
