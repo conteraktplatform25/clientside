@@ -1,9 +1,9 @@
 'use client';
 
-import React, { FC } from 'react';
+import { FC } from 'react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
-import SVGIcon from '@/components/custom/SVGIcons';
+import SVGIcon from '@/components/customs/SVGIcons';
 
 const HeroSection: FC = () => {
   return (
@@ -28,7 +28,7 @@ const HeroSection: FC = () => {
             transition={{ duration: 0.8, ease: 'easeOut', delay: 0.2 }}
             className='w-full md:max-w-lg mx-auto'
           >
-            <p className='text-lg md:text-xl text-neutral-base mb-8 text-center'>
+            <p className='text-lg md:text-xl text-neutral mb-8 text-center'>
               Contakt helps you manage all your customer conversations, orders, and payments from one place — whether
               you&apos;re on your phone or at your desk.
             </p>
@@ -53,7 +53,7 @@ const HeroSection: FC = () => {
               transition={{ duration: 0.5, ease: 'easeOut', delay: 0.5 }}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className='text-primary-base px-6 py-3 rounded-[10px] font-medium border border-primary-base hover:bg-primary-100 transition-colors cursor-pointer'
+              className='text-primary-base px-6 py-3 rounded-[10px] font-medium border border-primary hover:bg-primary-100 transition-colors cursor-pointer'
             >
               Learn more
             </motion.a>
@@ -81,9 +81,9 @@ const HeroSection: FC = () => {
           {/* Browser bar simulation */}
           <div className='flex items-center px-4 py-2 bg-neutral-100 border-b border-neutral-200'>
             <div className='flex space-x-2'>
-              <div className='w-3 h-3 rounded-full bg-error-base'></div>
-              <div className='w-3 h-3 rounded-full bg-warning-base'></div>
-              <div className='w-3 h-3 rounded-full bg-success-base'></div>
+              <div className='w-3 h-3 rounded-full bg-error'></div>
+              <div className='w-3 h-3 rounded-full bg-warning'></div>
+              <div className='w-3 h-3 rounded-full bg-success'></div>
             </div>
             <div className='flex-1 text-center text-sm text-neutral-600'>https://usecontakt.com</div>
           </div>

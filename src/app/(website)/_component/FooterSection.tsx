@@ -1,10 +1,10 @@
 'use client';
 
-import React, { FC } from 'react';
+import { FC } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
-import SVGIcon from '@/components/custom/SVGIcons';
+import SVGIcon from '@/components/customs/SVGIcons';
 import { useMediaQuery } from '@reactuses/core';
 
 const FooterSection: FC = () => {
@@ -24,7 +24,7 @@ const FooterSection: FC = () => {
           >
             <h2 className='text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-2'>Get Started Now</h2>
 
-            <p className='text-neutral-base text-lg leading-relaxed'>
+            <p className='text-neutral text-lg leading-relaxed'>
               Join hundreds of businesses using Kontakt to stay organized, delight customers, and grow faster.
             </p>
           </motion.div>
@@ -39,10 +39,7 @@ const FooterSection: FC = () => {
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.97 }}
-              className='w-full lg:w-auto inline-flex items-center justify-center gap-2
-              bg-blue-600 text-white font-medium
-              px-8 py-4 rounded-xl shadow-lg
-              hover:bg-blue-700 transition-colors duration-300'
+              className='w-full lg:w-auto inline-flex items-center justify-center gap-2 bg-blue-600 text-white font-medium px-8 py-4 rounded-xl shadow-lg hover:bg-blue-700 transition-colors duration-300'
             >
               Get started
               <ArrowRight size={18} />
@@ -79,7 +76,7 @@ const FooterSection: FC = () => {
             <div className='flex items-center'>
               <Link
                 href='/privacy-policy'
-                className='text-primary-base hover:text-primary-700 transition-colors duration-200 underline underline-offset-2'
+                className=' text-primary-base hover:text-primary-700 transition-colors duration-200 underline underline-offset-2'
               >
                 Privacy Policy
               </Link>

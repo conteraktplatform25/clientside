@@ -1,13 +1,10 @@
 'use client';
 
-import React, { FC, useState } from 'react';
+import { FC, useState } from 'react';
 import { AnimatePresence, motion, useMotionValueEvent, useScroll } from 'framer-motion';
 import Link from 'next/link';
-import SVGIcon from '@/components/custom/SVGIcons';
-import { Session, UserObject } from 'next-auth';
-import { signOut, useSession } from 'next-auth/react';
+import SVGIcon from '@/components/customs/SVGIcons';
 import { useMediaQuery } from '@reactuses/core';
-import { useRoleRouteResolver } from '@/lib/hooks/use-roleRouteResolver.hook';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -20,27 +17,30 @@ import {
 import { Avatar, AvatarBadge, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { getInitials } from '@/lib/helpers/string-manipulator.helper';
 import { LogOut } from 'lucide-react';
+import { resolveUserHomeRoute, useSessionStore } from '@/lib/store/auth/auth-session.store';
+import { ICurrentSessionUser } from '@/types/auth/auth-user.type';
 
-interface INavbarProps {
-  session?: Session | null;
-}
-
-const TopNavigationBar: FC = ({ session }: INavbarProps) => {
-  //const [isOpen, setIsOpen] = useState(false);
+const TopNavigationBar: FC = () => {
   const [hasScrolled, setHasScrolled] = useState(false);
 
-  const { data: clientSession, status } = useSession();
+  const { session } = useSessionStore();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const isMobile = useMediaQuery('(max-width: 768px)', false);
-  const roleBasePath = useRoleRouteResolver();
+  let actualRole = null;
+  if (session) {
+    if (session.businessProfile) {
+      actualRole = session.businessProfile[0].roleName;
+    } else {
+      actualRole = session?.sessionUser.role;
+    }
+  }
+  const roleBasePath = resolveUserHomeRoute(actualRole);
 
   const { scrollY } = useScroll();
   useMotionValueEvent(scrollY, 'change', (latest) => {
     setHasScrolled(latest > 20);
   });
   const toggleMenu = () => setIsMenuOpen((prev) => !prev);
-
-  const effectiveSession = status === 'loading' ? session : clientSession;
 
   const drawerVariants = {
     closed: { x: '100%' },
@@ -53,7 +53,7 @@ const TopNavigationBar: FC = ({ session }: INavbarProps) => {
   return (
     <>
       <motion.nav
-        initial={{ y: -100 }}
+        initial={{ y: -80 }}
         animate={{ y: 0 }}
         transition={{ duration: 0.7, ease: [0.25, 0.8, 0.25, 1] }}
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
@@ -80,7 +80,7 @@ const TopNavigationBar: FC = ({ session }: INavbarProps) => {
             {/* Desktop Navigation */}
             <div className='hidden md:flex items-center gap-8'>
               {/* <DesktopNavItems /> */}
-              <AuthActionsDesktop user={effectiveSession?.user} roleBasePath={roleBasePath} />
+              <AuthActionsDesktop user={session} roleBasePath={roleBasePath} />
             </div>
             {/* Mobile Menu Button */}
             <div className='md:hidden'>
@@ -155,7 +155,7 @@ const TopNavigationBar: FC = ({ session }: INavbarProps) => {
                 </div> */}
                 {/* Footer CTAs */}
                 <div className='p-6 border-t border-neutral-200 flex flex-col gap-4'>
-                  <AuthActionsDesktop user={effectiveSession?.user} roleBasePath={roleBasePath} />
+                  <AuthActionsDesktop user={session} roleBasePath={roleBasePath} />
                 </div>
               </div>
             </motion.div>
@@ -172,8 +172,8 @@ function AuthActionsDesktop({
   user,
   roleBasePath,
 }: {
-  user: UserObject | null | undefined;
-  roleBasePath: string | null;
+  readonly user: ICurrentSessionUser | null | undefined;
+  readonly roleBasePath: string | null;
 }) {
   if (!user) {
     return (
@@ -188,7 +188,7 @@ function AuthActionsDesktop({
           Login
         </motion.a>
         <motion.a
-          href='/get-started'
+          href='/register'
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.97 }}
           transition={{ duration: 0.25, ease: 'easeOut' }}
@@ -199,12 +199,12 @@ function AuthActionsDesktop({
       </>
     );
   } else {
-    const nameInitials = getInitials(user.first_name ?? '', user.last_name ?? '');
+    const nameInitials = getInitials(user.sessionUser.firstName ?? '', user.sessionUser.lastName ?? '');
     return (
       <DropdownMenu>
         <DropdownMenuTrigger className='cursor-pointer' asChild>
           <Avatar>
-            <AvatarImage src={user.image!} alt='Auth_User' className=' grayscale' />
+            <AvatarImage src={user.sessionUser.image!} alt='Auth_User' className=' grayscale' />
             <AvatarFallback className='font-bold text-xl'>{nameInitials}</AvatarFallback>
             <AvatarBadge className='bg-primary-700' />
           </Avatar>
@@ -218,17 +218,15 @@ function AuthActionsDesktop({
               <div className='flex flex-col items-start justify-center'>
                 <p className='text-left text-base font-semibold leading-[150%] text-neutral-700'>Signed in as</p>
                 <p className='text-left text-sm font-medium leading-[150%] text-neutral-400'>
-                  {`${user.first_name} ${user.last_name}`}
+                  {`${user.sessionUser.firstName} ${user.sessionUser.lastName}`}
                 </p>
-                <p className='text-left text-sm font-medium leading-[150%] text-neutral-400'>{`${user.email}`}</p>
+                <p className='text-left text-sm font-medium leading-[150%] text-neutral-400'>{`${user.sessionUser.email}`}</p>
               </div>
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <div className='flex flex-col gap-2 p-3'>
-            <p className='text-sm font-semibold leading-[130%] tracking-[120%] uppercase text-neutral-400'>
-              Account Summary
-            </p>
+            <p className='text-sm font-semibold uppercase text-neutral-400'>Account Summary</p>
             <div className='flex flex-col gap-3'>
               <DropdownMenuItem key={'dashboard'} className='hover:bg-transparent text-black/70 hover:text-black'>
                 <Link href={`${roleBasePath}/dashboard`}>{'Dashboard'}</Link>
@@ -238,12 +236,12 @@ function AuthActionsDesktop({
                   className='p-0 w-fit text-primary-base hover:text-primary-700'
                   variant={'ghost'}
                   size={'sm'}
-                  onClick={() => signOut({ callbackUrl: '/login' })}
+                  //onClick={() => signOut({ callbackUrl: '/login' })}
                   asChild
                 >
                   <div className='inline-flex space-x-1'>
-                    <LogOut className='mt-0.5 text-error-base' />
-                    <p className='text-sm text-neutral-base leading-[150%]'>Log out</p>
+                    <LogOut className='mt-0.5 text-error' />
+                    <p className='text-sm text-neutral leading-[150%]'>Log out</p>
                   </div>
                 </Button>
               </DropdownMenuItem>

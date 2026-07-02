@@ -1,5 +1,3 @@
-import { CurrencyType } from '@prisma/client';
-
 export const truncateText = (text: string, maxLength: number): string => {
   return text.length > maxLength ? text.slice(0, maxLength) + '...' : text;
 };
@@ -34,16 +32,16 @@ export const parsePhoneNumber = (input: string) => {
   }
 };
 
-export const getCurrencySymbol = (currency: CurrencyType): string => {
-  const map: Record<CurrencyType, string> = {
-    NAIRA: '₦',
-    DOLLAR: '$',
-    POUND: '£',
-    EURO: '€',
-    CNY: '¥',
-  };
-  return map[currency] ?? '₦';
-};
+// export const getCurrencySymbol = (currency: CurrencyType): string => {
+//   const map: Record<CurrencyType, string> = {
+//     NAIRA: '₦',
+//     DOLLAR: '$',
+//     POUND: '£',
+//     EURO: '€',
+//     CNY: '¥',
+//   };
+//   return map[currency] ?? '₦';
+// };
 
 export function stripHtml(html: string): string {
   return html.replace(/<\/?[^>]+(>|$)/g, '').trim();
@@ -78,3 +76,7 @@ export const formatEnumLabel = (value: string): string =>
     .split('_')
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
+
+export const isInvalidParam = (value: string | null) => {
+  return !value || value === 'undefined' || value === 'null' || value.trim() === '';
+};

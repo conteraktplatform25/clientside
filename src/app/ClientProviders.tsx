@@ -1,24 +1,23 @@
-'use client';
-
+"use client"
 import { ReactNode, useState } from 'react';
-import { SessionProvider } from 'next-auth/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import LoaderWrapper from '@/components/custom/LoaderWrapper';
 import { Toaster } from 'sonner';
-import { ServerIndicator } from '@/components/custom/ServerIndicator';
+import { TooltipProvider } from '@/components/ui/tooltip';
+import { ServerIndicator } from '@/components/customs/ServerIndicator';
+import FacebookSDK from '@/components/externals/facebook/FacebookSDK';
 
-export default function ClientProviders({ children }: { children: ReactNode }) {
+export default function ClientProviders({ children }: { readonly children: ReactNode }) {
   const [queryClient] = useState(() => new QueryClient());
 
   return (
-    <LoaderWrapper>
-      <SessionProvider>
-        <QueryClientProvider client={queryClient}>
-          <ServerIndicator />
-          {children}
-          <Toaster position='top-right' />
-        </QueryClientProvider>
-      </SessionProvider>
-    </LoaderWrapper>
+    <QueryClientProvider client={queryClient}>
+      <ServerIndicator />
+      <FacebookSDK />
+      <TooltipProvider>
+        {children}
+        {/* <SessionProvider sessionUser={sessionUser}></SessionProvider> */}
+      </TooltipProvider>
+      <Toaster position='top-right' />
+    </QueryClientProvider>
   );
 }

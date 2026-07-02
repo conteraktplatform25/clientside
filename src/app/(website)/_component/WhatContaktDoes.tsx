@@ -117,7 +117,7 @@ const WhatContaktDoesSection: FC = () => {
                 <span className='text-right font-medium text-neutral-800'>12/09/2025</span>
                 <span className='font-medium text-neutral-400'>Order Status</span>
                 <div className='flex items-center justify-end gap-2'>
-                  <span className='w-2.5 h-2.5 rounded-full bg-warning-base' />
+                  <span className='w-2.5 h-2.5 rounded-full bg-warning' />
                   <span className='font-medium text-warning-700'>Pending</span>
                 </div>
               </div>

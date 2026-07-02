@@ -1,5 +1,3 @@
-// src/app/(website)/privacy-policy/page.tsx
-
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -11,7 +9,7 @@ export const metadata: Metadata = {
   },
 };
 
-export default function PrivacyPolicyPage() {
+export default function PrivacyPolicyPage(){
   return (
     <section className='relative bg-primary-50'>
       {/* Hero Section */}
@@ -50,7 +48,7 @@ export default function PrivacyPolicyPage() {
                   <li>Name and contact details</li>
                   <li>Email address</li>
                   <li>WhatsApp phone number</li>
-                  <li>Business information (if applicable)</li>
+                  <li>Business information</li>
                 </ul>
               </div>
 
@@ -108,5 +106,5 @@ export default function PrivacyPolicyPage() {
         </div>
       </main>
     </section>
-  );
+  )
 }

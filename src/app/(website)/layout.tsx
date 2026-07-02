@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react';
+import { ReactNode } from 'react';
 import TopNavigationBar from './_component/TopNavigationBar';
 import FooterSection from './_component/FooterSection';
 

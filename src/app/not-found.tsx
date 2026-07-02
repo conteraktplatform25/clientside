@@ -2,11 +2,6 @@
 import { Card, CardContent } from '@/components/ui/card';
 
 export default function NotFound() {
-  //const router = useRouter();
-
-  // const handleHomeLink = () => {
-  //   router.push('/');
-  // };
   return (
     <div className='flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-900 to-black text-white px-4'>
       <Card className='max-w-lg w-full rounded-2xl shadow-lg bg-primary-300'>
