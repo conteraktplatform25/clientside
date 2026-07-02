@@ -23,7 +23,7 @@ const DateFilter: React.FC<DateFilterProps> = ({ selectedDate, onDateChange }) =
         </Button>
       </PopoverTrigger>
       <PopoverContent className='w-auto p-0'>
-        <Calendar mode='single' selected={selectedDate} onSelect={onDateChange} initialFocus />
+        <Calendar mode='single' selected={selectedDate} onSelect={onDateChange} />
       </PopoverContent>
     </Popover>
   );

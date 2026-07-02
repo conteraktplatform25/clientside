@@ -1,6 +1,6 @@
 import React from 'react';
 import Image from 'next/image';
-import { TSVGIconProps } from '@/type/client/default.type';
+import { TSVGIconProps } from './types/data-table.type';
 
 const SVGIcon: React.FC<TSVGIconProps> = ({ fileName, alt, className, width = 24, height = 24 }) => {
   const imageSrc = `/images/icons/${fileName}`;

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { NextRequest } from 'next/server';
-import { getErrorMessage } from '@/utils/errors';
+import { getErrorMessage } from '@/utils/errors.util';
 
 /**
  * Validate and parse a Next.js Request using a Zod schema.

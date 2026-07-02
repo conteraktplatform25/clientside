@@ -14,7 +14,7 @@ interface ImageUploaderProps {
   className?: string;
 }
 
-export function ImageUploader({ value, onChange, className }: ImageUploaderProps) {
+export function ImageUploader({ value, onChange, className }: Readonly<ImageUploaderProps>) {
   const [preview, setPreview] = useState<string | undefined>();
   const [isCompressing, setIsCompressing] = useState(false);
   const [progress, setProgress] = useState<number>(0);
@@ -66,7 +66,7 @@ export function ImageUploader({ value, onChange, className }: ImageUploaderProps
         console.error('Image compression failed:', error);
       }
     },
-    [onChange]
+    [onChange],
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -112,7 +112,7 @@ export function ImageUploader({ value, onChange, className }: ImageUploaderProps
           className={cn(
             'cursor-pointer',
             'border px-4 py-2 rounded-md hover:bg-gray-50 flex items-center gap-2',
-            isDragActive && 'opacity-70 bg-primary-50 border-primary-300'
+            isDragActive && 'opacity-70 bg-primary-50 border-primary-300',
           )}
         >
           <input {...getInputProps()} />

@@ -1,6 +1,6 @@
 'use client';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { IDataTableProps } from '@/type/client/default.type';
+import { IDataTableProps } from './types/data-table.type';
 import {
   ColumnFiltersState,
   flexRender,
