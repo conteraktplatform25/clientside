@@ -55,16 +55,17 @@ function LoginMainForm() {
     try {
       await loginMutation.mutateAsync(data, {
         onSuccess: (response) => {
-          console.log('Verified Login information', response);
+          //console.log('Verified Login information', response);
           toast('Successfully Logged In.');
           router.push(`/business`);
         },
         onError: (error) => {
-          console.log('Verified Login information', JSON.stringify(error));
+          //console.log('Verified Login information', JSON.stringify(error));
           setAlert({
             type: 'error',
             title: `Signup Failed - ${error.message.message}`,
           });
+          toast.error(`Failed to log in. ${error.message.message}`);
         },
       });
     } finally {

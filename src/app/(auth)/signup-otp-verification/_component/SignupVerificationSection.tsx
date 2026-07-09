@@ -69,7 +69,7 @@ export function SignupVerificationForm({ email, flow }: Readonly<ISignupVerifica
       { email },
       {
         onSuccess: (response) => {
-          toast.success(response.data?.message);
+          toast.success(response.message);
 
           setCountdown(20);
           setCanResend(false);
@@ -93,7 +93,7 @@ export function SignupVerificationForm({ email, flow }: Readonly<ISignupVerifica
             title: `Email verification was successful - ${response.data?.onboardingStep}`,
             description: response.message,
           });
-          console.log('Successful delivery: ', response.data);
+          console.log('Successful delivery: ', response);
           const fullName = `${response.data?.firstName} ${response.data?.lastName}`;
           router.push(`/business-profile?email=${response.data?.email}&name=${fullName}&verified=${true}`);
           reset();

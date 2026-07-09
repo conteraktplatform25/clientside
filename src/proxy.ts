@@ -1,4 +1,14 @@
-import { NextResponse, NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+
+const AUTH_ROUTES = ['/login', 'signup-otp-verification', '/register'];
+const PROTECTED_ROUTES = [
+  '/business-profile',
+  '/connect-business-details',
+  '/connect-number',
+  '/meta-connect',
+  '/business',
+  '/admin',
+];
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -15,23 +25,22 @@ export function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // const accessToken = request.cookies.get('contakt_access_token')?.value;
   const accessToken = request.cookies.get('contakt_access_token')?.value;
+  // const refreshToken = request.cookies.get('contakt_refresh_token')?.value;
   console.log('Profile Info AccessToken:', accessToken);
-  const isAuthenticated = !!accessToken;
 
-  /* ========================================================================================
-     AUTHENTICATION LOGIC
-  =========================================================================================== */
-  const isAuthRoute = pathname.startsWith('/login');
-  const isPlatformRoute = pathname.startsWith('/business');
+  const isAuthenticated = Boolean(accessToken);
+  const isAuthRoute = AUTH_ROUTES.some((route) => pathname.startsWith(route));
+  const isProtectedRoute = PROTECTED_ROUTES.some((route) => pathname.startsWith(route));
 
-  if (!isAuthenticated && isPlatformRoute) {
+  if (!isAuthenticated && isProtectedRoute) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
-  // Redirect authenticated users away from auth pages
   if (isAuthenticated && isAuthRoute) {
-    return NextResponse.redirect(new URL(`/business`, request.url));
+    return NextResponse.next();
   }
+
   return NextResponse.next();
 }
 

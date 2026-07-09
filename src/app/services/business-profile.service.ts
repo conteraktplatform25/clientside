@@ -1,4 +1,5 @@
-import {POST} from '@/lib/api-client'
+import { apiClientV } from '@/lib/api/api-client-v';
+import { ApiResponse } from '@/types/api-response.type';
 import {
   ConnectPhoneNumberResponse,
   CreateBusinessProfileResponse,
@@ -7,8 +8,20 @@ import {
 } from '@/types/business/business-profile.type';
 
 export const businessProfileService = {
-  createBusinessProfile: (payload: TCreateBusinessProfilePayload) =>
-    POST<CreateBusinessProfileResponse, TCreateBusinessProfilePayload>('/business/create-profile', payload),
-  connectPhoneNumber: (payload: TConnectPhoneNumberPayload) =>
-    POST<ConnectPhoneNumberResponse, TConnectPhoneNumberPayload>('/whatsapp/onboarding/init', payload),
+  async createBusinessProfile(
+    payload: TCreateBusinessProfilePayload,
+  ): Promise<ApiResponse<CreateBusinessProfileResponse>> {
+    const { data } = await apiClientV.post<ApiResponse<CreateBusinessProfileResponse>>(
+      '/business-profile/create',
+      payload,
+    );
+    return data;
+  },
+  async connectPhoneNumber(payload: TConnectPhoneNumberPayload): Promise<ApiResponse<ConnectPhoneNumberResponse>> {
+    const { data } = await apiClientV.post<ApiResponse<ConnectPhoneNumberResponse>>(
+      '/business-profile/connect-phone',
+      payload,
+    );
+    return data;
+  },
 };

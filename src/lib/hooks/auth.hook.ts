@@ -15,7 +15,7 @@ import { useMutation } from '@tanstack/react-query';
 export const authenticationHook = {
   useSignup: () => {
     return useMutation<ApiResponse<SignupResponse>, ApiErrorResponse, TSignupPayload>({
-      mutationFn: (payload) => authService.register(payload),
+      mutationFn: (payload) => authService.signup(payload),
     });
   },
   useLogin: () => {
@@ -25,12 +25,12 @@ export const authenticationHook = {
   },
   useEmailVerification: () => {
     return useMutation<ApiResponse<SignupVerificationResponse>, ApiErrorResponse, TSignupVerificationPayload>({
-      mutationFn: (payload) => authService.emailVerification(payload),
+      mutationFn: (payload) => authService.email_verification(payload),
     });
   },
   useRendOTP: () => {
     return useMutation<ApiResponse<ResendOTPResponse>, ApiErrorResponse, TResendOTPPayload>({
-      mutationFn: (payload) => authService.resendOTP(payload),
+      mutationFn: (payload) => authService.resend_otp(payload),
     });
   },
 };

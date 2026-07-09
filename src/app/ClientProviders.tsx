@@ -15,7 +15,6 @@ export default function ClientProviders({ children }: { readonly children: React
       <FacebookSDK />
       <TooltipProvider>
         {children}
-        {/* <SessionProvider sessionUser={sessionUser}></SessionProvider> */}
       </TooltipProvider>
       <Toaster position='top-right' />
     </QueryClientProvider>

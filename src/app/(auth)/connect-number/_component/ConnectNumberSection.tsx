@@ -42,7 +42,7 @@ export function ConnectNumberSection() {
   const isMobile = useMediaQuery('(max-width: 768px)', false);
 
   const connectPhoneMutation = businessProfileHook.useConnectPhoneNumber();
-  const { connect, loading: metaLoading } = useMeta()
+  const { connect, loading: metaLoading } = useMeta();
 
   useEffect(() => {
     if (isInvalidParam(email) || isInvalidParam(full_name)) {
@@ -90,7 +90,7 @@ export function ConnectNumberSection() {
       const response = await connectPhoneMutation.mutateAsync({
         phoneNumber: normalized,
       });
-      await connect(response.data?.configId!)
+      await connect(response.data?.configId!);
     } catch (err: any) {
       setAlert({
         type: 'error',
@@ -110,7 +110,7 @@ export function ConnectNumberSection() {
       transition={{ duration: 0.5 }}
       className='w-full space-y-4'
     >
-      <div className='flex items-start justify-between px-4 sm:px-6 lg:px-8'>
+      <div className='w-full flex items-start justify-between px-4 sm:px-6 lg:px-8'>
         <div className='flex gap-0.5'>
           <Link href={'/'}>
             <div className='flex gap-2'>

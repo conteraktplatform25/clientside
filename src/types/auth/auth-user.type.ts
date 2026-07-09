@@ -73,6 +73,15 @@ export interface LoginResponse {
   user: AuthUserResponse;
 }
 
+export interface LogoutResponse {
+  message: string;
+  success: boolean;
+}
+
+export interface RefreshResponse {
+  success: boolean;
+}
+
 export interface SignupResponse {
   email: string;
   onboardingStep: TOnboardingStepStatus;
